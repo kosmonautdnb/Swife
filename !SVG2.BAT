@@ -1,0 +1,4 @@
+wcl386 /mf !SVG.CPP SRC\STL\GLIMPL.CPP
+del *.OBJ
+call !SVG.EXE TEST.SVG
+del *.EXE

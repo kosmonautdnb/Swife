@@ -1,0 +1,2 @@
+#define CGLTF_IMPLEMENTATION
+#include "STL\CGLTF.HPP"
