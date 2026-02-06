@@ -14,7 +14,8 @@ enum GAMEOBJECTTYPE {
   GAMEOBJECT_SKYBOX = 3,
   GAMEOBJECT_PATH = 4,
   GAMEOBJECT_BILLBOARD = 5,
-  GAMEOBJECT_COUNT = 6
+  GAMEOBJECT_SECTION = 6,
+  GAMEOBJECT_COUNT = 7
 };
 extern const char *gameObjectTypeNames[GAMEOBJECT_COUNT];
 
@@ -62,6 +63,10 @@ public:
     translation.set(0,0,0);
     scaling.set(1,1,1);
     rotation.set(0,0,0);
+    sectionOn = true;
+    sectionVisible = true;
+    visible1 = true;
+    visible2 = true;
   }
   ~GameObject();
   GameObject *setName(const char *name);
@@ -74,7 +79,12 @@ public:
   char name[NAMEMAX];
   char fileName[FILENAMEMAX];
   bool selected;
+  bool sectionOn;
+  bool sectionVisible;
+  bool visible1;
+  bool visible2;
   Array<GameObjectProperty> properties;
+  Array<unsigned int> textureIds;
   GameObjectProperty *addProperty(const char *name);
   GameObjectProperty *addProperty(GameObjectProperty *property);
   GameObject *addFloat(const char *name, float v);

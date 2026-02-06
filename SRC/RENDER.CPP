@@ -9,6 +9,8 @@
 #include "CONFIG.HPP"
 #include "MATRIX.HPP"
 #include "GIZMOS.HPP"
+#include "GAMEOBJ.HPP"
+#include "PAINT.HPP"
 #include "STL/KEYMTRIX.HPP"
 #include <math.h>
 
@@ -210,12 +212,40 @@ void blitFrameBuffer(bool tiny) {
   glBindTexture(GL_TEXTURE_2D,tiny ? renderTinyFrameBufferColor : renderBigFrameBufferColor);
   glBegin(GL_QUADS);
   glColor4f(1,1,1,1);
-  glTexCoord2f(tx1,ty0); glVertex3f(1,1,0);
-  glTexCoord2f(tx0,ty0); glVertex3f(-1,1,0);
-  glTexCoord2f(tx0,ty1); glVertex3f(-1,-1,0);
-  glTexCoord2f(tx1,ty1); glVertex3f(1,-1,0);
+  glTexCoord2f(tx1,ty0); glVertex3f(1,1,-0);
+  glTexCoord2f(tx0,ty0); glVertex3f(-1,1,-0);
+  glTexCoord2f(tx0,ty1); glVertex3f(-1,-1,-0);
+  glTexCoord2f(tx1,ty1); glVertex3f(1,-1,-0);
   glEnd();
   glDisable(GL_TEXTURE_2D);
+}
+
+void drawGameObject(GameObject *o) {
+  switch(o->type) {
+  case GAMEOBJECT_MESH: {} break;
+  case GAMEOBJECT_CAMERA: {} break;
+  case GAMEOBJECT_SKYBOX: {paintSkyBox(o);} break;
+  case GAMEOBJECT_PATH: {} break;
+  case GAMEOBJECT_BILLBOARD: {} break;
+  }
+}
+
+void drawSkyBox() {
+  for (int i = 0; i < gameObjects.size(); i++) {
+    GameObject *o = gameObjects[i];
+    if (!(o->visible1 && o->visible2)) continue;
+    if (!((o->layers==0)||(outlinerLayers==0)||(o->layers & outlinerLayers))) continue;
+    if (o->type == GAMEOBJECT_SKYBOX) drawGameObject(o);
+  }
+}
+
+void drawGameObjects() {
+  for (int i = 0; i < gameObjects.size(); i++) {
+    GameObject *o = gameObjects[i];
+    if (!(o->visible1 && o->visible2)) continue;
+    if (!((o->layers==0)||(outlinerLayers==0)||(o->layers & outlinerLayers))) continue;
+    if (o->type != GAMEOBJECT_SKYBOX) drawGameObject(o);
+  }
 }
 
 void drawScene() {
@@ -236,8 +266,11 @@ void drawScene() {
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
+    glDepthFunc(GL_LEQUAL);      
 
+    drawSkyBox();
     draw3DGrid();
+    drawGameObjects();
 
     glFastTexturing = f;
   }

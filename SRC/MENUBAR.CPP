@@ -67,6 +67,8 @@ void drawMenuBar() {
       if (ImGui::MenuItem("Add skybox")) dialogAddObject(true,GAMEOBJECT_SKYBOX);
       if (ImGui::MenuItem("Add path")) dialogAddObject(true,GAMEOBJECT_PATH);
       if (ImGui::MenuItem("Add billboard")) dialogAddObject(true,GAMEOBJECT_BILLBOARD);
+        ImGui::Separator();
+      if (ImGui::MenuItem("Add section")) dialogAddObject(true,GAMEOBJECT_SECTION);
       if (one) {
         ImGui::Separator();
         if (ImGui::MenuItem("Duplicate")) duplicate();
@@ -75,6 +77,11 @@ void drawMenuBar() {
       ImGui::Separator();
       if (ImGui::MenuItem("Select by property")) dialogSelectByProperty(true);
       if (ImGui::MenuItem("Select by layer")) dialogSelectByLayer(true);
+      if (ImGui::MenuItem("Select all invisible")) dialogSelectInvisible(true);
+      if (one) {
+        ImGui::Separator();
+        if (ImGui::MenuItem("View object textures")) dialogObjectTextures(true);
+      }
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Help")) {

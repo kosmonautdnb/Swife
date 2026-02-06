@@ -3,7 +3,7 @@
 
 HashMap<unsigned int, const char*> iconNameForGameObjectType;
 
-const char *gameObjectTypeNames[GAMEOBJECT_COUNT] = {"undefined", "mesh", "camera", "skybox", "path", "billboard"};
+const char *gameObjectTypeNames[GAMEOBJECT_COUNT] = {"undefined", "mesh", "camera", "skybox", "path", "billboard","section"};
 const char *propertyTypeNames[GAMEOBJECTPROPERTY_COUNT] = {"undefined", "bool", "int", "float", "float4", "text", "color"};
 
 void GameObjectProperty::setName(const char *name) {

@@ -122,7 +122,7 @@ void drawViewport() {
   ImGui::Begin("VIEWPORT", NULL, ImVec2(main_window_xres-outliner_width-properties_width,main_window_yres-menuBar_height-toolBar_height-timeLine_height-info_height),1.0,FROZENWINDOW);
   ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0.25,0.25,0.25,1));
   ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.5,0.5,0.5,1));
-  bool one = false; for (int i2 = 0; i2 < gameObjects.size(); i2++) if (gameObjects[i2]->selected) {one=true; break;}
+  bool one = false; for (int i2 = 0; i2 < gameObjects.size(); i2++) if (gameObjects[i2]->selected && gameObjects[i2]->type != GAMEOBJECT_SECTION) {one=true; break;}
   if (one && mode != MODE_UNDEFINED && mode != MODE_SELECT) {
     ImGui::Checkbox("Tool##VIEWPORTTOOLON",&toolOn);
     if (toolOn) {

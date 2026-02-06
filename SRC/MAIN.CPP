@@ -15,6 +15,7 @@
 #include "KEYMTRIX.HPP"
 #include "GIZMOS.HPP"
 #include "INFO.HPP"
+#include "PAINT.HPP"
 
 double lastTime;
 
@@ -25,6 +26,12 @@ bool initVideo() {
     main_window_yres = 200;
     return glVGA();
   }
+  glClearColor(0,0,0,1);
+  glClearDepth(1.f);
+  glClearStencil(0);
+  glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+  glRefresh();
+
   InitImGui(glFrameBufferWidth,glFrameBufferHeight);
   ImGui::GetStyle().WindowRounding = 0.f;
   glFastTexturing = true;
@@ -71,6 +78,7 @@ void renderLoop() {
 }
 
 void defaultInit() {
+  addGameObject("Skybox")->setType(GAMEOBJECT_SKYBOX);
   for (int i = 0; i < 20; i++) {
     addGameObject("Aha 1")->setType(rand()&1?GAMEOBJECT_MESH:GAMEOBJECT_CAMERA)->addFloat("abc",1)->addText("abc2a34","abc")->addBool("abc",true)->addInt("abc",127);
     addGameObject("Ehahaha");
@@ -82,6 +90,7 @@ void defaultInit() {
   initRendering();
   initGizmos();
   initDialogs();
+  initPaint();
 }
 
 int main(int argc, const char *argv[]) {

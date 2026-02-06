@@ -13,7 +13,9 @@ void dialogAbout(bool openIt);
 void dialogControls(bool openIt);
 void dialogSelectByProperty(bool openIt);
 void dialogSelectByLayer(bool openIt);
+void dialogSelectInvisible(bool openIt);
 void dialogColor(bool openIt, unsigned int *color);
+void dialogObjectTextures(bool openIt);
 
 void colorItem(const char *name, const char *id, unsigned int *color, bool colorPicker);
 

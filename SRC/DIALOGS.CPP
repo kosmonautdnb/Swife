@@ -5,10 +5,12 @@
 #include "GAMEOBJ.HPP"
 #include "OUTLINER.HPP"
 #include "RENDER.HPP"
+#include "TEXTURES.HPP"
 #include <math.h>
 
-#define DIALOGSTART(__name__) static bool openItNextTime = false;  if (openIt) {openItNextTime = true; return;}  if (openItNextTime) {openItNextTime = false; ImGui::OpenPopup(__name__); } ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0,0,0,1)); ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(1,1,1,1); if (ImGui::BeginPopupModal(__name__,NULL,ImGuiWindowFlags_AlwaysAutoResize)) { ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(0,0,0,1); ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.4,0.4,0.4,1));
+#define DIALOGSTART(__name__) static int keyboardFocusNew = 0; static bool openItNextTime = false;  if (openIt) {openItNextTime = true; keyboardFocusNew = 2; return;}  if (openItNextTime) {openItNextTime = false; ImGui::OpenPopup(__name__); } ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0,0,0,1)); ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(1,1,1,1); if (ImGui::BeginPopupModal(__name__,NULL,ImGuiWindowFlags_AlwaysAutoResize)) { ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(0,0,0,1); ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.4,0.4,0.4,1));
 #define DIALOGEND() ImGui::PopStyleColor(); ImGui::EndPopup();} ImGui::PopStyleColor();
+#define DIALOGKEYSHERE() {if (keyboardFocusNew>0) {keyboardFocusNew--;ImGui::SetKeyboardFocusHere();}}
 
 bool quit = false;
 
@@ -48,7 +50,7 @@ void dialogDeleteGameObjects(bool openIt) {
   }
   else if (first != NULL) ImGui::Text("Do you want to delete %d\"%s\"?\n\n",f,first->name);
   ImGui::Separator();
-  if (ImGui::Button("Yes##DIALOGDELETEOBJECTSYES")) {
+  if (ImGui::Button("Delete##DIALOGDELETEOBJECTSYES")) {
     for(int i = 0; i < gameObjects.size(); i++) 
       if (gameObjects[i]->selected) {
         deleteGameObject(i);
@@ -67,7 +69,7 @@ void dialogQuit(bool openIt) {
   DIALOGSTART("Quit?")
   ImGui::Text("Do you really want to quit (did you save)?\n\n");
   ImGui::Separator();
-  if (ImGui::Button("Yes##DIALOGQUITYES")) {
+  if (ImGui::Button("Quit##DIALOGQUITYES")) {
     quit = true;
     ImGui::CloseCurrentPopup();
   }
@@ -87,11 +89,14 @@ void dialogAddObject(bool openIt, unsigned int type) {
   } 
   DIALOGSTART(title)
   ImGui::PushItemWidth(7*NAMEMAX);
-  ImGui::Text("Name"); ImGui::SameLine(); ImGui::InputText("##DIALOGADDGAMEOBJECTNAME", name, NAMEMAX);
+  ImGui::Text("Name"); ImGui::SameLine(); DIALOGKEYSHERE(); ImGui::InputText("##DIALOGADDGAMEOBJECTNAME", name, NAMEMAX);
   if (ImGui::Button("Add##DIALOGADDGAMEOBJECTADD")) {
     GameObject *o = new GameObject();
     o->setName(name);
     o->setType(t);
+    o->selected = true;
+    o->layers = outlinerLayers;
+    for (int i = 0; i < gameObjects.size(); i++) gameObjects[i]->selected = false;
     gameObjects.insert(o,0);
     ImGui::CloseCurrentPopup();
   }
@@ -107,7 +112,7 @@ void dialogAddProperty(bool openIt, class GameObject *object) {
   static GameObject *o = NULL; if (object != NULL) {o = object;p = GameObjectProperty(); p.setName("");}
   DIALOGSTART("Add property")
   ImGui::PushItemWidth(7*NAMEMAX);
-  ImGui::Text("Name"); ImGui::SameLine(); ImGui::InputText("##DIALOGADDPROPERTYNAME", p.name, NAMEMAX);
+  ImGui::Text("Name"); ImGui::SameLine();  DIALOGKEYSHERE(); ImGui::InputText("##DIALOGADDPROPERTYNAME", p.name, NAMEMAX);
   ImGui::SameLine();
   if (ImGui::Combo("Type##DIALOGADDPROPERTYTYPE",(int*)&p.type, propertyTypeNames, GAMEOBJECTPROPERTY_COUNT)) p.clearValue();
   ImGui::PopItemWidth();
@@ -227,6 +232,30 @@ void dialogSelectByLayer(bool openIt) {
   DIALOGEND()
 }
 
+void dialogSelectInvisible(bool openIt) {
+  DIALOGSTART("Select all invisible")
+  int count = 0;
+  for (int i = 0; i < gameObjects.size(); i++) {
+    if (!gameObjects[i]->visible2) count++;
+  }
+  if (count == 0)
+    ImGui::Text("Currently all objects visible.");
+  else
+    ImGui::Text("Currently %d objects invisible.",count);
+  if (count != 0 && ImGui::Button("Select##DIALOGSELECTINVISIBLESELECT")) {
+    for (int i = 0; i < gameObjects.size(); i++) {
+      GameObject *o = gameObjects[i];
+      o->selected = !o->visible2;
+    }
+    ImGui::CloseCurrentPopup();
+  }
+  if (count != 0) ImGui::SameLine();
+  if (ImGui::Button("Close##DIALOGSELECTINVISIBLECLOSE")) {
+    ImGui::CloseCurrentPopup();
+  }
+  DIALOGEND()
+}
+
 void dialogAbout(bool openIt) {
   DIALOGSTART("About")
   ImGui::Text(
@@ -248,6 +277,7 @@ void dialogControls(bool openIt) {
     "Outliner:\n"
     "Left mouse click for select.\n"
     "Use shift for multiselect.\n"
+    "Use shift on sections for group select/deselect.\n"
     "Keyboard:\n"
     "You can alter the move speed in the toolbar.\n"
     "Use W to move forward.\n"
@@ -455,4 +485,25 @@ void colorItem(const char *name, const char *id, unsigned int *color, bool color
     *color = value;
   }
   ImGui::PopItemWidth();
+}
+
+void dialogObjectTextures(bool openIt) {
+  int buttonSize = main_window_xres/6;
+  double aspect2 = aspectRatio*main_window_yres/main_window_xres;
+  DIALOGSTART("Object textures")
+  ImGui::BeginChild("DIALOGOBJECTTEXTURESCHILD", ImVec2((buttonSize+16)*3,(buttonSize+16)*2));
+  for (int i = 0; i < gameObjects.size(); i++) {
+    if (gameObjects[i]->selected&&gameObjects[i]->type!=GAMEOBJECT_SECTION) {
+      ImGui::Text("%d\"%s\"",i,gameObjects[i]->name);
+      for (int j = 0; j < gameObjects[i]->textureIds.size(); j++) {
+        if ((j % 3)!=0) ImGui::SameLine();
+        textureButton((String("DIALOGOBJECTTEXTURESCHILDIMAGE")+String::fromInt(i)+"_"+String::fromInt(j)).c_str(),gameObjects[i]->textureIds[j],buttonSize,buttonSize*aspect2,true);
+      }
+    }
+  }
+  ImGui::EndChild();
+  if (ImGui::Button("Close##DIALOGOBJECTTEXTURESCLOSE")) {
+    ImGui::CloseCurrentPopup();
+  }
+  DIALOGEND()
 }

@@ -6,22 +6,27 @@
 #include "GAMEOBJ.HPP"
 #include "SVG.HPP"
 #include "DIALOGS.HPP"
+#include "RENDER.HPP"
+#include "PAINT.HPP"
+#include "TEXTURES.HPP"
 
 int properties_width = 160;
 char properties_filter[NAMEMAX] = {0};
 
-void vectorInput(const char *name,Vector *v, const char *dcl) {
+bool vectorInput(const char *name,Vector *v, const char *dcl) {
+  bool ret = false;
   ImGui::Text("%s",name);
   ImGui::SameLine();
   ImGui::PushItemWidth(40);
   char dcl2[32];
   float k;
-  sprintf(dcl2,"%sx",dcl); k = v->x; ImGui::InputFloat(dcl2,&k); v->x = k;
+  sprintf(dcl2,"%sx",dcl); k = v->x; if (ImGui::InputFloat(dcl2,&k)) {ret = true;} v->x = k; 
   ImGui::SameLine();
-  sprintf(dcl2,"%sy",dcl); k = v->y; ImGui::InputFloat(dcl2,&k); v->y = k;
+  sprintf(dcl2,"%sy",dcl); k = v->y; if (ImGui::InputFloat(dcl2,&k)) {ret = true;} v->y = k; 
   ImGui::SameLine();                                                                                
-  sprintf(dcl2,"%sz",dcl); k = v->z; ImGui::InputFloat(dcl2,&k); v->z = k;
+  sprintf(dcl2,"%sz",dcl); k = v->z; if (ImGui::InputFloat(dcl2,&k)) {ret = true;} v->z = k; 
   ImGui::PopItemWidth();
+  return ret;
 }
 
 bool propsButton(const char *name,int k) {
@@ -80,16 +85,42 @@ bool editProperty(GameObjectProperty *p, int i) {
  return ret;
 }
 
+void showSkyBoxProperties(GameObject *object) {
+  ImGui::Text("Transform");
+  Vector rotation = object->rotation;
+  if (vectorInput("R.",&rotation,"##SKYBOXPROPROTATION")) {renderingUpdated = true;}
+  object->rotation = rotation;
+  if (object->textureIds.size()==6) {
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0));
+    int sw = 40/aspectRatio*main_window_xres/main_window_yres;
+    int sh = 40;
+    ImGui::InvisibleButton("##SKYBOXPROPROTATIONT0",ImVec2(sw,sh)); ImGui::SameLine();
+    textureButton("##SKYBOXPROPROTATIONT1",object->textureIds[4],sw,sh,false);
+    for (int i = 0; i < 4; i++) {
+      if (i != 0) ImGui::SameLine();
+      textureButton(("##SKYBOXPROPROTATIONT"+String::fromInt(i+2)).c_str(),object->textureIds[i],sw,sh,false);
+    }
+    ImGui::InvisibleButton("##SKYBOXPROPROTATIONT6",ImVec2(sw,sh)); ImGui::SameLine();
+    textureButton("##SKYBOXPROPROTATIONT7",object->textureIds[5],sw,sh,false);
+    ImGui::PopStyleVar();
+  }
+  if (propsButton("Load##SKYBOXPROPLOAD",strlen("Load")+4)) {
+    loadSkyBox(object);
+    renderingUpdated = true;
+  }
+  ImGui::Separator();
+}
+
 void showMeshProperties(GameObject *object) {
   ImGui::Text("Transform");
   Vector translation = object->translation;
   Vector scaling = object->scaling;
   Vector rotation = object->rotation;
-  vectorInput("P.",&translation,"##PROPTRANSLATION");
-  vectorInput("S.",&scaling,"##PROPSCALING");
-  vectorInput("R.",&rotation,"##PROPROTATION");
-  object->translation = translation;
-  object->scaling = scaling;
+  if (vectorInput("P.",&translation,"##PROPTRANSLATION")) {renderingUpdated = true;}
+  if (vectorInput("S.",&scaling,"##PROPSCALING")) {renderingUpdated = true;}
+  if (vectorInput("R.",&rotation,"##PROPROTATION")) {renderingUpdated = true;}
+  object->translation = translation;  
+  object->scaling = scaling;  
   object->rotation = rotation;
   ImGui::Separator();
   ImGui::Text("Binding");
@@ -99,7 +130,7 @@ void showMeshProperties(GameObject *object) {
   if (strlen(fname)==0) fname = NONAME;
   ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.9,0.9,0.9,1));
   ImGui::Text("File"); ImGui::SameLine();ImGui::Button((String(fname)+String("##PROPFILENAME")).c_str());
-  if (propsButton("Reimport##PROPSREIMPORT",strlen("Reimport")+2)) {
+  if (propsButton("Reimport##PROPSREIMPORT",strlen("Reimport")+4)) {
   }
   ImGui::PopStyleColor();
   ImGui::Separator();
@@ -107,22 +138,31 @@ void showMeshProperties(GameObject *object) {
 
 void drawProperties() {
   int count = 0;
+  int count2 = 0;
   int layerMask = 0;
   GameObject *first = NULL;
+  GameObject *first2 = NULL;
   for(int i = 0; i < gameObjects.size(); i++) 
     if (gameObjects[i]->selected) {
-      count++;
-      if (count == 1) first = gameObjects[i];
+      if (gameObjects[i]->type != GAMEOBJECT_SECTION) 
+        count++;
+      else
+        count2++;
+      if (count == 1 && first == NULL) first = gameObjects[i];
+      if (count2 == 1 && first2 == NULL) first2 = gameObjects[i];
       layerMask |= gameObjects[i]->layers;
     }
 
   ImGui::SetNextWindowPos(ImVec2(main_window_xres-properties_width,menuBar_height));
   ImGui::Begin("PROPERTIES", NULL, ImVec2(properties_width,main_window_yres-menuBar_height),1.0,FROZENWINDOW);
-  ImGui::Text("Properties");
+  if (!(strlen(selectedGroupName)!=0&&count2==0&&count==1)) ImGui::Text("Properties"); else ImGui::Text("%s",selectedGroupName);
   if (first != NULL && count == 1) {
     const char *icon = iconNameForGameObjectType[first->type]; SVG *svg = NULL; if (svgs.has(icon)) svg = &svgs[icon];
     if (svg != NULL) {ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h)); ImGui::SameLine();}
     ImGui::InputText("##PROPNAME",first->name,NAMEMAX);
+  }
+  if (first2 != NULL && count2 == 1 && count == 0) {
+    ImGui::InputText("##PROPNAME",first2->name,NAMEMAX); // section
   }
   if (count > 1) ImGui::Text("Multiple selecteds");
   ImGui::Separator();
@@ -138,15 +178,20 @@ void drawProperties() {
     ImGui::Separator();
     ImGui::BeginChild("PROPERTIESPROPERTIES",ImVec2(0,0));
     if (count == 1) {
-      showMeshProperties(first);
+      switch(first->type) {
+      case GAMEOBJECT_SKYBOX: {showSkyBoxProperties(first);} break;
+      default:
+        showMeshProperties(first);
+      }
     }
     ImGui::Text("Properties");
     SVG *svg = &svgs["search"];ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h));ImGui::SameLine();ImGui::InputText("##PROPERTIESFILTER",properties_filter,NAMEMAX);
     ImGui::Separator();
     String filter = toLower(String(properties_filter));
     for(int i2 = 0; i2 < gameObjects.size(); i2++) {
-      if (gameObjects[i2]->selected) {
+      if (gameObjects[i2]->selected && gameObjects[i2]->type != GAMEOBJECT_SECTION) {
         if (count>1) ImGui::Text("%d\"%s\"",i2,gameObjects[i2]->name);
+        if (filter.empty()||(String("visible").findFirst(filter)>=0)) if (ImGui::Checkbox((String("Visible##PROPERTIESGAMEOBJECTVISIBLE")+String::fromInt(i2)).c_str(),&gameObjects[i2]->visible2)) {renderingUpdated = true;}
         for (int j = 0; j < gameObjects[i2]->properties.size(); j++) {
           if (!(filter.empty()||(toLower(String(gameObjects[i2]->properties[j].name)).findFirst(filter)>=0))) continue;
           if (editProperty(&gameObjects[i2]->properties[j], i2 + j * 32768)) {
