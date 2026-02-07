@@ -15,7 +15,8 @@ enum GAMEOBJECTTYPE {
   GAMEOBJECT_PATH = 4,
   GAMEOBJECT_BILLBOARD = 5,
   GAMEOBJECT_SECTION = 6,
-  GAMEOBJECT_COUNT = 7
+  GAMEOBJECT_TRIGGER = 7,
+  GAMEOBJECT_COUNT = 8
 };
 extern const char *gameObjectTypeNames[GAMEOBJECT_COUNT];
 
@@ -63,6 +64,7 @@ public:
     translation.set(0,0,0);
     scaling.set(1,1,1);
     rotation.set(0,0,0);
+    color = 0xFFFFFFFF;
     sectionOn = true;
     sectionVisible = true;
     visible1 = true;
@@ -76,6 +78,7 @@ public:
   Vector translation;
   Vector scaling;
   Vector rotation;
+  unsigned int color;
   char name[NAMEMAX];
   char fileName[FILENAMEMAX];
   bool selected;

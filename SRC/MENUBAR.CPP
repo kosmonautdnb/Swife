@@ -67,7 +67,8 @@ void drawMenuBar() {
       if (ImGui::MenuItem("Add skybox")) dialogAddObject(true,GAMEOBJECT_SKYBOX);
       if (ImGui::MenuItem("Add path")) dialogAddObject(true,GAMEOBJECT_PATH);
       if (ImGui::MenuItem("Add billboard")) dialogAddObject(true,GAMEOBJECT_BILLBOARD);
-        ImGui::Separator();
+      if (ImGui::MenuItem("Add trigger")) dialogAddObject(true,GAMEOBJECT_TRIGGER);
+      ImGui::Separator();
       if (ImGui::MenuItem("Add section")) dialogAddObject(true,GAMEOBJECT_SECTION);
       if (one) {
         ImGui::Separator();

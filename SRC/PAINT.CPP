@@ -8,6 +8,7 @@
 #include "STL/MATRIX.HPP"
 #include "STL/IMAGE.HPP"
 #include "TEXTURES.HPP"
+#include "GIZMOS.HPP"
 
 #define SKYBOX_LEFT 0
 #define SKYBOX_FRONT 1
@@ -72,4 +73,83 @@ void paintSkyBox(class GameObject *o) {
   drawSkyboxQuad(o->textureIds[SKYBOX_BACK], size,0,cameraPosition,back,r,Vector(0,0,size));
   drawSkyboxQuad(o->textureIds[SKYBOX_TOP], size,0,cameraPosition,top,r,Vector(0,size,0));
   drawSkyboxQuad(o->textureIds[SKYBOX_BOTTOM], size,0,cameraPosition,bottom,r,Vector(0,-size,0));
+}
+
+void paintTrigger(class GameObject *o) {
+
+  glPushMatrix();
+
+  Vector pos = o->translation;
+  Vector scal = o->scaling;
+  Vector rot = o->rotation;
+  Quaternion r;
+  double w = PI/180.0;
+  r.yawPitchRoll(rot.x*w,rot.y*w,rot.z*w);
+  r = normalize(r);
+  glTranslatef(pos.x,pos.y,pos.z);
+  glMultMatrixd(r.rotationMatrix().m);
+  glScalef(scal.x,scal.y,scal.z);
+  glEnable(GL_TEXTURE_2D);
+  glEnable(GL_ALPHA_TEST);
+  glAlphaFunc(GL_GREATER,0);
+  glBindTexture(GL_TEXTURE_2D,gridTexture);
+
+  for (int i = 0; i < 2; i++) {
+    unsigned int col = o->color;
+    if (i == 1) col = ((col>>1)&0x007f7f7f)|(col & 0xff000000);
+    glFrontFace(i & 1 ? GL_CW : GL_CCW);
+    glBegin(GL_QUADS);
+    glColor4f((col & 255)/255.f,((col>>8) & 255)/255.f,((col>>16) & 255)/255.f,((col>>24) & 255)/255.f);
+    glNormal3f(0,0,1);
+    float tx,ty;
+    float ta = 1;
+    tx = ta * scal.x;
+    ty = ta * scal.y;
+    glTexCoord2f(0,ty); glVertex3f(-1,-1,+1);
+    glTexCoord2f(tx,ty);  glVertex3f(+1,-1,+1);
+    glTexCoord2f(tx,0);  glVertex3f(+1,+1,+1);
+    glTexCoord2f(0,0);  glVertex3f(-1,+1,+1);
+    glNormal3f(0,1,0);
+    tx = ta * scal.z;
+    ty = ta * scal.x;
+    glTexCoord2f(tx,ty);  glVertex3f(-1,+1,+1);
+    glTexCoord2f(tx,0);  glVertex3f(+1,+1,+1);
+    glTexCoord2f(0,0);  glVertex3f(+1,+1,-1);
+    glTexCoord2f(0,ty);  glVertex3f(-1,+1,-1);
+    glNormal3f(1,0,0);
+    tx = ta * scal.z;
+    ty = ta * scal.y;
+    glTexCoord2f(tx,ty);   glVertex3f(+1,-1,-1);
+    glTexCoord2f(tx,0);    glVertex3f(+1,+1,-1);
+    glTexCoord2f(0,0);   glVertex3f(+1,+1,+1);
+    glTexCoord2f(0,ty);  glVertex3f(+1,-1,+1);
+    glNormal3f(0,0,-1);
+    tx = ta * scal.x;
+    ty = ta * scal.y;
+    glTexCoord2f(tx,0);    glVertex3f(-1,+1,-1);
+    glTexCoord2f(0,0);   glVertex3f(+1,+1,-1);
+    glTexCoord2f(0,ty);  glVertex3f(+1,-1,-1);
+    glTexCoord2f(tx,ty);   glVertex3f(-1,-1,-1);
+    glNormal3f(0,-1,0);
+    tx = ta * scal.z;
+    ty = ta * scal.x;
+    glTexCoord2f(0,0);  glVertex3f(-1,-1,-1);
+    glTexCoord2f(0,ty);  glVertex3f(+1,-1,-1);
+    glTexCoord2f(tx,ty);  glVertex3f(+1,-1,+1);
+    glTexCoord2f(tx,0);  glVertex3f(-1,-1,+1);
+    glNormal3f(-1,0,0);
+    tx = ta * scal.z;
+    ty = ta * scal.y;
+    glTexCoord2f(tx,ty);   glVertex3f(-1,-1,+1);
+    glTexCoord2f(tx,0);   glVertex3f(-1,+1,+1);
+    glTexCoord2f(0,0);  glVertex3f(-1,+1,-1);
+    glTexCoord2f(0,ty);  glVertex3f(-1,-1,-1);
+    glEnd();
+    glFrontFace(GL_CCW);
+  }
+
+  glDisable(GL_ALPHA_TEST);
+  glDisable(GL_TEXTURE_2D);
+
+  glPopMatrix();
 }

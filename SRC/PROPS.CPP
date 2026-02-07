@@ -122,6 +122,7 @@ void showMeshProperties(GameObject *object) {
   object->translation = translation;  
   object->scaling = scaling;  
   object->rotation = rotation;
+  colorItem("C.","##PROPCOLOR",&object->color, true);
   ImGui::Separator();
   ImGui::Text("Binding");
   const char *fname = object->fileName;

@@ -79,6 +79,7 @@ void renderLoop() {
 
 void defaultInit() {
   addGameObject("Skybox")->setType(GAMEOBJECT_SKYBOX);
+  addGameObject("Trigger")->setType(GAMEOBJECT_TRIGGER);
   for (int i = 0; i < 20; i++) {
     addGameObject("Aha 1")->setType(rand()&1?GAMEOBJECT_MESH:GAMEOBJECT_CAMERA)->addFloat("abc",1)->addText("abc2a34","abc")->addBool("abc",true)->addInt("abc",127);
     addGameObject("Ehahaha");

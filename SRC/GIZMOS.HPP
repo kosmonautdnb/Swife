@@ -6,6 +6,7 @@ extern double XGRIDSIZE;
 extern double ZGRIDSIZE;
 extern double GRIDSTEPS;
 extern unsigned int gridColor;
+extern unsigned int gridTexture;
 
 void initGizmos();
 void draw3DGrid();

@@ -24,12 +24,12 @@ void Camera::wasdControls() {
   double mouseRotationSpeed = 0.01;
   double mouseWalkSpeed = 0.01;
   Quaternion q = normalize(rotation);
-  if (isKeyPressed(SCANCODE_W)) {position += q.rotateVector(Vector(0,0,-1))*walkSpeed*timeDelta; renderingUpdated=true;}
-  if (isKeyPressed(SCANCODE_S)) {position += q.rotateVector(Vector(0,0,1))*walkSpeed*timeDelta; renderingUpdated=true;}
-  if (isKeyPressed(SCANCODE_D)) {position += q.rotateVector(Vector(1,0,0))*walkSpeed*timeDelta; renderingUpdated=true;}
-  if (isKeyPressed(SCANCODE_A)) {position += q.rotateVector(Vector(-1,0,0))*walkSpeed*timeDelta; renderingUpdated=true;}
-  if (isKeyPressed(SCANCODE_Q)) {position += q.rotateVector(Vector(0,-1,0))*walkSpeed*timeDelta; renderingUpdated=true;}
-  if (isKeyPressed(SCANCODE_E)) {position += q.rotateVector(Vector(0,1,0))*walkSpeed*timeDelta; renderingUpdated=true;}
+  if (isKeyPressed(SCANCODE_W)) {position += q.rotateVector(Vector(0,0,-1))*walkSpeed*timeDelta; renderingUpdated2=true;}
+  if (isKeyPressed(SCANCODE_S)) {position += q.rotateVector(Vector(0,0,1))*walkSpeed*timeDelta; renderingUpdated2=true;}
+  if (isKeyPressed(SCANCODE_D)) {position += q.rotateVector(Vector(1,0,0))*walkSpeed*timeDelta; renderingUpdated2=true;}
+  if (isKeyPressed(SCANCODE_A)) {position += q.rotateVector(Vector(-1,0,0))*walkSpeed*timeDelta; renderingUpdated2=true;}
+  if (isKeyPressed(SCANCODE_Q)) {position += q.rotateVector(Vector(0,-1,0))*walkSpeed*timeDelta; renderingUpdated2=true;}
+  if (isKeyPressed(SCANCODE_E)) {position += q.rotateVector(Vector(0,1,0))*walkSpeed*timeDelta; renderingUpdated2=true;}
 
   GLboolean alt,shift,ctrl;
   glSpecialKeys(&shift, &ctrl, &alt);
@@ -39,7 +39,7 @@ void Camera::wasdControls() {
       Vector positionBefore = position;
       position += q.rotateVector(Vector(1,0,0))*walkSpeed*mouseWalkSpeed*mouseDX;
       position += q.rotateVector(Vector(0,-1,0))*walkSpeed*mouseWalkSpeed*mouseDY;
-      if (position != positionBefore) renderingUpdated = true;
+      if (position != positionBefore) renderingUpdated2 = true;
     } else {
       Quaternion rotationBefore = rotation;
       Quaternion cameraRotation = rotation;
@@ -54,7 +54,7 @@ void Camera::wasdControls() {
       }
       cameraRotation = normalize(cameraRotation);
       rotation = cameraRotation;
-      if (rotation != rotationBefore) {ortho = false; renderingUpdated=true;}
+      if (rotation != rotationBefore) {ortho = false; renderingUpdated2=true;}
     }
   }
 }
@@ -66,6 +66,7 @@ void updateCamera() {
 unsigned int clearColor = 0xff604020;
 
 bool renderingUpdated = false;
+bool renderingUpdated2 = false;
 
 void Camera::applyToGL() {
   glMatrixMode(GL_PROJECTION);
@@ -221,13 +222,20 @@ void blitFrameBuffer(bool tiny) {
 }
 
 void drawGameObject(GameObject *o) {
+  if (o->selected) {
+    glStencilFunc(GL_ALWAYS,0x01,0xffffffff);
+    glStencilOp(GL_REPLACE,GL_KEEP,GL_REPLACE);
+    glEnable(GL_STENCIL_TEST);
+  }
   switch(o->type) {
   case GAMEOBJECT_MESH: {} break;
   case GAMEOBJECT_CAMERA: {} break;
   case GAMEOBJECT_SKYBOX: {paintSkyBox(o);} break;
   case GAMEOBJECT_PATH: {} break;
   case GAMEOBJECT_BILLBOARD: {} break;
+  case GAMEOBJECT_TRIGGER: {paintTrigger(o);} break;
   }
+  glDisable(GL_STENCIL_TEST);
 }
 
 void drawSkyBox() {
@@ -248,9 +256,45 @@ void drawGameObjects() {
   }
 }
 
+void drawSelecting(bool tiny) {
+  glStencilFunc(GL_EQUAL,0x01,0xffffffff);
+  glStencilOp(GL_KEEP,GL_KEEP,GL_KEEP);
+  glEnable(GL_STENCIL_TEST);
+  int tx = tiny ? renderTinyDividerX : 1;
+  int ty = tiny ? renderTinyDividerY : 1;
+  int x0 = (outliner_width)/tx;
+  int x1 = (main_window_xres-properties_width)/tx;
+  int y0 = (menuBar_height + toolBar_height)/ty;
+  int y1 = (main_window_yres-timeLine_height)/ty;
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+  glBegin(GL_QUADS);
+  glColor4f(1,0,0,0.25);
+  glVertex3f(1,1,0);
+  glVertex3f(-1,1,0);
+  glVertex3f(-1,-1,0);
+  glVertex3f(1,-1,0);
+  glEnd();
+  glPopMatrix();
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glMatrixMode(GL_MODELVIEW);
+  glDisable(GL_STENCIL_TEST);
+  glDisable(GL_BLEND);
+}
+
 void drawScene() {
 
-  static unsigned int k = 0; if (renderingUpdated) {renderingUpdated = false; k = 0;} k++;
+  static unsigned int k = 0;
+  if (renderingUpdated2) {renderingUpdated2 = false; k = 0;} 
+  if (renderingUpdated) {renderingUpdated = false; k = 1;} 
+  k++;
 
   bool tiny = k == 1;
   if (k < 3) {
@@ -259,8 +303,9 @@ void drawScene() {
     enableFrameBuffer(tiny);
   
     glClearDepth(1.f);
+    glClearStencil(0);
     glClearColor((clearColor & 255)/255.0,((clearColor>>8) & 255)/255.0,((clearColor>>16) & 255)/255.0,((clearColor>>24) & 255)/255.0);
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
   
     cameras[currentCamera].applyToGL();
 
@@ -271,6 +316,7 @@ void drawScene() {
     drawSkyBox();
     draw3DGrid();
     drawGameObjects();
+    drawSelecting(tiny);
 
     glFastTexturing = f;
   }

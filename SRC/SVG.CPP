@@ -92,6 +92,7 @@ void loadBaseSVGs() {
   ADDICON("path","ROTATE.SVG");
   ADDICON("skybox","SCALE.SVG");
   ADDICON("billboard","PLUS.SVG");
+  ADDICON("trigger","SELECT.SVG");
   ADDICON("appicon","3D.SVG");
   colorIcon("appicon",0x00ffffff);
 }

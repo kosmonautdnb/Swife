@@ -39,7 +39,9 @@ extern Camera cameras[CAMERA_COUNT];
 extern int currentCamera;
 
 extern unsigned int clearColor;
+
 extern bool renderingUpdated;
+extern bool renderingUpdated2; // for continuos / animation
 
 void updateCamera();
 

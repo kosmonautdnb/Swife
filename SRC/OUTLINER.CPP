@@ -7,6 +7,7 @@
 #include "SVG.HPP"
 #include "MENUBAR.HPP"
 #include "DIALOGS.HPP"
+#include "RENDER.HPP"
 
 int outliner_width = 160;
 char outliner_filter[NAMEMAX] = {0};
@@ -128,7 +129,6 @@ void outlinerMoveDown() {
 }
 
 void outlinerCompact() {
-  if (!gameObjects.empty() && gameObjects[0]->selected) return;
   int firstIndex = -1;
   for (int i2 = 0; i2 < gameObjects.size(); i2++) {
     if (gameObjects[i2]->selected) {firstIndex = i2; break;}
@@ -185,12 +185,12 @@ void drawOutliner() {
   sectionVisible = true;
   sectionSelecting = false;
   sectionSelectingType = false;
-  int selecteds = 0;
   int visibles = 0;
   char groupName[NAMEMAX];
   sprintf(selectedGroupName,"%s","");
   sprintf(groupName,"%s","");
   for (int i = 0; i < gameObjects.size(); i++) {
+    bool selectBefore = gameObjects[i]->selected;
     gameObjects[i]->visible1 = false;
     if (markAllWithSelecty) gameObjects[i]->selected = false;
     if (gameObjects[i]->type == GAMEOBJECT_SECTION && sectionSelecting) {sectionSelecting = false;}
@@ -206,11 +206,15 @@ void drawOutliner() {
         objectSelect(i);
       }
     }
-    if (gameObjects[i]->selected) selecteds++;
     if (gameObjects[i]->type == GAMEOBJECT_SECTION) 
       sprintf(groupName,"%s",gameObjects[i]->name);
     else if (gameObjects[i]->selected && (strlen(selectedGroupName)==0)) sprintf(selectedGroupName,"%s",groupName);
+    if (selectBefore != gameObjects[i]->selected) renderingUpdated = true;
   }
+  int selecteds = 0;
+  for (int i3 = 0; i3 < gameObjects.size(); i3++)
+    if (gameObjects[i3]->selected) selecteds++;
+
   ImGui::EndChild();
   String k;
   if (selecteds>0) k += String("S:")+String::fromInt(selecteds) + " ";
