@@ -105,7 +105,7 @@ void addHitTestCube(class GameObject *o, int toolId, const Vector &siz) {
   }
 }
 
-Hit *getNearestHit() {
+Hit *getNearestHit(unsigned int *counter, double lastDepth) {
   Hit *ret = NULL;
   double currentHitDepth = 0;
   for (int i = 0; i < hits.size(); i++) {
@@ -113,6 +113,25 @@ Hit *getNearestHit() {
       currentHitDepth = hits[i].depth;
       ret = &hits[i];
     }
+  }
+  if (currentHitDepth != lastDepth) *counter = 0;
+  if (ret != NULL) {
+    int count = 0;
+    for (int i2 = 0; i2 < hits.size(); i2++) {
+      if (hits[i2].depth == currentHitDepth) {
+        count++;
+      }
+    }
+    int number = 0;
+    for (int i3 = 0; i3 < hits.size(); i3++) {
+      if (hits[i3].depth == currentHitDepth) {
+        if (number == (*counter % count)) 
+          ret = &hits[i3];
+        number++;
+      }
+    }
+  } else {
+    *counter = 0;
   }
   return ret;
 }

@@ -290,6 +290,13 @@ void drawSelecting(bool tiny) {
   glDisable(GL_BLEND);
 }
 
+unsigned int selectionCounter = 0;
+int renderMouseClicksOff = 0;
+
+void disableRenderMouseClicks() {
+  renderMouseClicksOff = 2;
+}
+
 void handleHitTest() {
   GLboolean shift,ctrl,alt;
   glSpecialKeys(&shift,&ctrl,&alt);
@@ -306,7 +313,9 @@ void handleHitTest() {
 
   switch(mode) {
     case MODE_SELECT: {
-      Hit *h = getNearestHit();
+      static double lastDepth = 0;
+      Hit *h = getNearestHit(&selectionCounter,lastDepth); selectionCounter++;
+      lastDepth = h->depth;
       if (h != NULL) {
         if (shift) h->object->selected = true;
         else
@@ -474,14 +483,17 @@ void handleTool() {
 }
 
 void drawScene() {
+  bool leftClicked = ImGui::IsMouseClicked(0);
+  bool leftDown = ImGui::IsMouseDown(0);
+  if (renderMouseClicksOff>0) {renderMouseClicksOff--; leftClicked = false; leftDown = false;}
 
   static unsigned int k = 0;
-  bool hitTestOn = (mode == MODE_SELECT) && ImGui::IsMouseClicked(0);
+  bool hitTestOn = (mode == MODE_SELECT) && leftClicked;
 
   static bool lastMouseButtonLeft = false;
-  startTool = (!lastMouseButtonLeft) && ImGui::IsMouseDown(0);
-  bool stopTool = lastMouseButtonLeft && (!ImGui::IsMouseDown(0));
-  lastMouseButtonLeft = ImGui::IsMouseDown(0);
+  startTool = (!lastMouseButtonLeft) && leftDown;
+  bool stopTool = lastMouseButtonLeft && (!leftDown);
+  lastMouseButtonLeft = leftDown;
   hitTestOn = hitTestOn || startTool;
   if (activatedTool != HITTESTTOOL_NONE && stopTool) {
     activatedTool = HITTESTTOOL_NONE;

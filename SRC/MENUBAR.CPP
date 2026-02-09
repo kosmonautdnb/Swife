@@ -34,6 +34,7 @@ static String timeDescString() {
 }
 
 void drawMenuBar() {
+  bool on = false;
   bool one = false; for (int i2 = 0; i2 < gameObjects.size(); i2++) if (gameObjects[i2]->selected) {one=true; break;}
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10,1));
   ImGui::PushStyleColor(ImGuiCol_MenuBarBg,ImVec4(0.f,0.f,0.f,1.f));
@@ -60,48 +61,48 @@ void drawMenuBar() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("View")) {
-      if (ImGui::MenuItem("Perspective")) {Camera *c = &cameras[currentCamera]; c->ortho = false; renderingUpdated = true;}
-      if (ImGui::MenuItem("Ortho left")) setOrthoLookTo(1,0,0);
-      if (ImGui::MenuItem("Ortho right")) setOrthoLookTo(-1,0,0);
-      if (ImGui::MenuItem("Ortho top")) setOrthoLookTo(0,-1,0);
-      if (ImGui::MenuItem("Ortho bottom")) setOrthoLookTo(0,1,0);
-      if (ImGui::MenuItem("Ortho front")) setOrthoLookTo(0,0,-1);
-      if (ImGui::MenuItem("Ortho back")) setOrthoLookTo(0,0,1);
+      if (ImGui::MenuItem("Perspective")) {on = true; Camera *c = &cameras[currentCamera]; c->ortho = false; renderingUpdated = true;}
+      if (ImGui::MenuItem("Ortho left")) {on = true; setOrthoLookTo(1,0,0);}
+      if (ImGui::MenuItem("Ortho right")) {on = true; setOrthoLookTo(-1,0,0);}
+      if (ImGui::MenuItem("Ortho top")) {on = true; setOrthoLookTo(0,-1,0);}
+      if (ImGui::MenuItem("Ortho bottom")) {on = true; setOrthoLookTo(0,1,0);}
+      if (ImGui::MenuItem("Ortho front")) {on = true; setOrthoLookTo(0,0,-1);}
+      if (ImGui::MenuItem("Ortho back")) {on = true; setOrthoLookTo(0,0,1);}
       ImGui::Separator();
       bool selected = false;
-      selected = currentCamera == CAMERA_USER; if (ImGui::MenuItem("User camera","",&selected)) {currentCamera = CAMERA_USER; renderingUpdated = true;}
-      selected = currentCamera == CAMERA_CAMERA1; if (ImGui::MenuItem("Camera 1","",&selected)) {currentCamera = CAMERA_CAMERA1; renderingUpdated = true;}
-      selected = currentCamera == CAMERA_CAMERA2; if (ImGui::MenuItem("Camera 2","",&selected)) {currentCamera = CAMERA_CAMERA2; renderingUpdated = true;}
+      selected = currentCamera == CAMERA_USER; if (ImGui::MenuItem("User camera","",&selected)) {on = true; currentCamera = CAMERA_USER; renderingUpdated = true;}
+      selected = currentCamera == CAMERA_CAMERA1; if (ImGui::MenuItem("Camera 1","",&selected)) {on = true; currentCamera = CAMERA_CAMERA1; renderingUpdated = true;}
+      selected = currentCamera == CAMERA_CAMERA2; if (ImGui::MenuItem("Camera 2","",&selected)) {on = true; currentCamera = CAMERA_CAMERA2; renderingUpdated = true;}
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Object")) {
-      if (ImGui::MenuItem("Add mesh")) dialogAddObject(true,GAMEOBJECT_MESH);
-      if (ImGui::MenuItem("Add camera")) dialogAddObject(true,GAMEOBJECT_CAMERA);
-      if (ImGui::MenuItem("Add skybox")) dialogAddObject(true,GAMEOBJECT_SKYBOX);
-      if (ImGui::MenuItem("Add path")) dialogAddObject(true,GAMEOBJECT_PATH);
-      if (ImGui::MenuItem("Add billboard")) dialogAddObject(true,GAMEOBJECT_BILLBOARD);
-      if (ImGui::MenuItem("Add trigger")) dialogAddObject(true,GAMEOBJECT_TRIGGER);
+      if (ImGui::MenuItem("Add mesh")) {on = true; dialogAddObject(true,GAMEOBJECT_MESH);}
+      if (ImGui::MenuItem("Add camera")) {on = true; dialogAddObject(true,GAMEOBJECT_CAMERA);}
+      if (ImGui::MenuItem("Add skybox")) {on = true; dialogAddObject(true,GAMEOBJECT_SKYBOX);}
+      if (ImGui::MenuItem("Add path")) {on = true; dialogAddObject(true,GAMEOBJECT_PATH);}
+      if (ImGui::MenuItem("Add billboard")) {on = true; dialogAddObject(true,GAMEOBJECT_BILLBOARD);}
+      if (ImGui::MenuItem("Add trigger")) {on = true; dialogAddObject(true,GAMEOBJECT_TRIGGER);}
       ImGui::Separator();
-      if (ImGui::MenuItem("Add section")) dialogAddObject(true,GAMEOBJECT_SECTION);
+      if (ImGui::MenuItem("Add section")) {on = true; dialogAddObject(true,GAMEOBJECT_SECTION);}
       if (one) {
         ImGui::Separator();
-        if (ImGui::MenuItem("Duplicate")) duplicate();
-        if (ImGui::MenuItem("Delete")) dialogDeleteGameObjects(true);
+        if (ImGui::MenuItem("Duplicate")) {on = true; duplicate();}
+        if (ImGui::MenuItem("Delete")) {on = true; dialogDeleteGameObjects(true);}
       }
       ImGui::Separator();
-      if (ImGui::MenuItem("Select by property")) dialogSelectByProperty(true);
-      if (ImGui::MenuItem("Select by layer")) dialogSelectByLayer(true);
-      if (ImGui::MenuItem("Select all invisible")) dialogSelectInvisible(true);
+      if (ImGui::MenuItem("Select by property")) {on = true; dialogSelectByProperty(true);}
+      if (ImGui::MenuItem("Select by layer")) {on = true; dialogSelectByLayer(true);}
+      if (ImGui::MenuItem("Select all invisible")) {on = true; dialogSelectInvisible(true);}
       if (one) {
         ImGui::Separator();
-        if (ImGui::MenuItem("View object textures")) dialogObjectTextures(true);
-        if (ImGui::MenuItem("Center selection to view")) centerSelection();
+        if (ImGui::MenuItem("View object textures")) {on = true; dialogObjectTextures(true);}
+        if (ImGui::MenuItem("Center selection to view")) {on = true; centerSelection();}
       }
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Help")) {
-      if (ImGui::MenuItem("About")) dialogAbout(true);
-      if (ImGui::MenuItem("Controls")) dialogControls(true);
+      if (ImGui::MenuItem("About")) {on = true; dialogAbout(true);}
+      if (ImGui::MenuItem("Controls")) {on = true; dialogControls(true);}
       ImGui::EndMenu();
     }
 
@@ -118,4 +119,7 @@ void drawMenuBar() {
   ImGui::PopStyleColor();
   ImGui::PopStyleColor();
   ImGui::PopStyleVar();
+  if (on) {
+    disableRenderMouseClicks();
+  }
 }

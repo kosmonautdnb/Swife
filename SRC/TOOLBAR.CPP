@@ -47,6 +47,7 @@ public:
     if (ImGui::ImageButton((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h))) {
       if (this->svgId[1]!=NULL) toggleState = !toggleState;
       toolOn = true; // a little bit displaced here
+      selectionCounter = 0; // also a little bit displaced here
       renderingUpdated = true;
       ret = true;
     }

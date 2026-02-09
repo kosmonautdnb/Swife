@@ -50,7 +50,7 @@ extern class GameObject *activatedToolObjectBase;
 void prepareMouseHitTest(int mouseX, int mouseY);
 
 void addHitTestCube(class GameObject *o, int toolId, const Vector &siz);
-Hit *getNearestHit();
+Hit *getNearestHit(unsigned int *counter, double lastDepth);
 Hit *getNearestToolHit();
 
 void hitTestLine(class GameObject *o, int toolId, const Vector &p0, const Vector &p1, unsigned int color);
