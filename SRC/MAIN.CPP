@@ -64,13 +64,13 @@ void renderLoop() {
     mouseB |= mouseButtons & GL_MOUSE_BUTTON_LEFT ? 1 : 0;
     mouseB |= mouseButtons & GL_MOUSE_BUTTON_RIGHT ? 2 : 0;
     updateCamera();
-    if (!fullScreen) drawOutliner();
     drawToolBar();
     drawViewport();
     if (!fullScreen) drawInfo();
     if (!fullScreen) drawTimeLine();
     if (!fullScreen) drawProperties();
     if (!fullScreen) drawMenuBar();
+    if (!fullScreen) drawOutliner(); // outliner has to be processed last (before rendering), because it does all the stuff
     drawScene();
     ImGui::Render();
     glRefresh();
@@ -78,13 +78,8 @@ void renderLoop() {
 }
 
 void defaultInit() {
-  addGameObject("Skybox")->setType(GAMEOBJECT_SKYBOX);
+  addGameObject("Skybox")->setType(GAMEOBJECT_SKYBOX)->loadSkyBox();
   addGameObject("Trigger")->setType(GAMEOBJECT_TRIGGER);
-  for (int i = 0; i < 20; i++) {
-    addGameObject("Aha 1")->setType(rand()&1?GAMEOBJECT_MESH:GAMEOBJECT_CAMERA)->addFloat("abc",1)->addText("abc2a34","abc")->addBool("abc",true)->addInt("abc",127);
-    addGameObject("Ehahaha");
-    addGameObject("Ehaha2");
-  }
   loadBaseSVGs();
   initGameObjects();
   initToolBar();

@@ -56,10 +56,30 @@ void drawInfo() {
   ImGui::Checkbox("##INFOINFOON",&infoOn);
   if (infoOn) {
     ImGui::SameLine();
-    ImGui::TextWrapped("FPS:%0.2f Mem:%0.2fmb %s", fps, (double)getAdditionalMemoryFreeBytes()/1024.0/1024.0, infoString.c_str());
+    ImVec2 cursor = ImGui::GetCursorScreenPos();
+    for (int i = 0; i < 2; i++) {
+      ImGui::SetCursorScreenPos(cursor);
+      ImGui::TextWrapped("FPS:%0.2f Mem:%0.2fmb %s", fps, (double)getAdditionalMemoryFreeBytes()/1024.0/1024.0, infoString.c_str());
+      cursor.y += 1;
+      ImGui::PopStyleColor();
+      ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(1,1,1,1));
+    }
+    ImGui::PopStyleColor();
+    ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0.25,0.25,0.25,1));
   }
   ImGui::End();
 
   ImGui::PopStyleColor();
   ImGui::PopStyleColor();
 }
+
+
+
+
+
+
+
+
+
+         
+    

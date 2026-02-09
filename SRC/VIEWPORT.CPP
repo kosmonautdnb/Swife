@@ -13,6 +13,7 @@
 #include "STL/VECTOR.HPP"
 #include "STL/QUATERNN.HPP"
 #include "GIZMOS.HPP"
+#include <math.h>
 
 bool viewportOn = false;
 bool toolOn = false;
@@ -36,17 +37,19 @@ void drawCameraRotationGizmo() {
   Camera *c = &cameras[currentCamera];
   ImVec2 k = ImGui::GetWindowSize();
   int o = 5;
-  float rad = 40;
+  float radX = 40;
+  float radY = 40;
   Quaternion rot = normalize(inverse(c->rotation));
   Vector p[3];
   p[0] = rot.rotateVector(Vector(1,0,0));
   p[1] = rot.rotateVector(Vector(0,1,0));
   p[2] = rot.rotateVector(Vector(0,0,1));
   int d[3] = {0,1,2}; for (int i = 0; i < 3*2; i++) if (p[d[i % 3]].z < p[d[(i+1)%3]].z) {int t = d[i%3]; d[i % 3]=d[(i+1)%3];d[(i+1)%3]=t;}
+  if (aspectRatio != 0) radX /= aspectRatio * main_window_yres / main_window_xres;
   for (int j = 0; j < 3; j++) {
-    if (d[j] == 0) viewportLine(k.x-rad-o,rad+o,p[0].x*rad,-p[0].y*rad,0xff0000ff,"X");
-    if (d[j] == 1) viewportLine(k.x-rad-o,rad+o,p[1].x*rad,-p[1].y*rad,0xff00ff00,"Y");
-    if (d[j] == 2) viewportLine(k.x-rad-o,rad+o,p[2].x*rad,-p[2].y*rad,0xffff0000,"Z");
+    if (d[j] == 0) viewportLine(k.x-radX-o,radY+o,p[0].x*radX,-p[0].y*radY,0xff0000ff,"X");
+    if (d[j] == 1) viewportLine(k.x-radX-o,radY+o,p[1].x*radX,-p[1].y*radY,0xff00ff00,"Y");
+    if (d[j] == 2) viewportLine(k.x-radX-o,radY+o,p[2].x*radX,-p[2].y*radY,0xffff0000,"Z");
   }
 }
 
@@ -111,6 +114,59 @@ void duplicate() {
       i2++;
     }
   }
+  renderingUpdated = true;
+}
+
+void minMaxFromRotationAndScale(Vector *m, Vector *n, const Vector &p, const Quaternion &r, const Vector &s) {
+  for (int i = 0; i < 8; i++) {
+    Vector k = p+r.rotateVector(Vector((i&1)?-s.x:s.x,(i&2)?-s.y:s.y,(i&4)?-s.z:s.z));
+    if (i == 0 || k.x < n->x) n->x = k.x;
+    if (i == 0 || k.y < n->y) n->y = k.y;
+    if (i == 0 || k.z < n->z) n->z = k.z;
+    if (i == 0 || k.x > m->x) m->x = k.x;
+    if (i == 0 || k.y > m->y) m->y = k.y;
+    if (i == 0 || k.z > m->z) m->z = k.z;
+  }
+}
+
+void centerSelection() {
+  bool first = true;
+  Vector n2,m2;
+  for (int i2 = 0; i2 < gameObjects.size(); i2++) {
+    GameObject *o =gameObjects[i2];
+    if (o->selected) {
+      Vector n,m;
+      minMaxFromRotationAndScale(&m,&n,o->translation,o->rotation,o->scaling);
+      if (first || n.x < n2.x) n2.x = n.x;
+      if (first || n.y < n2.y) n2.y = n.y;
+      if (first || n.z < n2.z) n2.z = n.z;
+      if (first || m.x > m2.x) m2.x = m.x;
+      if (first || m.y > m2.y) m2.y = m.y;
+      if (first || m.z > m2.z) m2.z = m.z;
+      first = false;
+    }
+  }
+  if (m2 != n2) {
+    Vector center = (m2 + n2)*0.5;
+    double radius = length(m2 - center);
+    Camera *c = &cameras[currentCamera];
+    c->position = center - c->rotation.rotateVector(Vector(0,0,-radius*sqrt(3)));
+    renderingUpdated = true;
+  }
+}
+
+void setOrthoLookTo(double x, double y, double z) {
+  Camera *c = &cameras[currentCamera];
+  c->ortho = true;
+  c->rotation.yawPitchRoll(-x*90*PI/180.0,y*90*PI/180.0+(z>0?180*PI/180.0:0),z*90*PI/180.0+(z!=0?90*PI/180.0:0));
+  renderingUpdated = true;
+}
+
+void rotateCameraBy(double degrees, double x, double y, double z) {
+  Camera *c = &cameras[currentCamera];
+  double d = degrees * PI / 180.0;
+  Quaternion r; r.yawPitchRoll(x*d,y*d,z*d);
+  c->rotation = normalize(c->rotation * r);
   renderingUpdated = true;
 }
 
@@ -179,10 +235,10 @@ void drawViewport() {
       ImGui::PopItemWidth();
     }
   }
+  drawCameraRotationGizmo();
   ImGui::Text2("Camera"); ImGui::SameLine();
   ImGui::Checkbox("##VIEWPORTOVERLAYON",&viewportOn);
   if (viewportOn) {
-    drawCameraRotationGizmo();
     ImGui::BeginChild("VIEWPORTSETTING");
     Camera *c = &cameras[currentCamera];
     float k;
@@ -232,4 +288,7 @@ void drawViewport() {
   ImGui::End();
 
   ImGui::PopStyleColor();
+
+  if (ImGui::IsKeyPressed('o')) rotateCameraBy(-90,0,0,1);
+  if (ImGui::IsKeyPressed('p')) rotateCameraBy(90,0,0,1);
 }

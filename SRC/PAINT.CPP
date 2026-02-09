@@ -9,6 +9,8 @@
 #include "STL/IMAGE.HPP"
 #include "TEXTURES.HPP"
 #include "GIZMOS.HPP"
+#include "HITTEST.HPP"
+#include <math.h>
 
 #define SKYBOX_LEFT 0
 #define SKYBOX_FRONT 1
@@ -54,13 +56,11 @@ void loadSkyBox(class GameObject *o) {
 
 void paintSkyBox(class GameObject *o) {
   if (o->textureIds.size() != 6) return;
-  float size = 1.0;
-  float k = PI/180.0;
+  Camera *c = &cameras[currentCamera];
+  float size = fabs(c->farPlane)*0.5; // bigger than 1 because of ortho
   Vector cameraPosition = cameras[currentCamera].position;
-  Quaternion r;
-  double w = PI/180.0;
-  r.yawPitchRoll(o->rotation.x*w,o->rotation.y*w,o->rotation.z*w);
-  r = normalize(r);
+  Quaternion r = normalize(o->rotation);
+  double k = PI / 180.0;
   Quaternion left; left.yawPitchRoll(k * 90,0,0);
   Quaternion right; right.yawPitchRoll(-k * 90,0,0);
   Quaternion front; front.yawPitchRoll(0,0,0);
@@ -75,17 +75,25 @@ void paintSkyBox(class GameObject *o) {
   drawSkyboxQuad(o->textureIds[SKYBOX_BOTTOM], size,0,cameraPosition,bottom,r,Vector(0,-size,0));
 }
 
+bool isInViewport(GameObject *o) {
+  Matrix projection; glGetDoublev(GL_PROJECTION_MATRIX, projection.m);
+  Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m);
+  for (int i = 0; i < 8; i++) {
+    Vector t = projection * modelView * (o->translation+o->rotation.rotateVector(o->scaling*Vector((i&1)?-1:1,(i&2)?-1:1,(i&4)?-1:1)));
+    if (t.x >= -t.w && t.x <= t.w) return true;
+    if (t.y >= -t.w && t.y <= t.w) return true;
+  }
+  return false;
+}
+
 void paintTrigger(class GameObject *o) {
+  if (!isInViewport(o)) return;
 
   glPushMatrix();
 
   Vector pos = o->translation;
   Vector scal = o->scaling;
-  Vector rot = o->rotation;
-  Quaternion r;
-  double w = PI/180.0;
-  r.yawPitchRoll(rot.x*w,rot.y*w,rot.z*w);
-  r = normalize(r);
+  Quaternion r = normalize(o->rotation);
   glTranslatef(pos.x,pos.y,pos.z);
   glMultMatrixd(r.rotationMatrix().m);
   glScalef(scal.x,scal.y,scal.z);
@@ -150,6 +158,11 @@ void paintTrigger(class GameObject *o) {
 
   glDisable(GL_ALPHA_TEST);
   glDisable(GL_TEXTURE_2D);
+
+  addHitTestMoveGizmo(o,Vector(1,1,1));
+  addHitTestScaleGizmo(o,Vector(1,1,1));
+  addHitTestRotateGizmo(o,Vector(1,1,1));
+  addHitTestCube(o,0,Vector(1,1,1));
 
   glPopMatrix();
 }

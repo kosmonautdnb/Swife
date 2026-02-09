@@ -286,10 +286,15 @@ void dialogControls(bool openIt) {
     "Use A to move left.\n"
     "Use E to move up.\n"
     "Use Q to move down.\n"
+    "Use O and P to rotate view 90 degrees.\n"
     "Mouse:\n"
     "Right mouse button and mouse to rotate view.\n"
     "Right mouse button and shift and mouse to roll.\n"
     "Right mouse button and ctrl and mouse to pan.\n"
+    "Tool \"selection\":\n"
+    "Left Mouse select this object\n"
+    "Left Mouse and shift add to selection\n"
+    "Left Mouse and ctrl remove from selection\n"
   );
   if (ImGui::Button("Close##DIALOGCONTROLSCLOSE")) {
     ImGui::CloseCurrentPopup();

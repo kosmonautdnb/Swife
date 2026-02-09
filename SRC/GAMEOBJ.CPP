@@ -1,4 +1,6 @@
 #include "GAMEOBJ.HPP"
+#include "RENDER.HPP"
+#include "PAINT.HPP"
 #include <string.h>
 
 HashMap<unsigned int, const char*> iconNameForGameObjectType;
@@ -99,18 +101,26 @@ GameObject *GameObject::clone() {
   return o2;
 }
 
+GameObject *GameObject::loadSkyBox() {
+  ::loadSkyBox(this);
+  renderingUpdated = true;
+  return this;
+}
+
 Array<GameObject*> gameObjects;
 
 GameObject *addGameObject(const char *name) {
   GameObject *o = new GameObject();
   gameObjects.push_back(o);
   o->setName(name);
+  renderingUpdated = true;
   return o;
 }
 
 void deleteGameObject(int index) {
   delete gameObjects[index];
   gameObjects.erase(index,1);
+  renderingUpdated = true;
 }
 
 void cloneName(char *destName, const char *originalName) {

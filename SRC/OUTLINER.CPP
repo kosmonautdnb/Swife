@@ -170,7 +170,9 @@ void drawOutliner() {
   dialogControls(false);
   dialogColor(false,NULL);
   dialogObjectTextures(false);
+  unsigned int outlinerLayersBefore = outlinerLayers;
   outlinerLayers = layerSelection(outlinerLayers,"OUTLLAY");
+  if (outlinerLayers != outlinerLayersBefore) renderingUpdated = true;
   ImGui::Separator();
   ImGui::Text(" "); ImGui::SameLine();SVG *svg = &svgs["search"];ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h));ImGui::SameLine();ImGui::InputText("##OUTLINERFILTER",outliner_filter,NAMEMAX);
   ImGui::SameLine(); if (gameObjectDeleteButton(one)) dialogDeleteGameObjects(true);

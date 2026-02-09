@@ -11,6 +11,7 @@
 #include "GIZMOS.HPP"
 #include "GAMEOBJ.HPP"
 #include "PAINT.HPP"
+#include "HITTEST.HPP"
 #include "STL/KEYMTRIX.HPP"
 #include <math.h>
 
@@ -289,11 +290,209 @@ void drawSelecting(bool tiny) {
   glDisable(GL_BLEND);
 }
 
+void handleHitTest() {
+  GLboolean shift,ctrl,alt;
+  glSpecialKeys(&shift,&ctrl,&alt);
+
+  if (startTool) {
+    Hit *h = getNearestToolHit();
+    if (h != NULL) {
+      if (activatedToolObjectBase != NULL) {delete activatedToolObjectBase; activatedToolObjectBase = NULL;}
+      activatedToolObjectBase = h->object->clone();
+      activatedTool = h->toolId;
+      renderingUpdated = true;
+    }
+  }
+
+  switch(mode) {
+    case MODE_SELECT: {
+      Hit *h = getNearestHit();
+      if (h != NULL) {
+        if (shift) h->object->selected = true;
+        else
+        if (ctrl) h->object->selected = false;
+        else {
+          for (int i = 0; i < gameObjects.size(); i++) gameObjects[i]->selected = false;
+          h->object->selected = true;
+        }
+      } else {
+        for (int i = 0; i < gameObjects.size(); i++) gameObjects[i]->selected = false;
+      }
+      renderingUpdated = true;
+    } break;
+  }
+}
+
+bool mouseNotInRenderView() {
+  bool ret = ImGui::GetIO().WantCaptureMouse;
+  int x0 = (outliner_width);
+  int x1 = (main_window_xres-properties_width);
+  int y0 = (menuBar_height + toolBar_height);
+  int y1 = (main_window_yres-timeLine_height);
+  int mx = ImGui::GetMousePos().x;
+  int my = ImGui::GetMousePos().y;
+  if (mx >= x0 && mx < x1 && my >= y0 && my < y1) ret = false;
+  return ret;
+}
+
+void screenSpacePlane(GameObject *o, Vector *d2d, Vector *d3d, double x, double y, double z) {
+
+  *d3d = normalize(normalize(o->rotation).rotationMatrix() * Vector(x,y,z));
+
+  Matrix projection; glGetDoublev(GL_PROJECTION_MATRIX, projection.m);
+  Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m);
+
+  Vector t0 = projection * modelView * (o->translation);
+  if (t0.w != 0) {t0/=t0.w; t0.w = 1;}
+  Vector t1 = t0;
+  t1.x += 2.0/main_window_xres;
+  if (t1.w != 0) {t1/=t1.w; t1.w = 1;}
+  Vector d0 = inverse(projection) * t0;
+  Vector d1 = inverse(projection) * t1;
+  if (d0.w != 0) {d0/=d0.w; d0.w = 1;}
+  if (d1.w != 0) {d1/=d1.w; d1.w = 1;}
+
+  *d3d *= length(d1-d0);                                                                         
+
+  Vector p0 = projection * modelView * (o->translation);
+  Vector p1 = projection * modelView * (o->translation + normalize(o->rotation).rotateVector(Vector(x,y,z)));
+
+  if (p0.w != 0) {p0/=p0.w; p0.w = 1;}
+  if (p1.w != 0) {p1/=p1.w; p1.w = 1;}
+
+  *d2d = normalize(p1-p0);
+  d2d->y *= -1;
+}
+
+void handleTool() {
+  if (activatedToolObjectBase == NULL) return;
+
+  Vector d2d,d3d,scale,rot;
+
+  switch(activatedTool) {
+    case HITTESTTOOL_ROTATE_PLUS_X: {rot = Vector(0,1,0);} break;
+    case HITTESTTOOL_ROTATE_MINUS_X: {rot = Vector(0,-1,0);} break;
+    case HITTESTTOOL_ROTATE_PLUS_Y: {rot = Vector(0,0,1);} break;
+    case HITTESTTOOL_ROTATE_MINUS_Y: {rot = Vector(0,0,-1);} break;
+    case HITTESTTOOL_ROTATE_PLUS_Z: {rot = Vector(1,0,0);} break;
+    case HITTESTTOOL_ROTATE_MINUS_Z:  {rot = Vector(-1,0,0);} break;
+    case HITTESTTOOL_SCALE_PLUS_X:  {scale = Vector(1,0,0);} break;
+    case HITTESTTOOL_SCALE_MINUS_X: {scale = Vector(-1,0,0);} break;
+    case HITTESTTOOL_SCALE_PLUS_Y:  {scale = Vector(0,1,0);} break;
+    case HITTESTTOOL_SCALE_MINUS_Y: {scale = Vector(0,-1,0);} break;
+    case HITTESTTOOL_SCALE_PLUS_Z:  {scale = Vector(0,0,1);} break;
+    case HITTESTTOOL_SCALE_MINUS_Z:  {scale = Vector(0,0,-1);} break;
+  }
+
+  switch(activatedTool) {
+    case HITTESTTOOL_ROTATE_PLUS_X: 
+    case HITTESTTOOL_ROTATE_MINUS_X: 
+    case HITTESTTOOL_ROTATE_PLUS_Y: 
+    case HITTESTTOOL_ROTATE_MINUS_Y: 
+    case HITTESTTOOL_ROTATE_PLUS_Z: 
+    case HITTESTTOOL_ROTATE_MINUS_Z: 
+      {screenSpacePlane(activatedToolObjectBase,&d2d,&d3d,fabs(rot.x),fabs(rot.y),fabs(rot.z));} break;
+    case HITTESTTOOL_SCALE_PLUS_X: 
+    case HITTESTTOOL_SCALE_MINUS_X: 
+    case HITTESTTOOL_MOVE_PLUS_X: 
+    case HITTESTTOOL_MOVE_MINUS_X: 
+      {screenSpacePlane(activatedToolObjectBase,&d2d,&d3d,1,0,0);} break;
+    case HITTESTTOOL_SCALE_PLUS_Y: 
+    case HITTESTTOOL_SCALE_MINUS_Y: 
+    case HITTESTTOOL_MOVE_PLUS_Y: 
+    case HITTESTTOOL_MOVE_MINUS_Y: 
+      {screenSpacePlane(activatedToolObjectBase,&d2d,&d3d,0,1,0);} break;
+    case HITTESTTOOL_SCALE_PLUS_Z: 
+    case HITTESTTOOL_SCALE_MINUS_Z: 
+    case HITTESTTOOL_MOVE_PLUS_Z: 
+    case HITTESTTOOL_MOVE_MINUS_Z: 
+      {screenSpacePlane(activatedToolObjectBase,&d2d,&d3d,0,0,1);} break;
+  }
+  scale *= length(d3d);
+
+  bool flip = false;
+  switch(activatedTool) {
+    case HITTESTTOOL_MOVE_MINUS_X: 
+    case HITTESTTOOL_MOVE_MINUS_Y: 
+    case HITTESTTOOL_MOVE_MINUS_Z: 
+    case HITTESTTOOL_MOVE_PLUS_X: 
+    case HITTESTTOOL_MOVE_PLUS_Y: 
+    case HITTESTTOOL_MOVE_PLUS_Z: 
+    {
+      double v = mouseDX * d2d.x + mouseDY * d2d.y;
+      if (v == 0) return;
+      for (int i = 0; i < gameObjects.size(); i++) {
+        GameObject *o = gameObjects[i];
+        if (o->selected) {
+          gameObjects[i]->translation += d3d * v;
+          renderingUpdated2 = true;
+        }
+      }
+    } break;
+    case HITTESTTOOL_SCALE_PLUS_X: 
+    case HITTESTTOOL_SCALE_MINUS_X: 
+    case HITTESTTOOL_SCALE_PLUS_Y: 
+    case HITTESTTOOL_SCALE_MINUS_Y: 
+    case HITTESTTOOL_SCALE_PLUS_Z: 
+    case HITTESTTOOL_SCALE_MINUS_Z: 
+    {
+      double v = mouseDX * d2d.x + mouseDY * d2d.y;
+      if (v == 0) return;
+      for (int i = 0; i < gameObjects.size(); i++) {
+        GameObject *o = gameObjects[i];
+        if (o->selected) {
+          gameObjects[i]->scaling += scale * v;
+          double minScale = 0.00001;
+          if (gameObjects[i]->scaling.x < minScale) gameObjects[i]->scaling.x = minScale;
+          if (gameObjects[i]->scaling.y < minScale) gameObjects[i]->scaling.y = minScale;
+          if (gameObjects[i]->scaling.z < minScale) gameObjects[i]->scaling.z = minScale;
+          renderingUpdated2 = true;
+        }
+      }
+    } break;
+    case HITTESTTOOL_ROTATE_PLUS_X: 
+    case HITTESTTOOL_ROTATE_MINUS_X: 
+    case HITTESTTOOL_ROTATE_PLUS_Y: 
+    case HITTESTTOOL_ROTATE_MINUS_Y: 
+    case HITTESTTOOL_ROTATE_PLUS_Z: 
+    case HITTESTTOOL_ROTATE_MINUS_Z: 
+    {
+      double v = mouseDX * d2d.x + mouseDY * d2d.y;
+      if (v == 0) return;
+      double rotScale = 1.0/180.0*5.0;
+      v *= rotScale;
+      for (int i = 0; i < gameObjects.size(); i++) {
+        GameObject *o = gameObjects[i];
+        if (o->selected) {
+          Quaternion rotation2; rotation2.yawPitchRoll(rot.x*v,rot.z*v,rot.y*v);
+          gameObjects[i]->rotation = normalize(normalize(gameObjects[i]->rotation)*normalize(rotation2));
+          renderingUpdated2 = true;
+        }
+      }
+    } break;
+  }
+}
+
 void drawScene() {
 
   static unsigned int k = 0;
-  if (renderingUpdated2) {renderingUpdated2 = false; k = 0;} 
+  bool hitTestOn = (mode == MODE_SELECT) && ImGui::IsMouseClicked(0);
+
+  static bool lastMouseButtonLeft = false;
+  startTool = (!lastMouseButtonLeft) && ImGui::IsMouseDown(0);
+  bool stopTool = lastMouseButtonLeft && (!ImGui::IsMouseDown(0));
+  lastMouseButtonLeft = ImGui::IsMouseDown(0);
+  hitTestOn = hitTestOn || startTool;
+  if (activatedTool != HITTESTTOOL_NONE && stopTool) {
+    activatedTool = HITTESTTOOL_NONE;
+    renderingUpdated = true;
+  }
+
+  if (mouseNotInRenderView()) hitTestOn = false;
+
   if (renderingUpdated) {renderingUpdated = false; k = 1;} 
+  if (renderingUpdated2) {renderingUpdated2 = false; k = 0;} 
+  if (hitTestOn) k = 1;
   k++;
 
   bool tiny = k == 1;
@@ -308,6 +507,10 @@ void drawScene() {
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
   
     cameras[currentCamera].applyToGL();
+    if (hitTestOn) 
+      prepareMouseHitTest(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+    else
+      prepareMouseHitTest(-1,-1);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -318,8 +521,12 @@ void drawScene() {
     drawGameObjects();
     drawSelecting(tiny);
 
+    if (hitTestOn) handleHitTest();
+
     glFastTexturing = f;
   }
+
+  cameras[currentCamera].applyToGL(); handleTool();
 
   blitFrameBuffer(tiny);
 

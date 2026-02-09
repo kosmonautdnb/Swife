@@ -5,6 +5,7 @@
 #include "STL/ARRAY.HPP"
 #include "STL/HASHMAP.HPP"
 #include "STL/VECTOR.HPP"
+#include "STL/QUATERNN.HPP"
 #include <stdio.h>
 
 enum GAMEOBJECTTYPE {
@@ -63,7 +64,6 @@ public:
     selected = false;
     translation.set(0,0,0);
     scaling.set(1,1,1);
-    rotation.set(0,0,0);
     color = 0xFFFFFFFF;
     sectionOn = true;
     sectionVisible = true;
@@ -77,7 +77,7 @@ public:
   unsigned int type;
   Vector translation;
   Vector scaling;
-  Vector rotation;
+  Quaternion rotation;
   unsigned int color;
   char name[NAMEMAX];
   char fileName[FILENAMEMAX];
@@ -97,6 +97,8 @@ public:
   GameObject *addText(const char *name, const char *text);
   GameObject *addColor(const char *name, unsigned int color);
   GameObject *clone();
+  
+  GameObject *loadSkyBox();
 };
 
 extern HashMap<unsigned int, const char*> iconNameForGameObjectType;

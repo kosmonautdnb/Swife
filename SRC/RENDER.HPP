@@ -31,8 +31,9 @@ public:
 
 enum CAMERAS {
   CAMERA_USER = 0,
-  CAMERA_OUTLINER = 1,
-  CAMERA_COUNT = 2
+  CAMERA_CAMERA1 = 1,
+  CAMERA_CAMERA2 = 2,
+  CAMERA_COUNT = 3
 };
 
 extern Camera cameras[CAMERA_COUNT];

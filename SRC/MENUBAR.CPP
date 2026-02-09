@@ -7,6 +7,7 @@
 #include "GAMEOBJ.HPP"
 #include "HELP.HPP"
 #include "VIEWPORT.HPP"
+#include "RENDER.HPP"
 #include "SVG.HPP"
 
 int menuBar_height = 17;
@@ -59,6 +60,18 @@ void drawMenuBar() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("View")) {
+      if (ImGui::MenuItem("Perspective")) {Camera *c = &cameras[currentCamera]; c->ortho = false; renderingUpdated = true;}
+      if (ImGui::MenuItem("Ortho left")) setOrthoLookTo(1,0,0);
+      if (ImGui::MenuItem("Ortho right")) setOrthoLookTo(-1,0,0);
+      if (ImGui::MenuItem("Ortho top")) setOrthoLookTo(0,-1,0);
+      if (ImGui::MenuItem("Ortho bottom")) setOrthoLookTo(0,1,0);
+      if (ImGui::MenuItem("Ortho front")) setOrthoLookTo(0,0,-1);
+      if (ImGui::MenuItem("Ortho back")) setOrthoLookTo(0,0,1);
+      ImGui::Separator();
+      bool selected = false;
+      selected = currentCamera == CAMERA_USER; if (ImGui::MenuItem("User camera","",&selected)) {currentCamera = CAMERA_USER; renderingUpdated = true;}
+      selected = currentCamera == CAMERA_CAMERA1; if (ImGui::MenuItem("Camera 1","",&selected)) {currentCamera = CAMERA_CAMERA1; renderingUpdated = true;}
+      selected = currentCamera == CAMERA_CAMERA2; if (ImGui::MenuItem("Camera 2","",&selected)) {currentCamera = CAMERA_CAMERA2; renderingUpdated = true;}
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Object")) {
@@ -82,6 +95,7 @@ void drawMenuBar() {
       if (one) {
         ImGui::Separator();
         if (ImGui::MenuItem("View object textures")) dialogObjectTextures(true);
+        if (ImGui::MenuItem("Center selection to view")) centerSelection();
       }
       ImGui::EndMenu();
     }

@@ -29,6 +29,26 @@ bool vectorInput(const char *name,Vector *v, const char *dcl) {
   return ret;
 }
 
+bool quaternionInput(const char *name,Quaternion *q, const char *dcl) {
+  bool ret = false;
+  ImGui::Text("%s",name);
+  ImGui::SameLine();
+  ImGui::PushItemWidth(40);
+  char dcl2[32];
+  float k;
+  Vector v = q->getYawPitchRoll();
+  sprintf(dcl2,"%sa",dcl); k = v.x * 180 / PI; if (ImGui::InputFloat(dcl2,&k)) {ret = true;} v.x = k * PI / 180; 
+  ImGui::SameLine();
+  sprintf(dcl2,"%sb",dcl); k = v.y * 180 / PI; if (ImGui::InputFloat(dcl2,&k)) {ret = true;} v.y = k * PI / 180; 
+  ImGui::SameLine();                                                                                
+  sprintf(dcl2,"%sc",dcl); k = v.z * 180 / PI; if (ImGui::InputFloat(dcl2,&k)) {ret = true;} v.z = k * PI / 180; 
+  if (ret) {
+    q->yawPitchRoll(v.x,v.y,v.z);
+  }
+  ImGui::PopItemWidth();
+  return ret;
+}
+
 bool propsButton(const char *name,int k) {
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(5,0));
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3);
@@ -87,8 +107,8 @@ bool editProperty(GameObjectProperty *p, int i) {
 
 void showSkyBoxProperties(GameObject *object) {
   ImGui::Text("Transform");
-  Vector rotation = object->rotation;
-  if (vectorInput("R.",&rotation,"##SKYBOXPROPROTATION")) {renderingUpdated = true;}
+  Quaternion rotation = object->rotation;
+  if (quaternionInput("R.",&rotation,"##SKYBOXPROPROTATION")) {renderingUpdated = true;}
   object->rotation = rotation;
   if (object->textureIds.size()==6) {
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0));
@@ -105,8 +125,7 @@ void showSkyBoxProperties(GameObject *object) {
     ImGui::PopStyleVar();
   }
   if (propsButton("Load##SKYBOXPROPLOAD",strlen("Load")+4)) {
-    loadSkyBox(object);
-    renderingUpdated = true;
+    object->loadSkyBox();
   }
   ImGui::Separator();
 }
@@ -115,10 +134,10 @@ void showMeshProperties(GameObject *object) {
   ImGui::Text("Transform");
   Vector translation = object->translation;
   Vector scaling = object->scaling;
-  Vector rotation = object->rotation;
+  Quaternion rotation = object->rotation;
   if (vectorInput("P.",&translation,"##PROPTRANSLATION")) {renderingUpdated = true;}
   if (vectorInput("S.",&scaling,"##PROPSCALING")) {renderingUpdated = true;}
-  if (vectorInput("R.",&rotation,"##PROPROTATION")) {renderingUpdated = true;}
+  if (quaternionInput("R.",&rotation,"##PROPROTATION")) {renderingUpdated = true;}
   object->translation = translation;  
   object->scaling = scaling;  
   object->rotation = rotation;
@@ -175,6 +194,7 @@ void drawProperties() {
     for(int i = 0; i < gameObjects.size(); i++) 
       if (gameObjects[i]->selected) {
         gameObjects[i]->layers ^= layerDiff;
+        if (layerDiff != 0) renderingUpdated = true;
       }
     ImGui::Separator();
     ImGui::BeginChild("PROPERTIESPROPERTIES",ImVec2(0,0));

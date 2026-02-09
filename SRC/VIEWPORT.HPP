@@ -3,6 +3,8 @@
 
 extern bool toolOn;
 
+void setOrthoLookTo(double x, double y, double z);
+void centerSelection();
 void duplicate();
 void drawViewport();
 
