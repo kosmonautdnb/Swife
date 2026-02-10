@@ -79,28 +79,28 @@ bool isInViewport(GameObject *o) {
   Matrix projection; glGetDoublev(GL_PROJECTION_MATRIX, projection.m);
   Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m);
   for (int i = 0; i < 8; i++) {
-    Vector t = projection * modelView * (o->translation+o->rotation.rotateVector(o->scaling*Vector((i&1)?-1:1,(i&2)?-1:1,(i&4)?-1:1)));
+    Vector t = projection * modelView * o->getRenderTransform() * Vector((i&1)?o->boundingBoxMax.x:o->boundingBoxMin.x,(i&2)?o->boundingBoxMax.y:o->boundingBoxMin.y,(i&4)?o->boundingBoxMax.z:o->boundingBoxMin.z);
     if (t.x >= -t.w && t.x <= t.w) return true;
     if (t.y >= -t.w && t.y <= t.w) return true;
   }
   return false;
 }
 
-void paintTrigger(class GameObject *o) {
+void paintTrigger(class GameObject *o, bool showModificators) {
   if (!isInViewport(o)) return;
 
   glPushMatrix();
 
-  Vector pos = o->translation;
-  Vector scal = o->scaling;
-  Quaternion r = normalize(o->rotation);
-  glTranslatef(pos.x,pos.y,pos.z);
-  glMultMatrixd(r.rotationMatrix().m);
-  glScalef(scal.x,scal.y,scal.z);
+  Matrix m = o->getRenderTransform();
+  Vector minB = o->boundingBoxMin;
+  Vector maxB = o->boundingBoxMax;
+  glMultMatrixd(m.m);
   glEnable(GL_TEXTURE_2D);
   glEnable(GL_ALPHA_TEST);
   glAlphaFunc(GL_GREATER,0);
   glBindTexture(GL_TEXTURE_2D,gridTexture);
+
+  Vector scal(length(m.getColumn(0)),length(m.getColumn(1)),length(m.getColumn(2)));
 
   for (int i = 0; i < 2; i++) {
     unsigned int col = o->color;
@@ -159,10 +159,12 @@ void paintTrigger(class GameObject *o) {
   glDisable(GL_ALPHA_TEST);
   glDisable(GL_TEXTURE_2D);
 
-  addHitTestMoveGizmo(o,Vector(1,1,1));
-  addHitTestScaleGizmo(o,Vector(1,1,1));
-  addHitTestRotateGizmo(o,Vector(1,1,1));
-  addHitTestCube(o,0,Vector(1,1,1));
+  if (showModificators) {
+    addHitTestMoveGizmo(o,minB,maxB);
+    addHitTestScaleGizmo(o,minB,maxB);
+    addHitTestRotateGizmo(o,minB,maxB);
+  }
+  addHitTestCube(o,0,minB,maxB);
 
   glPopMatrix();
 }

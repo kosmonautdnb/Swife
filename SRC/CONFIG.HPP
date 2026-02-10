@@ -11,6 +11,7 @@
 #define NAMEMAX 16
 #define FILENAMEMAX 512
 #define NONAME "<no name>"
+#define ERRORCOLOR ImVec4(1,0,0,1)
 
 extern bool fullScreen;
 extern double fps;

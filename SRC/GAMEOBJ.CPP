@@ -1,3 +1,4 @@
+#include "GL.H"
 #include "GAMEOBJ.HPP"
 #include "RENDER.HPP"
 #include "PAINT.HPP"
@@ -5,7 +6,7 @@
 
 HashMap<unsigned int, const char*> iconNameForGameObjectType;
 
-const char *gameObjectTypeNames[GAMEOBJECT_COUNT] = {"undefined", "mesh", "camera", "skybox", "path", "billboard","section","trigger"};
+const char *gameObjectTypeNames[GAMEOBJECT_COUNT] = {"undefined", "mesh", "camera", "skybox", "path", "billboard","section","trigger","link"};
 const char *propertyTypeNames[GAMEOBJECTPROPERTY_COUNT] = {"undefined", "bool", "int", "float", "float4", "text", "color"};
 
 void GameObjectProperty::setName(const char *name) {
@@ -15,6 +16,8 @@ void GameObjectProperty::setName(const char *name) {
 void GameObjectProperty::clearValue() {
   memset(goText,0,sizeof(goText));
 }
+
+unsigned int currentUniqueGameObjectId = 1;
 
 GameObject::~GameObject() {
 }
@@ -83,6 +86,7 @@ void initGameObjects() {
   iconNameForGameObjectType[GAMEOBJECT_PATH] = "path";
   iconNameForGameObjectType[GAMEOBJECT_BILLBOARD] = "billboard";
   iconNameForGameObjectType[GAMEOBJECT_TRIGGER] = "trigger";
+  iconNameForGameObjectType[GAMEOBJECT_LINK] = "link";
 }
 
 GameObject *GameObject::setName(const char *name) {
@@ -99,6 +103,25 @@ GameObject *GameObject::clone() {
   GameObject *o2 = new GameObject();
   memcpy(o2,this,sizeof(GameObject));
   return o2;
+}
+
+Matrix GameObject::getRenderTransform() {
+  return parentTransform * getObjectTransform();
+}
+
+Matrix GameObject::getObjectTransform() {
+  Matrix ret;
+  int mode; glGetIntegerv(GL_MATRIX_MODE, &mode);
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+  glTranslatef(translation.x,translation.y,translation.z);
+  glMultMatrixd(rotation.rotationMatrix().m);
+  glScalef(scaling.x,scaling.y,scaling.z);
+  glGetDoublev(GL_MODELVIEW_MATRIX, ret.m);
+  glPopMatrix();
+  glMatrixMode(mode);
+  return ret;
 }
 
 GameObject *GameObject::loadSkyBox() {
@@ -129,4 +152,10 @@ void cloneName(char *destName, const char *originalName) {
   memcpy(destName+1,originalName,l);
   destName[l+1]=0;
   destName[0]='_';
+}
+
+int getObjectIdByUniqueId(unsigned int uniqueId) {
+  int ret = -1;
+  for (int i = 0; i < gameObjects.size(); i++) if (gameObjects[i]->uniqueId == uniqueId) return i;
+  return ret;
 }

@@ -83,6 +83,7 @@ void drawMenuBar() {
       if (ImGui::MenuItem("Add billboard")) {on = true; dialogAddObject(true,GAMEOBJECT_BILLBOARD);}
       if (ImGui::MenuItem("Add trigger")) {on = true; dialogAddObject(true,GAMEOBJECT_TRIGGER);}
       ImGui::Separator();
+      if (ImGui::MenuItem("Add link")) {on = true; dialogAddObject(true,GAMEOBJECT_LINK);}
       if (ImGui::MenuItem("Add section")) {on = true; dialogAddObject(true,GAMEOBJECT_SECTION);}
       if (one) {
         ImGui::Separator();

@@ -87,11 +87,12 @@ bool hitTestCubeAndLine(const Matrix &cube, const Vector &p0,const Vector &p1, A
   return ret;
 }
 
-void addHitTestCube(class GameObject *o, int toolId, const Vector &siz) {
+void addHitTestCube(class GameObject *o, int toolId, const Vector &minB, const Vector &maxB) {
   if (!doHitTest) return;
 
   Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m);
-  Matrix scale; scale.scale3(siz);
+  Vector center = (minB+maxB) * 0.5;
+  Matrix scale; scale.scale3((maxB-minB)*0.5); scale.translate(-center);
   Array<Vector> collisionPoints;
   if (hitTestCubeAndLine(hitTestInverseModelView*modelView*scale, mouseHitStart, mouseHitEnd, collisionPoints, true)) {
     for (int i = 0; i < collisionPoints.size(); i++) {
@@ -224,19 +225,19 @@ void hitTestLine(class GameObject *o, int toolId, const Vector &p0, const Vector
   glLineWidth(1.f);
 }
 
-void addHitTestMoveGizmo(class GameObject *o, const Vector &siz) {
+void addHitTestMoveGizmo(class GameObject *o, const Vector &minB, const Vector &maxB) {
   if (!o->selected || mode != MODE_MOVE) return;
   Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m);
   Vector p = modelView * Vector(0,0,0);
-  Vector xp = modelView * Vector(siz.x,0,0);
-  Vector yp = modelView * Vector(0,siz.y,0);
-  Vector zp = modelView * Vector(0,0,siz.z);
-  Vector xp3 = modelView * Vector(-siz.x,0,0);
-  Vector yp3 = modelView * Vector(0,-siz.y,0);
-  Vector zp3 = modelView * Vector(0,0,-siz.z);
-  Vector xp2 = normalize(modelView * Vector(siz.x+1,0,0) - xp);
-  Vector yp2 = normalize(modelView * Vector(0,siz.y+1,0) - yp);
-  Vector zp2 = normalize(modelView * Vector(0,0,siz.z+1) - zp);
+  Vector xp = modelView * Vector(maxB.x,0,0);
+  Vector yp = modelView * Vector(0,maxB.y,0);
+  Vector zp = modelView * Vector(0,0,maxB.z);
+  Vector xp3 = modelView * Vector(minB.x,0,0);
+  Vector yp3 = modelView * Vector(0,minB.y,0);
+  Vector zp3 = modelView * Vector(0,0,minB.z);
+  Vector xp2 = normalize(modelView * Vector(maxB.x+1,0,0) - xp);
+  Vector yp2 = normalize(modelView * Vector(0,maxB.y+1,0) - yp);
+  Vector zp2 = normalize(modelView * Vector(0,0,maxB.z+1) - zp);
   float k = 1;
   hitTestLine(o,HITTESTTOOL_MOVE_PLUS_X,p,xp+xp2*k,0xff0000ff);
   hitTestLine(o,HITTESTTOOL_MOVE_PLUS_Y,p,yp+yp2*k,0xff00ff00);
@@ -246,19 +247,18 @@ void addHitTestMoveGizmo(class GameObject *o, const Vector &siz) {
   hitTestLine(o,HITTESTTOOL_MOVE_MINUS_Z,p,zp3-zp2*k,0xffff0000);
 }
 
-void addHitTestScaleGizmo(class GameObject *o, const Vector &siz) {
+void addHitTestScaleGizmo(class GameObject *o, const Vector &minB, const Vector &maxB) {
   if (!o->selected || mode != MODE_SCALE) return;
   Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m);
-  Vector p = modelView * Vector(0,0,0);
-  Vector xp = modelView * Vector(siz.x,0,0);
-  Vector yp = modelView * Vector(0,siz.y,0);
-  Vector zp = modelView * Vector(0,0,siz.z);
-  Vector xp3 = modelView * Vector(-siz.x,0,0);
-  Vector yp3 = modelView * Vector(0,-siz.y,0);
-  Vector zp3 = modelView * Vector(0,0,-siz.z);
-  Vector xp2 = normalize(modelView * Vector(siz.x+1,0,0) - xp);
-  Vector yp2 = normalize(modelView * Vector(0,siz.y+1,0) - yp);
-  Vector zp2 = normalize(modelView * Vector(0,0,siz.z+1) - zp);
+  Vector xp = modelView * Vector(maxB.x,0,0);
+  Vector yp = modelView * Vector(0,maxB.y,0);
+  Vector zp = modelView * Vector(0,0,maxB.z);
+  Vector xp3 = modelView * Vector(minB.x,0,0);
+  Vector yp3 = modelView * Vector(0,minB.y,0);
+  Vector zp3 = modelView * Vector(0,0,minB.z);
+  Vector xp2 = normalize(modelView * Vector(maxB.x+1,0,0) - xp);
+  Vector yp2 = normalize(modelView * Vector(0,maxB.y+1,0) - yp);
+  Vector zp2 = normalize(modelView * Vector(0,0,maxB.z+1) - zp);
   float k = 1;
   hitTestLine(o,HITTESTTOOL_SCALE_PLUS_X,xp,xp+xp2*k,0xff0000ff);
   hitTestLine(o,HITTESTTOOL_SCALE_PLUS_Y,yp,yp+yp2*k,0xff00ff00);
@@ -268,19 +268,18 @@ void addHitTestScaleGizmo(class GameObject *o, const Vector &siz) {
   hitTestLine(o,HITTESTTOOL_SCALE_MINUS_Z,zp3,zp3-zp2*k,0xffff0000);
 }
 
-void addHitTestRotateGizmo(class GameObject *o, const Vector &siz) {
+void addHitTestRotateGizmo(class GameObject *o, const Vector &minB, const Vector &maxB) {
   if (!o->selected || mode != MODE_ROTATE) return;
   Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m);
-  Vector p = modelView * Vector(0,0,0);
-  Vector xp = modelView * Vector(siz.x,0,0);
-  Vector yp = modelView * Vector(0,siz.y,0);
-  Vector zp = modelView * Vector(0,0,siz.z);
-  Vector xp3 = modelView * Vector(-siz.x,0,0);
-  Vector yp3 = modelView * Vector(0,-siz.y,0);
-  Vector zp3 = modelView * Vector(0,0,-siz.z);
-  Vector xp2 = normalize(modelView * Vector(siz.x+1,0,0) - xp);
-  Vector yp2 = normalize(modelView * Vector(0,siz.y+1,0) - yp);
-  Vector zp2 = normalize(modelView * Vector(0,0,siz.z+1) - zp);
+  Vector xp = modelView * Vector(maxB.x,0,0);
+  Vector yp = modelView * Vector(0,maxB.y,0);
+  Vector zp = modelView * Vector(0,0,maxB.z);
+  Vector xp3 = modelView * Vector(minB.x,0,0);
+  Vector yp3 = modelView * Vector(0,minB.y,0);
+  Vector zp3 = modelView * Vector(0,0,minB.z);
+  Vector xp2 = normalize(modelView * Vector(maxB.x+1,0,0) - xp);
+  Vector yp2 = normalize(modelView * Vector(0,maxB.y+1,0) - yp);
+  Vector zp2 = normalize(modelView * Vector(0,0,maxB.z+1) - zp);
   float k = 1;
   float k2 = 1;
   hitTestLine(o,HITTESTTOOL_ROTATE_PLUS_X,xp+xp2*k+yp2*k2,xp+xp2*k-yp2*k2,0xff0000ff);

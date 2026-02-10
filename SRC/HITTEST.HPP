@@ -49,14 +49,14 @@ extern class GameObject *activatedToolObjectBase;
 
 void prepareMouseHitTest(int mouseX, int mouseY);
 
-void addHitTestCube(class GameObject *o, int toolId, const Vector &siz);
+void addHitTestCube(class GameObject *o, int toolId, const Vector &minB, const Vector &maxB);
 Hit *getNearestHit(unsigned int *counter, double lastDepth);
 Hit *getNearestToolHit();
 
 void hitTestLine(class GameObject *o, int toolId, const Vector &p0, const Vector &p1, unsigned int color);
 
-void addHitTestMoveGizmo(class GameObject *o, const Vector &siz);
-void addHitTestScaleGizmo(class GameObject *o, const Vector &siz);
-void addHitTestRotateGizmo(class GameObject *o, const Vector &siz);
+void addHitTestMoveGizmo(class GameObject *o, const Vector &minB, const Vector &maxB);
+void addHitTestScaleGizmo(class GameObject *o, const Vector &minB, const Vector &maxB);
+void addHitTestRotateGizmo(class GameObject *o, const Vector &minB, const Vector &maxB);
 
 #endif //__HITTEST_HPP__

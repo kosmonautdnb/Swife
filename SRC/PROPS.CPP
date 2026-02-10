@@ -130,19 +130,23 @@ void showSkyBoxProperties(GameObject *object) {
   ImGui::Separator();
 }
 
-void showMeshProperties(GameObject *object) {
+void showTransform(GameObject *object, const char *id) {
   ImGui::Text("Transform");
   Vector translation = object->translation;
   Vector scaling = object->scaling;
   Quaternion rotation = object->rotation;
-  if (vectorInput("P.",&translation,"##PROPTRANSLATION")) {renderingUpdated = true;}
-  if (vectorInput("S.",&scaling,"##PROPSCALING")) {renderingUpdated = true;}
-  if (quaternionInput("R.",&rotation,"##PROPROTATION")) {renderingUpdated = true;}
+  if (vectorInput("P.",&translation,(String(id)+String("TRANSLATION")).c_str())) {renderingUpdated = true;}
+  if (vectorInput("S.",&scaling,(String(id)+String("SCALING")).c_str())) {renderingUpdated = true;}
+  if (quaternionInput("R.",&rotation,(String(id)+String("ROTATION")).c_str())) {renderingUpdated = true;}
   object->translation = translation;  
   object->scaling = scaling;  
   object->rotation = rotation;
-  colorItem("C.","##PROPCOLOR",&object->color, true);
+  colorItem("C.",(String(id)+String("COLOR")).c_str(),&object->color, true);
   ImGui::Separator();
+}
+
+void showMeshProperties(GameObject *object) {
+  showTransform(object,"##MESHPROP");
   ImGui::Text("Binding");
   const char *fname = object->fileName;
   if (strlen(fname)>NAMEMAX)
@@ -154,6 +158,70 @@ void showMeshProperties(GameObject *object) {
   }
   ImGui::PopStyleColor();
   ImGui::Separator();
+}
+
+unsigned int getSelectionStartId = 0;
+void collectLinkIds(GameObject *object) {
+  object->uniqueLinkIds.clear();
+  for (int i = 0; i < gameObjects.size(); i++) {
+    GameObject *o = gameObjects[i];
+    if (o->selected && o->uniqueId != object->uniqueId) {
+      object->uniqueLinkIds.push_back(o->uniqueId);
+    }
+  }
+}
+void showLinkProperties(GameObject *object) {
+  showTransform(object,"##LINKPROP");
+  ImGui::Text("Linking");
+  if (object->hasDrawProblem) {
+    ImGui::PushStyleColor(ImGuiCol_Text,ERRORCOLOR);
+    ImGui::TextWrapped("Some objects here have multiple link references upward!");
+    ImGui::PopStyleColor();
+  }
+  int count = 0;
+  int countMissing = 0;
+  for (int i = 0; i < object->uniqueLinkIds.size(); i++) {
+    int j = getObjectIdByUniqueId(object->uniqueLinkIds[i]);
+    if (j >= 0) {
+      GameObject *o = gameObjects[j];
+      ImGui::Text("%d\"%s\"",j ,o->name);
+      count++;
+    } else {
+      ImGui::Text("<deleted>");
+      countMissing++;
+    }
+  }
+  
+  if (countMissing > 0 && propsButton("Remove <deleted>s##LINKPROPDELETE1",strlen("Remove <deleted>s")+4)) {
+    for (int i = 0; i < object->uniqueLinkIds.size(); i++) {
+      int j = getObjectIdByUniqueId(object->uniqueLinkIds[i]);
+      if (j < 0) {
+        object->uniqueLinkIds.erase(i,1);
+        i--;
+      }
+    }
+  }
+
+  if (count > 0 && propsButton("select##LINKPROPSELECT",strlen("select")+4)) {
+    for (int j = 0; j < gameObjects.size(); j++) gameObjects[j]->selected = false;
+    for (int i = 0; i < object->uniqueLinkIds.size(); i++) {
+      int j = getObjectIdByUniqueId(object->uniqueLinkIds[i]);
+      if (j >= 0) {
+        GameObject *o = gameObjects[j];
+        o->selected = true;
+      }
+    }
+  }
+
+  if (getSelectionStartId==0) {
+    if (propsButton("Get selection start##LINKPROPCOLLECT",strlen("Get selection start")+4)) getSelectionStartId = object->uniqueId;
+  }
+
+  ImGui::Separator();
+}
+
+void showTriggerProperties(GameObject *object) {
+  showTransform(object,"##TRIGGERPROP");
 }
 
 void drawProperties() {
@@ -186,6 +254,18 @@ void drawProperties() {
   }
   if (count > 1) ImGui::Text("Multiple selecteds");
   ImGui::Separator();
+  if (getSelectionStartId!=0) { // LINK SELECTION COLLECT
+    if (propsButton("Get selection end##LINKPROPCOLLECT2",strlen("Get selection end")+4)) {
+      int j = getObjectIdByUniqueId(getSelectionStartId);
+      if (j >= 0) {
+        collectLinkIds(gameObjects[j]);
+        for (int i = 0; i < gameObjects.size(); i++) gameObjects[i]->selected = false;
+        gameObjects[j]->selected = true;
+      }
+      getSelectionStartId = 0;
+    }
+    ImGui::Separator();
+  }
   if (count > 0) {
     ImGui::Text("Layers");
     unsigned int layerBefore = layerMask;
@@ -201,6 +281,8 @@ void drawProperties() {
     if (count == 1) {
       switch(first->type) {
       case GAMEOBJECT_SKYBOX: {showSkyBoxProperties(first);} break;
+      case GAMEOBJECT_LINK: {showLinkProperties(first);} break;
+      case GAMEOBJECT_TRIGGER: {showTriggerProperties(first);} break;
       default:
         showMeshProperties(first);
       }

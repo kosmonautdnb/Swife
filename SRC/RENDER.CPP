@@ -13,6 +13,8 @@
 #include "PAINT.HPP"
 #include "HITTEST.HPP"
 #include "STL/KEYMTRIX.HPP"
+#include "STL/ARRAY.HPP"
+#include "STL/SET.HPP"
 #include <math.h>
 
 Camera cameras[CAMERA_COUNT];
@@ -222,6 +224,17 @@ void blitFrameBuffer(bool tiny) {
   glDisable(GL_TEXTURE_2D);
 }
 
+void paintSimpleGameObject(GameObject *o, bool showModificators) {
+  switch(o->type) {
+  case GAMEOBJECT_MESH: {} break;
+  case GAMEOBJECT_CAMERA: {} break;
+  case GAMEOBJECT_SKYBOX: {paintSkyBox(o);} break;
+  case GAMEOBJECT_PATH: {} break;
+  case GAMEOBJECT_BILLBOARD: {} break;
+  case GAMEOBJECT_TRIGGER: {paintTrigger(o,showModificators);} break;
+  }
+}
+
 void drawGameObject(GameObject *o) {
   if (o->selected) {
     glStencilFunc(GL_ALWAYS,0x01,0xffffffff);
@@ -229,12 +242,51 @@ void drawGameObject(GameObject *o) {
     glEnable(GL_STENCIL_TEST);
   }
   switch(o->type) {
-  case GAMEOBJECT_MESH: {} break;
-  case GAMEOBJECT_CAMERA: {} break;
-  case GAMEOBJECT_SKYBOX: {paintSkyBox(o);} break;
-  case GAMEOBJECT_PATH: {} break;
-  case GAMEOBJECT_BILLBOARD: {} break;
-  case GAMEOBJECT_TRIGGER: {paintTrigger(o);} break;
+  case GAMEOBJECT_LINK: {
+    // no recursion allowed in WatcomC
+    Array<GameObject*> objs;
+    Array<GameObject*> links;
+    Array<Set<GameObject*> * > circular;
+    Array<Matrix> objParentMatrices;
+    Array<Matrix> linkMatrices;
+    links.push_back(o);
+    linkMatrices.push_back(o->getObjectTransform());
+    Set<GameObject*> *c = new Set<GameObject*>; c->insert(o); circular.push_back(c);
+    while(!links.empty()) {
+      GameObject *l = links.back(); links.pop_back();
+      Matrix parentMatrix = linkMatrices.back(); linkMatrices.pop_back();
+      Set<GameObject*> *c = circular.back(); circular.pop_back();
+      l->hasDrawProblem = false;
+      for (int i = 0; i < l->uniqueLinkIds.size(); i++) {
+        int j = getObjectIdByUniqueId(l->uniqueLinkIds[i]);
+        if (j >= 0) {
+          GameObject *o = gameObjects[j];
+          Matrix m = parentMatrix * o->getObjectTransform();
+          if (o->type == GAMEOBJECT_LINK) {
+            if (!c->has(o)) {
+              links.push_back(o);
+              linkMatrices.push_back(m);
+              Set<GameObject*> *c2 = new Set<GameObject*>; *c2 = *c; c2->insert(o); circular.push_back(c2);
+            } else {
+              l->hasDrawProblem = true;
+              drawProblems++;
+            }
+          }
+          objs.push_back(o);
+          objParentMatrices.push_back(m);
+        }
+      }
+      delete c;
+    }
+    for (int i = 0; i < objs.size(); i++) {
+      Matrix parentBefore = objs[i]->parentTransform;
+      objs[i]->parentTransform = objParentMatrices[i];
+      paintSimpleGameObject(objs[i], false);
+      objs[i]->parentTransform = parentBefore;
+    }
+  } break;
+  default:
+    paintSimpleGameObject(o, true);
   }
   glDisable(GL_STENCIL_TEST);
 }
@@ -292,6 +344,7 @@ void drawSelecting(bool tiny) {
 
 unsigned int selectionCounter = 0;
 int renderMouseClicksOff = 0;
+int drawProblems = 0;
 
 void disableRenderMouseClicks() {
   renderMouseClicksOff = 2;
@@ -528,6 +581,7 @@ void drawScene() {
     glEnable(GL_CULL_FACE);
     glDepthFunc(GL_LEQUAL);      
 
+    drawProblems = 0;
     drawSkyBox();
     draw3DGrid();
     drawGameObjects();

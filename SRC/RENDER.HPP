@@ -43,7 +43,8 @@ extern unsigned int clearColor;
 
 extern bool renderingUpdated;
 extern bool renderingUpdated2; // for continuos / animation
-extern unsigned int selectionCounter;
+extern unsigned int selectionCounter; // for objects on same depth when hittest
+extern int drawProblems;
 
 void disableRenderMouseClicks();
 

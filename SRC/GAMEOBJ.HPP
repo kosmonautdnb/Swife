@@ -6,6 +6,7 @@
 #include "STL/HASHMAP.HPP"
 #include "STL/VECTOR.HPP"
 #include "STL/QUATERNN.HPP"
+#include "STL/MATRIX.HPP"
 #include <stdio.h>
 
 enum GAMEOBJECTTYPE {
@@ -17,7 +18,8 @@ enum GAMEOBJECTTYPE {
   GAMEOBJECT_BILLBOARD = 5,
   GAMEOBJECT_SECTION = 6,
   GAMEOBJECT_TRIGGER = 7,
-  GAMEOBJECT_COUNT = 8
+  GAMEOBJECT_LINK = 8,
+  GAMEOBJECT_COUNT = 9
 };
 extern const char *gameObjectTypeNames[GAMEOBJECT_COUNT];
 
@@ -54,6 +56,8 @@ public:
   void clearValue();
 };
 
+extern unsigned int currentUniqueGameObjectId;
+
 class GameObject { // not virtual (clone wouldn't work)
 public:
   GameObject() {
@@ -69,6 +73,11 @@ public:
     sectionVisible = true;
     visible1 = true;
     visible2 = true;
+    uniqueId = currentUniqueGameObjectId++;
+    hasDrawProblem = false;
+    parentTransform.identity();
+    boundingBoxMin.set(-1,-1,-1);
+    boundingBoxMax.set(1,1,1);
   }
   ~GameObject();
   GameObject *setName(const char *name);
@@ -86,8 +95,14 @@ public:
   bool sectionVisible;
   bool visible1;
   bool visible2;
+  bool hasDrawProblem;
+  int uniqueId;
+  Vector boundingBoxMin;
+  Vector boundingBoxMax;
   Array<GameObjectProperty> properties;
   Array<unsigned int> textureIds;
+  Array<unsigned int> uniqueLinkIds;
+  Matrix parentTransform;
   GameObjectProperty *addProperty(const char *name);
   GameObjectProperty *addProperty(GameObjectProperty *property);
   GameObject *addFloat(const char *name, float v);
@@ -97,7 +112,8 @@ public:
   GameObject *addText(const char *name, const char *text);
   GameObject *addColor(const char *name, unsigned int color);
   GameObject *clone();
-  
+  Matrix getRenderTransform();
+  Matrix getObjectTransform();
   GameObject *loadSkyBox();
 };
 
@@ -109,5 +125,7 @@ GameObject *addGameObject(const char *name);
 void deleteGameObject(int index);
 
 void cloneName(char *destName, const char *originalName);
+
+int getObjectIdByUniqueId(unsigned int uniqueId);
 
 #endif //__GAMEOBJ_HPP__
