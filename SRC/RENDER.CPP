@@ -228,7 +228,6 @@ void paintSimpleGameObject(GameObject *o, bool showModificators) {
   switch(o->type) {
   case GAMEOBJECT_MESH: {} break;
   case GAMEOBJECT_CAMERA: {} break;
-  case GAMEOBJECT_SKYBOX: {paintSkyBox(o);} break;
   case GAMEOBJECT_PATH: {} break;
   case GAMEOBJECT_BILLBOARD: {} break;
   case GAMEOBJECT_TRIGGER: {paintTrigger(o,showModificators);} break;
@@ -296,7 +295,15 @@ void drawSkyBox() {
     GameObject *o = gameObjects[i];
     if (!(o->visible1 && o->visible2)) continue;
     if (!((o->layers==0)||(outlinerLayers==0)||(o->layers & outlinerLayers))) continue;
-    if (o->type == GAMEOBJECT_SKYBOX) drawGameObject(o);
+    if (o->type == GAMEOBJECT_SKYBOX) {
+      if (o->selected) {
+        glStencilFunc(GL_ALWAYS,0x01,0xffffffff);
+        glStencilOp(GL_REPLACE,GL_KEEP,GL_REPLACE);
+        glEnable(GL_STENCIL_TEST);
+      }
+      paintSkyBox(o);
+      glDisable(GL_STENCIL_TEST);
+    }
   }
 }
 
@@ -377,6 +384,7 @@ void handleHitTest() {
           for (int i = 0; i < gameObjects.size(); i++) gameObjects[i]->selected = false;
           h->object->selected = true;
         }
+        h->object->outlinerShouldFocusThis = true;
       } else {
         for (int i = 0; i < gameObjects.size(); i++) gameObjects[i]->selected = false;
       }

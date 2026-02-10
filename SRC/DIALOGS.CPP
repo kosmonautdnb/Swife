@@ -6,6 +6,9 @@
 #include "OUTLINER.HPP"
 #include "RENDER.HPP"
 #include "TEXTURES.HPP"
+#include "STL/DOS.HPP"
+#include "UTIL/LOG.HPP"
+#include "SERIALZE.HPP"
 #include <math.h>
 
 #define DIALOGSTART(__name__) static int keyboardFocusNew = 0; static bool openItNextTime = false;  if (openIt) {openItNextTime = true; keyboardFocusNew = 2; return;}  if (openItNextTime) {openItNextTime = false; ImGui::OpenPopup(__name__); } ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0,0,0,1)); ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(1,1,1,1); if (ImGui::BeginPopupModal(__name__,NULL,ImGuiWindowFlags_AlwaysAutoResize)) { ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(0,0,0,1); ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.4,0.4,0.4,1));disableRenderMouseClicks();
@@ -513,3 +516,238 @@ void dialogObjectTextures(bool openIt) {
   }
   DIALOGEND()
 }
+
+#define LONGFILENAME(__str__) (longFileNames ? longFileName(__str__) : __str__)
+#define SHORTFILENAME(__str__) (longFileNames ? shortFileName(__str__) : __str__)
+char longFileNameBuffer[MAX_LFN_PATH];
+
+String longFileName(const String &a) {
+  if (a[0]>='A'&&a[0]<='B') return a;
+  if (!doslfnLongPath(longFileNameBuffer,dosFileName(a).c_str())) return a;
+  return unixFileName(String(longFileNameBuffer));
+}
+
+String shortFileName(const String &a) {
+  if (a[0]>='A'&&a[0]<='B') return a;
+  if (!doslfnShortPath(longFileNameBuffer,dosFileName(a).c_str())) return a;
+  return unixFileName(String(longFileNameBuffer));
+}
+
+
+void sortFileNames(Array<File> &files, int column, bool sortOrder) {
+  for (int i = 0; i < files.size(); i++) {
+    for (int j = i+1; j < files.size(); j++) {
+      bool bigger = false;
+      String nameHere = (files[i].name.name + files[i].name.extension);
+      bool dirHere = files[i].attributes & DOS_ATTR_SUBDIR;
+      bool dirThere = files[j].attributes & DOS_ATTR_SUBDIR;
+      switch(dirHere?0:column) {
+      case 0: bigger = nameHere < (files[j].name.name + files[j].name.extension); break;
+      case 1: bigger = (files[i].name.extension + files[i].name.name) < (files[j].name.extension + files[j].name.name); break;
+      case 2: bigger = files[i].size < files[j].size; break;
+      case 3: bigger = files[i].date < files[j].date; break;
+      }
+      if ((!dirHere)&&sortOrder) bigger = !bigger;
+      if (dirHere != dirThere) {
+        if (dirHere) bigger = false; else bigger = true;
+      }
+      if (bigger) {
+        File t = files[i];
+        files[i] = files[j];
+        files[j] = t;
+      }
+    }
+  }
+}
+
+typedef void (*LOADSAVEFUNC)(const char *shortPath, const char *longFileName);
+unsigned int dialogLoadSaveGameObjectUniqueId = 0;
+String dialogLoadSaveSetFileNameAndPath;
+
+void dialogLoadSave(bool openIt, int dialogMode) {
+
+  static int mode = DIALOG_NONE; if (dialogMode != DIALOG_NONE) mode = dialogMode;
+
+  static const char *dialogCaption[DIALOG_COUNT] = {"NO MODE","Load a scene","Save a scene","Load a skybox"};
+  static const char *proceedButton[DIALOG_COUNT] = {"<button>", "Load", "Save","Load"};
+  static LOADSAVEFUNC funcs[DIALOG_COUNT] = {NULL, loadScene, saveScene, loadSkyBox};
+
+  static bool driveReady = true;
+  static bool needsRescanFiles = false;
+  static bool longFileNames = false;
+  static bool initColumns = false;
+  static Array<char> driveLetters;
+  static Array<File> files;
+  static int sortByColumn = 0;
+  static bool sortingOrder[4] = {false};
+  static String paths[DIALOG_COUNT];
+  static String fileNames[DIALOG_COUNT];
+  const int NAMEMAXHERE = 100;
+  if (openIt) {
+    initColumns = true;
+    needsRescanFiles = true;
+    driveLetters.clear();
+    for (int i = 'A'; i <= 'Z'; i++) {
+      if (dosHasDrive(i)) driveLetters.push_back(i);
+    }
+    for (int j = 0; j < DIALOG_COUNT; j++) {
+      fileNames[j] = ""; // little bug
+      fileNames[j].resize(NAMEMAXHERE);
+    }
+    if (!dialogLoadSaveSetFileNameAndPath.empty()) {
+      dialogLoadSaveSetFileNameAndPath = unixFileName(SHORTFILENAME(dialogLoadSaveSetFileNameAndPath));
+      fileNames[mode] = getName(dialogLoadSaveSetFileNameAndPath) + getExtension(dialogLoadSaveSetFileNameAndPath);
+      fileNames[mode].resize(NAMEMAXHERE);
+      paths[mode] = getPath(dialogLoadSaveSetFileNameAndPath);
+      dialogLoadSaveSetFileNameAndPath = "";
+    }
+  }
+  bool result = false;
+  DIALOGSTART(dialogCaption[mode])
+  if (paths[mode].empty()) paths[mode] = getCWD();
+  if (needsRescanFiles) {
+    needsRescanFiles = false;
+    files.clear();
+    char driveLetter = paths[mode][0];
+    driveReady = true;
+    if (driveLetter>='A'&&driveLetter<='B') {driveReady = dosIsDriveReady(driveLetter);}
+    if (driveReady) files = dosGetFiles(paths[mode]);
+    for (int i = 0; i < files.size(); i++) {
+      if (files[i].name.name == "." || files[i].name.name == "..") {files.erase(i,1);i--;} else
+      if ((files[i].attributes & 0x1f) != DOS_ATTR_SUBDIR && (files[i].attributes & 0x1f) != DOS_ATTR_NORMAL) {files.erase(i,1);i--;}
+    }
+    if (longFileNames) {
+      for (int i = 0; i < files.size(); i++) {
+          files[i].name.full = LONGFILENAME(files[i].name.full);
+          files[i].name.name = getName(files[i].name.full);
+          files[i].name.extension = getExtension(files[i].name.full);
+      }
+    }
+    sortFileNames(files, sortByColumn, sortingOrder[sortByColumn]);
+  }
+  ImGui::Text("Long filenames"); ImGui::SameLine(); if(ImGui::Checkbox("##DIALOGLOADSAVELONGFILENAMES", &longFileNames)) needsRescanFiles = true;
+  ImGui::SameLine();
+  for (int i = 0; i < driveLetters.size(); i++) {
+    if (i != 0) ImGui::SameLine();
+    char a = driveLetters[i];
+    if (ImGui::Button((String::fromChar(a)+":##DIALOGLOADSAVEDRIVELETTER"+toString(i)).c_str())) {
+      paths[mode] = String::fromChar(a) + ":/";
+      needsRescanFiles = true;
+      //log_setBiosCursor(0,0);
+    }
+  }
+  ImGui::Separator();
+  ImGui::TextWrapped("%s",LONGFILENAME(paths[mode]).c_str());
+  ImGui::Separator();
+  if (paths[mode].length() > 3 && ImGui::Button("..##DIALOGLOADSAVEPATHBACK")) {
+    int k = paths[mode].substr(0,paths[mode].length()-1).findLast("/");
+    if (k>=0) paths[mode] = paths[mode].substr(0,k+1);
+    needsRescanFiles = true;
+  }
+  ImGui::SameLine(); ImGui::Text("Sort by:"); ImGui::SameLine();
+  for (int l = 0; l < 4; l++) {
+    if (l!=0) ImGui::SameLine();
+    static const char *headerButtonNames[4] = {"Filename##DIALOGLOADSAVEFILENAMES","Ext##DIALOGLOADSAVEEXTS","Size##DIALOGLOADSAVESIZES","Date##DIALOGLOADSAVEDATES"};
+    if (ImGui::Button(headerButtonNames[l])) {
+      sortByColumn = l;
+      sortingOrder[l] = !sortingOrder[l];
+      needsRescanFiles = true;
+    }
+  }
+  ImGui::Separator();
+  int w = main_window_xres/2;
+  int h = main_window_yres/2;
+
+  if (!driveReady) {
+    if (ImGui::Button("Drive not ready.. Retry.##DIALOGLOADSAVERETRY")) {
+      needsRescanFiles = true;
+    }
+  } else {
+    ImGui::BeginChild("DIALOGLOADSAVECHILD",ImVec2(w,h));
+    ImGui::Columns(4);
+  
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(1,0));  
+    for (int j = 0; j < 4; j++) {
+      if (initColumns) {
+          if (j == 1) ImGui::SetColumnOffset(j,ImGui::GetColumnOffset(j-1)+7*20);
+          if (j == 2) ImGui::SetColumnOffset(j,ImGui::GetColumnOffset(j-1)+7*5);
+          if (j == 3) ImGui::SetColumnOffset(j,ImGui::GetColumnOffset(j-1)+7*10);
+      }
+      for (int i = 0; i < (int)files.size(); i++) {
+        bool isDir = files[i].attributes & DOS_ATTR_SUBDIR;
+        if (isDir) {
+          if (j == 0) {
+            ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0,0,0,0));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive,ImVec4(0,0,0,0.5));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered,ImVec4(0,0,0,0));
+            if (ImGui::Button((files[i].name.name+"##DIALOGLOADSAVEDIRBUTTON"+String::fromInt(i)).c_str())) {
+              paths[mode] += files[i].name.name + files[i].name.extension + "/";
+              paths[mode] = SHORTFILENAME(paths[mode]);
+              fileNames[mode] = "";
+              needsRescanFiles = true;
+            }
+            ImGui::PopStyleColor();
+            ImGui::PopStyleColor();
+            ImGui::PopStyleColor();
+          } 
+          if (j == 1) {
+            ImGui::Text("DIR");
+          }
+          if (j == 2) {
+            ImGui::Text("");
+          }
+          if (j == 3) {
+            FileTime t = files[i].date;
+            ImGui::Text("%02d.%02d.%04d %02d:%02d.%02d",t.day,t.month,t.year,t.hour,t.minute,t.second);
+          }
+        } else {
+          if (j == 0) {
+            ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0,0,0,0));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive,ImVec4(0,0,0,0.5));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered,ImVec4(0,0,0,0));
+            if (ImGui::Button((files[i].name.name+"##DIALOGLOADSAVEFILEBUTTON"+String::fromInt(i)).c_str())) {
+              fileNames[mode] = files[i].name.name + files[i].name.extension;
+              fileNames[mode].resize(NAMEMAXHERE);
+            }
+            ImGui::PopStyleColor();
+            ImGui::PopStyleColor();
+            ImGui::PopStyleColor();
+          }
+          if (j == 1) {
+            ImGui::Text("%s",files[i].name.extension.c_str());
+          }
+          if (j == 2) {
+            ImGui::Text("%db",files[i].size);
+          }
+          if (j == 3) {
+            FileTime t = files[i].date;
+            ImGui::Text("%02d.%02d.%04d %02d:%02d.%02d",t.day,t.month,t.year,t.hour,t.minute,t.second);
+          }
+        }
+      }
+      ImGui::NextColumn();
+    }
+    ImGui::PopStyleVar();  
+    initColumns = false;
+    ImGui::EndChild();
+  }
+  ImGui::Separator();
+  ImGui::PushItemWidth(w);
+  ImGui::InputText("##DIALOGLOADSAVEFILENAME",&fileNames[mode][0],NAMEMAXHERE);
+  ImGui::PopItemWidth();
+  ImGui::Separator();
+
+  if (ImGui::Button((String(proceedButton[mode])+String("##DIALOGLOADSAVEPROCEED")).c_str())) {
+    result = true;
+    ImGui::CloseCurrentPopup();
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Close##DIALOGLOADSAVECLOSE")) {
+    ImGui::CloseCurrentPopup();
+  }
+  DIALOGEND()
+  if (result) {
+    if (funcs[mode]!=NULL) funcs[mode](paths[mode].c_str(),fileNames[mode].c_str());
+  }
+}
+

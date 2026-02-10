@@ -3,7 +3,7 @@
 
 void initPaint();
 
-void loadSkyBox(class GameObject *o);
+void loadSkyBox(class GameObject *o, const char *fileName);
 void paintSkyBox(class GameObject *o);
 
 void paintTrigger(class GameObject *o, bool showModificators);

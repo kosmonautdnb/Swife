@@ -47,9 +47,9 @@ void drawSkyboxQuad(unsigned int texture, float size, float quadRot, const Vecto
   glEnable(GL_DEPTH_TEST);
 }
 
-void loadSkyBox(class GameObject *o) {
+void loadSkyBox(class GameObject *o, const char *fileName) {
   o->textureIds.resize(6);
-  RGBAImage s = RGBAImage::fromFile("DATA/CUBEMAPS/SKYBOX1.PNG");
+  RGBAImage s = RGBAImage::fromFile(fileName);
   skyBoxFromHorizontalCrossImage(&o->textureIds[0], &s);
   s.free();
 }

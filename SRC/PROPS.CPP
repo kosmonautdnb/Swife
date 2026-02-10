@@ -70,7 +70,7 @@ bool propsButton(const char *name,int k) {
 bool editProperty(GameObjectProperty *p, int i) {
   char buffer[64];
   sprintf(buffer,"##PROPERTYEDIT%d",i);
-  ImGui::Text(" %s",p->name);
+  ImGui::Text(" %s",strlen(p->name)==0?NONAME:p->name);
   ImGui::Text("  "); ImGui::SameLine();
   ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.9,0.9,0.9,1));
   ImGui::PushStyleColor(ImGuiCol_CheckMark,ImVec4(0.0,0.5,0.5,1));
@@ -124,8 +124,9 @@ void showSkyBoxProperties(GameObject *object) {
     textureButton("##SKYBOXPROPROTATIONT7",object->textureIds[5],sw,sh,false);
     ImGui::PopStyleVar();
   }
+  ImGui::Text("%s",object->skyBoxFileName.last(19).c_str());
   if (propsButton("Load##SKYBOXPROPLOAD",strlen("Load")+4)) {
-    object->loadSkyBox();
+    dialogLoadSaveSetFileNameAndPath = object->skyBoxFileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADSKYBOX);
   }
   ImGui::Separator();
 }
@@ -204,11 +205,14 @@ void showLinkProperties(GameObject *object) {
 
   if (count > 0 && propsButton("select##LINKPROPSELECT",strlen("select")+4)) {
     for (int j = 0; j < gameObjects.size(); j++) gameObjects[j]->selected = false;
+    bool first = true;
     for (int i = 0; i < object->uniqueLinkIds.size(); i++) {
       int j = getObjectIdByUniqueId(object->uniqueLinkIds[i]);
       if (j >= 0) {
         GameObject *o = gameObjects[j];
         o->selected = true;
+        if (first) o->outlinerShouldFocusThis = true;
+        first = false;
       }
     }
   }
@@ -263,6 +267,7 @@ void drawProperties() {
         gameObjects[j]->selected = true;
       }
       getSelectionStartId = 0;
+      renderingUpdated = true;
     }
     ImGui::Separator();
   }

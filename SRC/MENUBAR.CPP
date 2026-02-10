@@ -52,6 +52,9 @@ void drawMenuBar() {
     ImGui::SameLine();*/
 
     if (ImGui::BeginMenu("File")) {
+      if (ImGui::MenuItem("Load scene")) {on = true;  dialogLoadSave(true,DIALOG_LOADSCENE);}
+      if (ImGui::MenuItem("Save scene")) {on = true;  dialogLoadSave(true,DIALOG_SAVESCENE);}
+      ImGui::Separator();
       if (ImGui::MenuItem("Quit")) {
         dialogQuit(true);
       }

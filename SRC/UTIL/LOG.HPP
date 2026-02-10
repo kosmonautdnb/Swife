@@ -1,6 +1,8 @@
 #ifndef __LOG_HPP__
 #define __LOG_HPP__
 
+void log_setBiosCursor(int x, int y);
+
 void initLogging();
 
 void log(const char *fmt, ...);

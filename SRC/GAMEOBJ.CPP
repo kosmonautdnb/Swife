@@ -124,8 +124,9 @@ Matrix GameObject::getObjectTransform() {
   return ret;
 }
 
-GameObject *GameObject::loadSkyBox() {
-  ::loadSkyBox(this);
+GameObject *GameObject::loadSkyBox(String skyBoxFileName) {
+  this->skyBoxFileName = skyBoxFileName;
+  ::loadSkyBox(this, skyBoxFileName.c_str());
   renderingUpdated = true;
   return this;
 }

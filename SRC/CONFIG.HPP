@@ -2,6 +2,7 @@
 #define __CONFIG_H__
 
 #include "STL/TYPES.HPP"
+#include "STL/STRING.HPP"
 
 #ifndef PI
 #define PI 3.14159265358979323846
@@ -26,6 +27,8 @@ extern struct ImVec4 color_button_on_bg;
 extern struct ImVec4 color_button_off_text;
 extern struct ImVec4 color_button_on_text;
 extern char *appName;
+
+extern String appFolder;
 
 extern uint32_t main_window_xres;
 extern uint32_t main_window_yres;

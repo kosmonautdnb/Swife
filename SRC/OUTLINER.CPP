@@ -74,6 +74,11 @@ void objectSelect(unsigned int i) {
   ImGui::PushStyleColor(ImGuiCol_Text,tc);
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered,ImVec4(0.8,0.8,0.8,1));
 
+  if (gameObjects[i]->type == GAMEOBJECT_LINK) {
+    ImGui::Checkbox((String("##OBJECTSELECTLINK")+String::fromInt(i)).c_str(),&gameObjects[i]->showLinks);
+    ImGui::SameLine();
+  }
+
   bool empty = strlen(gameObjects[i]->name) == 0;
   if (ImGui::Button((String(empty ? NONAME : gameObjects[i]->name)+String("##OBJECTSELECT")+String::fromInt(i)).c_str())) {
     GLboolean shift,ctrl,alt;
@@ -86,6 +91,24 @@ void objectSelect(unsigned int i) {
     gameObjects[i]->selected = !gameObjects[i]->selected;
     if (shift && t == GAMEOBJECT_SECTION) {sectionSelecting = true; sectionSelectingType = gameObjects[i]->selected;}
   }
+
+  if (gameObjects[i]->type == GAMEOBJECT_LINK && gameObjects[i]->showLinks) {
+    if (gameObjects[i]->uniqueLinkIds.empty()) {
+      ImGui::Text("<empty>");
+    } else {
+      GameObject *object = gameObjects[i];
+      for (int i = 0; i < object->uniqueLinkIds.size(); i++) {
+        int j = getObjectIdByUniqueId(object->uniqueLinkIds[i]);
+        if (j >= 0) {
+          GameObject *o = gameObjects[j];
+          ImGui::Text("%d\"%s\"",j ,o->name);
+        } else {
+          ImGui::Text("<deleted>");
+        }
+      }
+    }
+  }
+
   ImGui::Separator();
   ImGui::PopStyleColor();
   ImGui::PopStyleColor();
@@ -170,6 +193,7 @@ void drawOutliner() {
   dialogControls(false);
   dialogColor(false,NULL);
   dialogObjectTextures(false);
+  dialogLoadSave(false,DIALOG_NONE);
   unsigned int outlinerLayersBefore = outlinerLayers;
   outlinerLayers = layerSelection(outlinerLayers,"OUTLLAY");
   if (outlinerLayers != outlinerLayersBefore) renderingUpdated = true;
@@ -192,6 +216,7 @@ void drawOutliner() {
   sprintf(selectedGroupName,"%s","");
   sprintf(groupName,"%s","");
   for (int i = 0; i < gameObjects.size(); i++) {
+    if (gameObjects[i]->outlinerShouldFocusThis) {ImGui::SetScrollHere(); gameObjects[i]->outlinerShouldFocusThis = false;}
     bool selectBefore = gameObjects[i]->selected;
     gameObjects[i]->visible1 = false;
     if (markAllWithSelecty) gameObjects[i]->selected = false;

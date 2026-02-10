@@ -71,6 +71,7 @@ public:
     color = 0xFFFFFFFF;
     sectionOn = true;
     sectionVisible = true;
+    showLinks = false;
     visible1 = true;
     visible2 = true;
     uniqueId = currentUniqueGameObjectId++;
@@ -78,6 +79,7 @@ public:
     parentTransform.identity();
     boundingBoxMin.set(-1,-1,-1);
     boundingBoxMax.set(1,1,1);
+    outlinerShouldFocusThis = false;
   }
   ~GameObject();
   GameObject *setName(const char *name);
@@ -92,6 +94,7 @@ public:
   char fileName[FILENAMEMAX];
   bool selected;
   bool sectionOn;
+  bool showLinks;
   bool sectionVisible;
   bool visible1;
   bool visible2;
@@ -99,6 +102,7 @@ public:
   int uniqueId;
   Vector boundingBoxMin;
   Vector boundingBoxMax;
+  bool outlinerShouldFocusThis;
   Array<GameObjectProperty> properties;
   Array<unsigned int> textureIds;
   Array<unsigned int> uniqueLinkIds;
@@ -114,7 +118,8 @@ public:
   GameObject *clone();
   Matrix getRenderTransform();
   Matrix getObjectTransform();
-  GameObject *loadSkyBox();
+  String skyBoxFileName;
+  GameObject *loadSkyBox(String skyBoxFileName);
 };
 
 extern HashMap<unsigned int, const char*> iconNameForGameObjectType;

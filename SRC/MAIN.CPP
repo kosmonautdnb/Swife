@@ -16,6 +16,7 @@
 #include "GIZMOS.HPP"
 #include "INFO.HPP"
 #include "PAINT.HPP"
+#include "DOS.HPP"
 
 double lastTime;
 
@@ -78,7 +79,7 @@ void renderLoop() {
 }
 
 void defaultInit() {
-  addGameObject("Skybox")->setType(GAMEOBJECT_SKYBOX)->loadSkyBox();
+  addGameObject("Skybox")->setType(GAMEOBJECT_SKYBOX)->loadSkyBox(appFolder+"DATA/CUBEMAPS/SKYBOX1.PNG");
   addGameObject("Trigger")->setType(GAMEOBJECT_TRIGGER);
   loadBaseSVGs();
   initGameObjects();
@@ -90,6 +91,10 @@ void defaultInit() {
 }
 
 int main(int argc, const char *argv[]) {
+
+  //appFolder = getPath(argv[0]);
+  appFolder = getCWD();
+
   initLogging();
   logp("SWIFE - STARTUP");
   
