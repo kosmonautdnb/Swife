@@ -28,7 +28,6 @@
 #include "STL/DOS.HPP"
 #include "DIALOGS.HPP"
 #include "GAMEOBJ.HPP"
-#include "HELP.HPP"
 #include "VIEWPORT.HPP"
 #include "RENDER.HPP"
 #include "SVG.HPP"

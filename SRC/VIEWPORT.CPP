@@ -33,9 +33,9 @@
 #include "GAMEOBJ.HPP"
 #include "INFO.HPP"
 #include "DIALOGS.HPP"
+#include "PAINT.HPP"
 #include "STL/VECTOR.HPP"
 #include "STL/QUATERNN.HPP"
-#include "GIZMOS.HPP"
 #include <math.h>
 
 bool viewportOn = false;
