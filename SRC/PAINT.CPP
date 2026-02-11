@@ -1,3 +1,26 @@
+/*
+  MIT License
+
+  Copyright (c) 2026 Stefan Mader
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+*/
 #include "GL.H"
 #include "PAINT.HPP"
 #include "GAMEOBJ.HPP"
@@ -6,7 +29,6 @@
 #include "STL/VECTOR.HPP"
 #include "STL/QUATERNN.HPP"
 #include "STL/MATRIX.HPP"
-#include "GIZMOS.HPP"
 #include "HITTEST.HPP"
 #include "SERIALZE.HPP"
 #include <math.h>
@@ -17,6 +39,64 @@
 #define SKYBOX_BACK 3
 #define SKYBOX_TOP 4
 #define SKYBOX_BOTTOM 5
+
+bool USEGRID = true;
+double XGRIDSIZE = 100.0;
+double ZGRIDSIZE = 100.0;
+double GRIDSTEPS = 10.0;
+unsigned int gridColor = 0xffe0e0ff;
+unsigned int gridTexture;
+
+unsigned int getGridColor(int x, int y) {
+  unsigned int a = ((x/16)^(y/16))&1?0xff:0x00;
+  unsigned int g = (rand() & 15)+200-15;
+  return g|(g<<8)|(g<<16)|(a<<24);
+}
+
+void initGizmos() {
+  // loading "GRID" texture
+  glGenTextures(1, &gridTexture);
+  glBindTexture(GL_TEXTURE_2D, gridTexture);
+  unsigned int *gridTextureData = new unsigned int[256*256];
+  for (int x = 0; x < 256; x++) for (int y = 0; y < 256; y++) gridTextureData[x+y*256] = getGridColor(x,y);
+  glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,256,256,0,GL_RGBA,GL_UNSIGNED_BYTE,gridTextureData);
+  delete[] gridTextureData;
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+}
+
+void draw3DGrid() {
+  if (!USEGRID) return;
+  glEnable(GL_TEXTURE_2D);
+  glEnable(GL_ALPHA_TEST);
+  glDisable(GL_CULL_FACE);
+  glAlphaFunc(GL_GREATER,0.5);
+  glBindTexture(GL_TEXTURE_2D, gridTexture);
+  double s = GRIDSTEPS/16.0;
+  glBegin(GL_QUADS);
+  glColor4f( ((gridColor)&255)/255.0, ((gridColor>>8)&255)/255.0, ((gridColor>>16)&255)/255.0, ((gridColor>>24)&255)/255.0);
+  glTexCoord2f(s,0);glVertex3f(XGRIDSIZE,0,-ZGRIDSIZE);
+  glTexCoord2f(0,0);glVertex3f(-XGRIDSIZE,0,-ZGRIDSIZE);
+  glTexCoord2f(0,s);glVertex3f(-XGRIDSIZE,0,ZGRIDSIZE);
+  glTexCoord2f(s,s);glVertex3f(XGRIDSIZE,0,ZGRIDSIZE);
+  glEnd();
+  glEnable(GL_CULL_FACE);
+  glDisable(GL_ALPHA_TEST);
+  glDisable(GL_TEXTURE_2D);
+//  glBegin(GL_LINES);
+//  glColor4f(gridColor.x,gridColor.y,gridColor.z,gridColor.w);
+//  for (double x = -XGRIDSIZE; x <= XGRIDSIZE; x += (double)XGRIDSIZE*2/GRIDSTEPS) {
+//    glVertex3f(x,0,-ZGRIDSIZE);
+//    glVertex3f(x,0,+ZGRIDSIZE);
+//  }
+//  for (double z = -ZGRIDSIZE; z <= ZGRIDSIZE; z += (double)ZGRIDSIZE*2/GRIDSTEPS) {
+//    glVertex3f(-XGRIDSIZE,0,z);
+//    glVertex3f(+XGRIDSIZE,0,z);
+//  }
+//  glEnd();
+}
 
 void initPaint() {
 }

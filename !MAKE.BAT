@@ -1,5 +1,6 @@
 rem call c:\opwat20\setvars.bat
 rem call c:\_wat_c_\setvars.bat
+set INCLUDEBEFORE=%INCLUDE%
 set INCLUDE=%INCLUDE%;SRC\STL;SRC\IMGUI;
 _build\text.exe
 @echo off
@@ -14,3 +15,4 @@ SET DJGPPCOMPILE=0
 call wmake.exe /f R:\makefile /e /s /k
 if %DJGPPCOMPILE%==0 v R:\logs.log
 SET DJGPPCOMPILE=0
+set INCLUDE=%INCLUDEBEFORE%
