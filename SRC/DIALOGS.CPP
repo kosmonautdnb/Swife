@@ -504,9 +504,13 @@ void dialogObjectTextures(bool openIt) {
   for (int i = 0; i < gameObjects.size(); i++) {
     if (gameObjects[i]->selected&&gameObjects[i]->type!=GAMEOBJECT_SECTION) {
       ImGui::Text("%d\"%s\"",i,gameObjects[i]->name);
-      for (int j = 0; j < gameObjects[i]->textureIds.size(); j++) {
-        if ((j % 3)!=0) ImGui::SameLine();
-        textureButton((String("DIALOGOBJECTTEXTURESCHILDIMAGE")+String::fromInt(i)+"_"+String::fromInt(j)).c_str(),gameObjects[i]->textureIds[j],buttonSize,buttonSize*aspect2,true);
+      FileBinding *binding = getBindingById(gameObjects[i]->fileBindingId);
+      if (binding != NULL) {
+        for (int j = 0; j < binding->textureIds.size(); j++) {
+          if ((j % 3)!=0) ImGui::SameLine();
+          unsigned int textureId = binding->textureIds[j];
+          textureButton((String("DIALOGOBJECTTEXTURESCHILDIMAGE")+String::fromInt(i)+"_"+String::fromInt(j)).c_str(),textureId,buttonSize,buttonSize*aspect2,true);
+        }
       }
     }
   }
@@ -582,6 +586,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   static bool sortingOrder[4] = {false};
   static String paths[DIALOG_COUNT];
   static String fileNames[DIALOG_COUNT];
+  static String path2;
   const int NAMEMAXHERE = 100;
   if (openIt) {
     initColumns = true;
@@ -624,6 +629,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
       }
     }
     sortFileNames(files, sortByColumn, sortingOrder[sortByColumn]);
+    path2 = LONGFILENAME(paths[mode]);
   }
   ImGui::Text("Long filenames"); ImGui::SameLine(); if(ImGui::Checkbox("##DIALOGLOADSAVELONGFILENAMES", &longFileNames)) needsRescanFiles = true;
   ImGui::SameLine();
@@ -637,7 +643,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
     }
   }
   ImGui::Separator();
-  ImGui::TextWrapped("%s",LONGFILENAME(paths[mode]).c_str());
+  ImGui::TextWrapped("%s",path2.c_str());
   ImGui::Separator();
   if (paths[mode].length() > 3 && ImGui::Button("..##DIALOGLOADSAVEPATHBACK")) {
     int k = paths[mode].substr(0,paths[mode].length()-1).findLast("/");
@@ -751,3 +757,31 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   }
 }
 
+void dialogViewBindings(bool openIt) {
+  static Array<bool> checked;
+  checked.resize(bindings.size());
+  if (openIt) {for (int i = 0; i < checked.size(); i++) checked[i] = false;}
+  DIALOGSTART("View bindings")
+  ImGui::Text("Bindings count:%d",bindings.size());
+  ImGui::Separator();
+  int w = main_window_xres/2;
+  int h = main_window_yres/2;
+  ImGui::BeginChild("DIALOGVIEWBINDINGSCHILD",ImVec2(w,h));
+  for (int i = 0; i < bindings.size(); i++) {
+    ImGui::Checkbox((String("##DIALOGVIEWBINDINGSTREE")+String::fromInt(i)).c_str(), &checked[i]);
+    ImGui::SameLine(); ImGui::TextWrapped("%s ID:%d FileName:%s",fileTypeNames[bindings[i]->type],bindings[i]->uniqueId,bindings[i]->fileName.last(30).c_str());
+    if (checked[i]) {
+      for (int j = 0; j < gameObjects.size(); j++) {
+        if (gameObjects[j]->fileBindingId == bindings[i]->uniqueId) {
+          ImGui::Text("%d\"%s\"",j,gameObjects[j]->name);
+        }
+      }
+    }
+  }
+  ImGui::EndChild();
+  ImGui::Separator();
+  if (ImGui::Button("Close##DIALOGVIEWBINDINGSCLOSE")) {
+    ImGui::CloseCurrentPopup();
+  }
+  DIALOGEND()
+}

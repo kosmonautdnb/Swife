@@ -2,6 +2,7 @@
 #include "GAMEOBJ.HPP"
 #include "RENDER.HPP"
 #include "PAINT.HPP"
+#include "SERIALZE.HPP"
 #include <string.h>
 
 HashMap<unsigned int, const char*> iconNameForGameObjectType;
@@ -105,6 +106,11 @@ GameObject *GameObject::clone() {
   return o2;
 }
 
+GameObject *GameObject::loadSkyBox(const char *fileName) {
+  loadSkyBoxForObject(this,fileName);
+  return this;
+}
+
 Matrix GameObject::getRenderTransform() {
   return parentTransform * getObjectTransform();
 }
@@ -124,13 +130,6 @@ Matrix GameObject::getObjectTransform() {
   return ret;
 }
 
-GameObject *GameObject::loadSkyBox(String skyBoxFileName) {
-  this->skyBoxFileName = skyBoxFileName;
-  ::loadSkyBox(this, skyBoxFileName.c_str());
-  renderingUpdated = true;
-  return this;
-}
-
 Array<GameObject*> gameObjects;
 
 GameObject *addGameObject(const char *name) {
@@ -145,6 +144,13 @@ void deleteGameObject(int index) {
   delete gameObjects[index];
   gameObjects.erase(index,1);
   renderingUpdated = true;
+}
+
+void freeGameObjects() {
+  for (int i = 0; i < gameObjects.size(); i++) {
+    delete gameObjects[i];
+  }
+  gameObjects.clear();
 }
 
 void cloneName(char *destName, const char *originalName) {

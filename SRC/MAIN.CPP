@@ -17,6 +17,7 @@
 #include "INFO.HPP"
 #include "PAINT.HPP"
 #include "DOS.HPP"
+#include "SERIALZE.HPP"
 
 double lastTime;
 
@@ -54,16 +55,26 @@ void closeVideo() {
   glDone();
 }
 
+void freeData() {
+  freeBindings();
+  freeGameObjects();
+}
+
+void perFrame() {
+  double time = glSeconds(); timeDelta = time - lastTime; lastTime = time;
+  static double fpsTimer = 0; static int fpsCounter = 0; fpsTimer += timeDelta; fpsCounter++; if (fpsTimer>2.0) {fps = fpsCounter/2.0;fpsTimer=0;fpsCounter=0;}
+  mouseDX = mouseDeltaX; mouseDY = mouseDeltaY;
+  mouseB = 0;
+  mouseB |= mouseButtons & GL_MOUSE_BUTTON_LEFT ? 1 : 0;
+  mouseB |= mouseButtons & GL_MOUSE_BUTTON_RIGHT ? 2 : 0;
+  clearAllUnusedBindings();
+}
+
 void renderLoop() {
   while(!quit) {
     ImGuiNewFrame();
     if (currentKey == GL_VK_ESCAPE) quit = true;
-    double time = glSeconds(); timeDelta = time - lastTime; lastTime = time;
-    static double fpsTimer = 0; static int fpsCounter = 0; fpsTimer += timeDelta; fpsCounter++; if (fpsTimer>2.0) {fps = fpsCounter/2.0;fpsTimer=0;fpsCounter=0;}
-    mouseDX = mouseDeltaX; mouseDY = mouseDeltaY;
-    mouseB = 0;
-    mouseB |= mouseButtons & GL_MOUSE_BUTTON_LEFT ? 1 : 0;
-    mouseB |= mouseButtons & GL_MOUSE_BUTTON_RIGHT ? 2 : 0;
+    perFrame();
     updateCamera();
     drawToolBar();
     drawViewport();
@@ -79,7 +90,7 @@ void renderLoop() {
 }
 
 void defaultInit() {
-  addGameObject("Skybox")->setType(GAMEOBJECT_SKYBOX)->loadSkyBox(appFolder+"DATA/CUBEMAPS/SKYBOX1.PNG");
+  addGameObject("Skybox")->setType(GAMEOBJECT_SKYBOX)->loadSkyBox((appFolder+"DATA/CUBEMAPS/SKYBOX1.PNG").c_str());
   addGameObject("Trigger")->setType(GAMEOBJECT_TRIGGER);
   loadBaseSVGs();
   initGameObjects();
@@ -107,6 +118,8 @@ int main(int argc, const char *argv[]) {
 
   uninstallKeyboardHandler();
   closeVideo();
+
+  freeData();
 
   return 0;
 }

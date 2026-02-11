@@ -80,6 +80,7 @@ public:
     boundingBoxMin.set(-1,-1,-1);
     boundingBoxMax.set(1,1,1);
     outlinerShouldFocusThis = false;
+    fileBindingId = 0;
   }
   ~GameObject();
   GameObject *setName(const char *name);
@@ -104,7 +105,6 @@ public:
   Vector boundingBoxMax;
   bool outlinerShouldFocusThis;
   Array<GameObjectProperty> properties;
-  Array<unsigned int> textureIds;
   Array<unsigned int> uniqueLinkIds;
   Matrix parentTransform;
   GameObjectProperty *addProperty(const char *name);
@@ -118,8 +118,9 @@ public:
   GameObject *clone();
   Matrix getRenderTransform();
   Matrix getObjectTransform();
-  String skyBoxFileName;
-  GameObject *loadSkyBox(String skyBoxFileName);
+  unsigned int fileBindingId;
+
+  GameObject *loadSkyBox(const char *fileName);
 };
 
 extern HashMap<unsigned int, const char*> iconNameForGameObjectType;
@@ -128,6 +129,7 @@ extern Array<GameObject*> gameObjects;
 void initGameObjects();
 GameObject *addGameObject(const char *name);
 void deleteGameObject(int index);
+void freeGameObjects();
 
 void cloneName(char *destName, const char *originalName);
 

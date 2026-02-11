@@ -36,4 +36,6 @@ extern unsigned int dialogLoadSaveGameObjectUniqueId;
 extern String dialogLoadSaveSetFileNameAndPath;
 void dialogLoadSave(bool openIt, int dialogMode);
 
+void dialogViewBindings(bool openIt);
+
 #endif // __DIALOGS_HPP__

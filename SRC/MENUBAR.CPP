@@ -102,6 +102,8 @@ void drawMenuBar() {
         if (ImGui::MenuItem("View object textures")) {on = true; dialogObjectTextures(true);}
         if (ImGui::MenuItem("Center selection to view")) {on = true; centerSelection();}
       }
+      ImGui::Separator();
+      if (ImGui::MenuItem("View bindings")) {on = true;  dialogViewBindings(true);}
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Help")) {

@@ -9,6 +9,7 @@
 #include "RENDER.HPP"
 #include "PAINT.HPP"
 #include "TEXTURES.HPP"
+#include "SERIALZE.HPP"
 
 int properties_width = 160;
 char properties_filter[NAMEMAX] = {0};
@@ -110,23 +111,32 @@ void showSkyBoxProperties(GameObject *object) {
   Quaternion rotation = object->rotation;
   if (quaternionInput("R.",&rotation,"##SKYBOXPROPROTATION")) {renderingUpdated = true;}
   object->rotation = rotation;
-  if (object->textureIds.size()==6) {
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0));
-    int sw = 40/aspectRatio*main_window_xres/main_window_yres;
-    int sh = 40;
-    ImGui::InvisibleButton("##SKYBOXPROPROTATIONT0",ImVec2(sw,sh)); ImGui::SameLine();
-    textureButton("##SKYBOXPROPROTATIONT1",object->textureIds[4],sw,sh,false);
-    for (int i = 0; i < 4; i++) {
-      if (i != 0) ImGui::SameLine();
-      textureButton(("##SKYBOXPROPROTATIONT"+String::fromInt(i+2)).c_str(),object->textureIds[i],sw,sh,false);
+  ImGui::Separator();
+  ImGui::Text("Binding");
+  FileBinding *binding = getBindingById(object->fileBindingId);
+  if (binding != NULL) {
+    ImGui::SameLine(); if (propsButton("Reload##SKYBOXPROPRELOAD",strlen("Reload")+4)) {
+      binding->reload();
     }
-    ImGui::InvisibleButton("##SKYBOXPROPROTATIONT6",ImVec2(sw,sh)); ImGui::SameLine();
-    textureButton("##SKYBOXPROPROTATIONT7",object->textureIds[5],sw,sh,false);
-    ImGui::PopStyleVar();
+    if (binding->textureIds.size()==6) {
+      ImGui::Text(" Binding ID:%d",binding->uniqueId);
+      ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0));
+      int sw = 40/aspectRatio*main_window_xres/main_window_yres;
+      int sh = 40;
+      ImGui::InvisibleButton("##SKYBOXPROPROTATIONT0",ImVec2(sw,sh)); ImGui::SameLine();
+      textureButton("##SKYBOXPROPROTATIONT1",binding->textureIds[4],sw,sh,false);
+      for (int i = 0; i < 4; i++) {
+        if (i != 0) ImGui::SameLine();
+        textureButton(("##SKYBOXPROPROTATIONT"+String::fromInt(i+2)).c_str(),binding->textureIds[i],sw,sh,false);
+      }
+      ImGui::InvisibleButton("##SKYBOXPROPROTATIONT6",ImVec2(sw,sh)); ImGui::SameLine();
+      textureButton("##SKYBOXPROPROTATIONT7",binding->textureIds[5],sw,sh,false);
+      ImGui::PopStyleVar();
+    }
+    ImGui::Text("%s",binding->fileName.last(19).c_str());
   }
-  ImGui::Text("%s",object->skyBoxFileName.last(19).c_str());
   if (propsButton("Load##SKYBOXPROPLOAD",strlen("Load")+4)) {
-    dialogLoadSaveSetFileNameAndPath = object->skyBoxFileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADSKYBOX);
+    dialogLoadSaveSetFileNameAndPath = binding == NULL ? NULL : binding->fileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADSKYBOX);
   }
   ImGui::Separator();
 }

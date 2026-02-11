@@ -6,10 +6,9 @@
 #include "STL/VECTOR.HPP"
 #include "STL/QUATERNN.HPP"
 #include "STL/MATRIX.HPP"
-#include "STL/IMAGE.HPP"
-#include "TEXTURES.HPP"
 #include "GIZMOS.HPP"
 #include "HITTEST.HPP"
+#include "SERIALZE.HPP"
 #include <math.h>
 
 #define SKYBOX_LEFT 0
@@ -47,15 +46,9 @@ void drawSkyboxQuad(unsigned int texture, float size, float quadRot, const Vecto
   glEnable(GL_DEPTH_TEST);
 }
 
-void loadSkyBox(class GameObject *o, const char *fileName) {
-  o->textureIds.resize(6);
-  RGBAImage s = RGBAImage::fromFile(fileName);
-  skyBoxFromHorizontalCrossImage(&o->textureIds[0], &s);
-  s.free();
-}
-
 void paintSkyBox(class GameObject *o) {
-  if (o->textureIds.size() != 6) return;
+  FileBinding *binding = getBindingById(o->fileBindingId);
+  if (binding->textureIds.size() != 6) return;
   Camera *c = &cameras[currentCamera];
   float size = fabs(c->farPlane)*0.5; // bigger than 1 because of ortho
   Vector cameraPosition = cameras[currentCamera].position;
@@ -67,12 +60,12 @@ void paintSkyBox(class GameObject *o) {
   Quaternion back; back.yawPitchRoll(k * 180,0,0);
   Quaternion top; top.yawPitchRoll(0,k * 90,0);
   Quaternion bottom; bottom.yawPitchRoll(0,k * -90,0);
-  drawSkyboxQuad(o->textureIds[SKYBOX_LEFT], size,0,cameraPosition,left,r,Vector(-size,0,0));
-  drawSkyboxQuad(o->textureIds[SKYBOX_RIGHT], size,0,cameraPosition,right,r,Vector(size,0,0));
-  drawSkyboxQuad(o->textureIds[SKYBOX_FRONT], size,0,cameraPosition,front,r,Vector(0,0,-size));
-  drawSkyboxQuad(o->textureIds[SKYBOX_BACK], size,0,cameraPosition,back,r,Vector(0,0,size));
-  drawSkyboxQuad(o->textureIds[SKYBOX_TOP], size,0,cameraPosition,top,r,Vector(0,size,0));
-  drawSkyboxQuad(o->textureIds[SKYBOX_BOTTOM], size,0,cameraPosition,bottom,r,Vector(0,-size,0));
+  drawSkyboxQuad(binding->textureIds[SKYBOX_LEFT], size,0,cameraPosition,left,r,Vector(-size,0,0));
+  drawSkyboxQuad(binding->textureIds[SKYBOX_RIGHT], size,0,cameraPosition,right,r,Vector(size,0,0));
+  drawSkyboxQuad(binding->textureIds[SKYBOX_FRONT], size,0,cameraPosition,front,r,Vector(0,0,-size));
+  drawSkyboxQuad(binding->textureIds[SKYBOX_BACK], size,0,cameraPosition,back,r,Vector(0,0,size));
+  drawSkyboxQuad(binding->textureIds[SKYBOX_TOP], size,0,cameraPosition,top,r,Vector(0,size,0));
+  drawSkyboxQuad(binding->textureIds[SKYBOX_BOTTOM], size,0,cameraPosition,bottom,r,Vector(0,-size,0));
 }
 
 bool isInViewport(GameObject *o) {
