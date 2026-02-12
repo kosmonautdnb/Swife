@@ -270,7 +270,7 @@ void paintSimpleGameObject(GameObject *o, bool showModificators) {
 void drawGameObject(GameObject *o) {
   if (o->selected) {
     glStencilFunc(GL_ALWAYS,0x01,0xffffffff);
-    glStencilOp(GL_REPLACE,GL_KEEP,GL_REPLACE);
+    glStencilOp(GL_REPLACE,GL_REPLACE,GL_REPLACE);
     glEnable(GL_STENCIL_TEST);
   }
   switch(o->type) {
@@ -576,6 +576,38 @@ void handleTool() {
   }
 }
 
+bool lightOn = true;
+bool texturedOn = true;
+bool twoSidedOn = false;
+
+void lightSetup(bool on) {
+  if (!on) {
+    glDisable(GL_LIGHTING);
+    glDisable(GL_LIGHT0);
+    glDisable(GL_COLOR_MATERIAL);
+    return;
+  }
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
+  glEnable(GL_COLOR_MATERIAL);
+
+  float dir[4] = {1,1,1,0};
+  float one[4] = {1,1,1,0};
+  float zero[4] = {0,0,0,0};
+  float darker[4] = {0.125,0.125,0.125,0};
+  float lighter[4] = {2,2,2,0};
+  glLightModelfv(GL_LIGHT_MODEL_AMBIENT, zero);
+  //glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL,GL_SEPARATE_SPECULAR_COLOR);
+  glLightfv(GL_LIGHT0, GL_POSITION,dir);
+  glLightfv(GL_LIGHT0, GL_DIFFUSE,lighter);
+  glLightfv(GL_LIGHT0, GL_SPECULAR,one);
+  glLightfv(GL_LIGHT0, GL_AMBIENT,one);
+  glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);
+  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,zero);
+  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,darker);
+  glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,0.0);
+}
+
 void drawScene() {
   bool leftClicked = ImGui::IsMouseClicked(0);
   bool leftDown = ImGui::IsMouseDown(0);
@@ -627,7 +659,9 @@ void drawScene() {
     draw3DGrid();
 
     glDrawnTrianglesFrame = 0;
+    lightSetup(lightOn);
     drawGameObjects();
+    lightSetup(false);
     renderedTriangles = glDrawnTrianglesFrame;
 
     drawSelecting(tiny);

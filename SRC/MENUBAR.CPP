@@ -98,6 +98,11 @@ void drawMenuBar() {
       selected = currentCamera == CAMERA_USER; if (ImGui::MenuItem("User camera","",&selected)) {on = true; currentCamera = CAMERA_USER; renderingUpdated = true;}
       selected = currentCamera == CAMERA_CAMERA1; if (ImGui::MenuItem("Camera 1","",&selected)) {on = true; currentCamera = CAMERA_CAMERA1; renderingUpdated = true;}
       selected = currentCamera == CAMERA_CAMERA2; if (ImGui::MenuItem("Camera 2","",&selected)) {on = true; currentCamera = CAMERA_CAMERA2; renderingUpdated = true;}
+      ImGui::Separator();
+      selected = lightOn; if (ImGui::MenuItem("Lighting","",&selected)) {on = true; lightOn = !lightOn; renderingUpdated = true;}
+      selected = texturedOn; if (ImGui::MenuItem("Textures","",&selected)) {on = true; texturedOn = !texturedOn; renderingUpdated = true;}
+      selected = twoSidedOn; if (ImGui::MenuItem("Two sided","",&selected)) {on = true; twoSidedOn = !twoSidedOn; renderingUpdated = true;}
+      ImGui::Separator();
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Object")) {

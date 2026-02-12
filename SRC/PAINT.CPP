@@ -271,7 +271,9 @@ void paintMesh(class GameObject *o, bool showModificators) {
   Vector maxB = o->boundingBoxMax;
 
   glMultMatrixd(m.m);
-  glEnable(GL_TEXTURE_2D);
+  if (texturedOn) glEnable(GL_TEXTURE_2D); else glDisable(GL_TEXTURE_2D);
+  if (twoSidedOn) glDisable(GL_CULL_FACE); else glEnable(GL_CULL_FACE);
+
   glEnable(GL_ALPHA_TEST);
   glAlphaFunc(GL_GREATER,0);
 
@@ -288,6 +290,7 @@ void paintMesh(class GameObject *o, bool showModificators) {
 
   glDisable(GL_ALPHA_TEST);
   glDisable(GL_TEXTURE_2D);
+  glEnable(GL_CULL_FACE);
 
   addHitTestTriangles(o,0,triangles,minB,maxB);
 

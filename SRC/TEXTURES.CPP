@@ -24,6 +24,7 @@
 #include "GL.H"
 #include "IMGUIGL.HPP"
 #include "TEXTURES.HPP"
+#include "CONFIG.HPP"
 #include "STL/IMAGE.HPP"
 
 bool textureButton(const char *id, unsigned int textureId, int w, int h, bool decoration) {
@@ -83,9 +84,14 @@ unsigned int textureFromImageArea(const class RGBAImage *i, int x0, int y0, int 
       k[x+y*w] = c;
     }
   }
+  RGBAImage c;
+  c.data = k;
+  c.width = w;
+  c.height = h;
+  correctTextureSize(&c);
   glGenTextures(1,&t);
   glBindTexture(GL_TEXTURE_2D,t);
-  glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA, w, h, 0, GL_RGBA, GL_BYTE, k);
+  glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA, c.width, c.height, 0, GL_RGBA, GL_BYTE, c.data);
   free(k);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -105,4 +111,14 @@ void skyBoxFromHorizontalCrossImage(unsigned int t[6], const class RGBAImage *s)
   }
   t[4] = textureFromImageArea(s,k,0,k*2,k);
   t[5] = textureFromImageArea(s,k,k*2,k*2,k*3);
+}
+
+void correctTextureSize(class RGBAImage *image) {
+  if (image->width > maxTextureWidth || image->height > maxTextureHeight) {
+    int w2 = image->width > maxTextureWidth ? maxTextureWidth : image->width;
+    int h2 = image->height > maxTextureHeight ? maxTextureHeight : image->height;
+    RGBAImage zwo = image->getResized(w2,h2);
+    image->free();
+    *image = zwo;
+  }
 }

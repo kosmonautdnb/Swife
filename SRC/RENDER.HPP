@@ -69,6 +69,9 @@ extern bool renderingUpdated;
 extern bool renderingUpdated2; // for continuos / animation
 extern unsigned int selectionCounter; // for objects on same depth when hittest
 extern int drawProblems;
+extern bool lightOn;
+extern bool texturedOn;
+extern bool twoSidedOn;
 
 void disableRenderMouseClicks();
 

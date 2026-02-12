@@ -118,6 +118,21 @@ void dialogAddObject(bool openIt, unsigned int type) {
   DIALOGSTART(title)
   ImGui::PushItemWidth(7*NAMEMAX);
   ImGui::Text("Name"); ImGui::SameLine(); DIALOGKEYSHERE(); ImGui::InputText("##DIALOGADDGAMEOBJECTNAME", name, NAMEMAX);
+  if (t == GAMEOBJECT_MESH) {
+    if (ImGui::Button("Load##DIALOGADDGAMEOBJECTLOAD")) {
+      GameObject *o = new GameObject();
+      o->setName(name);
+      o->setType(t);
+      o->selected = true;
+      o->layers = outlinerLayers;
+      for (int i = 0; i < gameObjects.size(); i++) gameObjects[i]->selected = false;
+      gameObjects.insert(o,0);
+      dialogLoadSaveSetFileNameAndPath = ""; dialogLoadSaveGameObjectUniqueId = o->uniqueId; dialogLoadSave(true, DIALOG_LOADMESH);
+      renderingUpdated = true;
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
+  }
   if (ImGui::Button("Add##DIALOGADDGAMEOBJECTADD")) {
     GameObject *o = new GameObject();
     o->setName(name);
@@ -525,6 +540,7 @@ void dialogObjectTextures(bool openIt) {
   int buttonSize = main_window_xres/6;
   double aspect2 = aspectRatio*main_window_yres/main_window_xres;
   DIALOGSTART("Object textures")
+  ImGui::Text("Max. texture width:%d height:%d",maxTextureWidth,maxTextureHeight);
   ImGui::BeginChild("DIALOGOBJECTTEXTURESCHILD", ImVec2((buttonSize+16)*3,(buttonSize+16)*2));
   for (int i = 0; i < gameObjects.size(); i++) {
     if (gameObjects[i]->selected&&gameObjects[i]->type!=GAMEOBJECT_SECTION) {
@@ -613,6 +629,8 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   static String paths[DIALOG_COUNT];
   static String fileNames[DIALOG_COUNT];
   static String path2;
+  static String scrollToFileName;
+  static int scrollToHelper = 0;
   const int NAMEMAXHERE = 100;
   if (openIt) {
     initColumns = true;
@@ -626,9 +644,12 @@ void dialogLoadSave(bool openIt, int dialogMode) {
       fileNames[j] = ""; // little bug
       fileNames[j].resize(NAMEMAXHERE);
     }
+    scrollToHelper=0;
     if (!dialogLoadSaveSetFileNameAndPath.empty()) {
       dialogLoadSaveSetFileNameAndPath = unixFileName(SHORTFILENAME(dialogLoadSaveSetFileNameAndPath));
       fileNames[mode] = getName(dialogLoadSaveSetFileNameAndPath) + getExtension(dialogLoadSaveSetFileNameAndPath);
+      scrollToFileName = toLower(fileNames[mode]);
+      scrollToHelper = 2;
       fileNames[mode].resize(NAMEMAXHERE);
       paths[mode] = getPath(dialogLoadSaveSetFileNameAndPath);
       dialogLoadSaveSetFileNameAndPath = "";
@@ -709,7 +730,6 @@ void dialogLoadSave(bool openIt, int dialogMode) {
           if (j == 3) ImGui::SetColumnOffset(j,ImGui::GetColumnOffset(j-1)+7*10);
       }
       for (int i = 0; i < (int)files.size(); i++) {
-
         String fullFileName = toLower(files[i].name.name + files[i].name.extension);
         if (!filter2.empty() && fullFileName.findFirst(filter2)<0) continue;
         bool isDir = files[i].attributes & DOS_ATTR_SUBDIR;
@@ -747,6 +767,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
               fileNames[mode] = files[i].name.name + files[i].name.extension;
               fileNames[mode].resize(NAMEMAXHERE);
             }
+            if (fullFileName==scrollToFileName) {ImGui::SetScrollHere();}
             ImGui::PopStyleColor();
             ImGui::PopStyleColor();
             ImGui::PopStyleColor();
@@ -784,6 +805,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
     ImGui::CloseCurrentPopup();
   }
   DIALOGEND()
+  if (scrollToHelper>0) scrollToHelper--; else scrollToFileName="";
   if (result) {
     if (funcs[mode]!=NULL) funcs[mode](paths[mode].c_str(),fileNames[mode].c_str());
   }

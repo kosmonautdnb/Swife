@@ -44,3 +44,6 @@ double aspectRatio = 16.0/9.0;
 char *logFileName = "SWIFE.LOG";
 
 String appFolder;
+
+int maxTextureWidth = 512;
+int maxTextureHeight = 512;

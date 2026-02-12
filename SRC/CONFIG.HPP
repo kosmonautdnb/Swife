@@ -58,4 +58,7 @@ extern uint32_t main_window_yres;
 extern double aspectRatio;
 extern char *logFileName;
 
+extern int maxTextureWidth;
+extern int maxTextureHeight;
+
 #endif //__CONFIG_H__

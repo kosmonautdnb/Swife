@@ -198,6 +198,7 @@ void showMeshProperties(GameObject *object) {
     if (!binding->triangles.empty()) {
       ImGui::Text(" Binding ID:%d",binding->uniqueId);
       ImGui::Text("Triangles:%d",binding->triangles.size());
+      ImGui::Text("Textures:%d",binding->textureIds.size());
     }
     ImGui::Text("%s",binding->fileName.last(19).c_str());
   }

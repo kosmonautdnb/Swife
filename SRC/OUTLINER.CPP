@@ -226,7 +226,7 @@ void drawOutliner() {
   ImGui::Separator();
   ImGui::Text(" "); ImGui::SameLine();SVG *svg = &svgs["search"];ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h));ImGui::SameLine();ImGui::InputText("##OUTLINERFILTER",outliner_filter,NAMEMAX);
   ImGui::SameLine(); if (gameObjectDeleteButton(one)) dialogDeleteGameObjects(true);
-  if (outlinerButton("Move up",one)) outlinerMoveUp(); ImGui::SameLine(); if (outlinerButton("Move down",one)) outlinerMoveDown();
+  if (outlinerButton("Move up",one)) {renderingUpdated = true;outlinerMoveUp();} ImGui::SameLine(); if (outlinerButton("Move down",one)) {renderingUpdated = true; outlinerMoveDown();}
   static bool selecty = false;
   if (one) selecty = true;
   bool markAllWithSelecty = false; ImGui::SameLine(); if (ImGui::Checkbox("##OUTLINERSELECTY",&selecty)) {markAllWithSelecty = true;}

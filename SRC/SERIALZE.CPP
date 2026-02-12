@@ -46,13 +46,16 @@ void FileBinding::load(const char *name, unsigned int type) {
   reload();
 }
 
+Array<unsigned int> allGenTexturesHere;
 unsigned int OBJloadTexture(const String &fileName, const String &type) {
   unsigned int texture = 0;
   if (type != "map_Kd") return texture;
   String name = shortFileName(fileName);
   RGBAImage image = RGBAImage::fromFile(name.c_str());
   if (image.data == NULL) return texture;
+  correctTextureSize(&image);
   glGenTextures(1, &texture);
+  allGenTexturesHere.push_back(texture);
   glBindTexture(GL_TEXTURE_2D, texture);
   glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,image.width,image.height,0,GL_RGBA,GL_UNSIGNED_BYTE,image.data);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -91,15 +94,9 @@ bool FileBinding::reload() {
       if (a.endsWith(".obj")) { // WAVEFRONT OBJECT IMPORT
         SMPL_File *obj = loadObj(fileName.c_str(), true);
         if (obj == NULL) return false;
+        allGenTexturesHere.clear();
         obj->loadTextures(OBJloadTexture);
-        Set<unsigned int> t;
-        Array<String> keys = obj->materials.keys();
-        for (int32_t i = 0; i < keys.size(); i++) {
-          SMPL_Material &m = obj->materials[keys[i]];
-          unsigned int k;
-          k = m.mapDiffuse.glHandle; if (k != 0) t.insert(k);
-        }
-        textureIds = t.array();
+        textureIds = allGenTexturesHere;
         bool first = true;
         boundingBoxMin.set(-1,-1,-1);
         boundingBoxMax.set(1,1,1);
