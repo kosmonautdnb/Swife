@@ -31,6 +31,7 @@
 #include "RENDER.HPP"
 #include "VIEWPORT.HPP"
 #include "PAINT.HPP"
+#include "GAMEOBJ.HPP"
 #include "STL/ARRAY.HPP"
 
 int mode = MODE_UNDEFINED;
@@ -130,24 +131,38 @@ void drawToolBar() {
     }
   }
   ImGui::SameLine();
-  Camera *c = &cameras[currentCamera];
-  c->ortho = (bool)toolBarTextButton((unsigned int)c->ortho,(unsigned int)false,"Persp##ORTHO1");
-  ImGui::SameLine();
-  c->ortho = (bool)toolBarTextButton((unsigned int)c->ortho,(unsigned int)true,"Ortho##ORTHO2");
-  ImGui::SameLine();
-  SVG *svg = &svgs["cameraspeed"];                        
-
-  ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h));
-  ImGui::SameLine();
-  ImGui::PushItemWidth(70);
-  ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.9,0.9,0.9,1));
-  ImGui::InputFloat("##CAMERASPEED",&cameraSpeed,cameraSpeed>1?1:0.1,1,2);
-  if (cameraSpeed < 0) cameraSpeed = 0;
-  ImGui::PopStyleColor();
-  ImGui::PopItemWidth();
-  ImGui::SameLine();
-  drawSeparator(0,0,23);
-  ImGui::SameLine();
+  if (currentCamera == CAMERA_USER) {
+    Camera *c = &cameras[currentCamera];
+    c->ortho = (bool)toolBarTextButton((unsigned int)c->ortho,(unsigned int)false,"Persp##ORTHO1");
+    ImGui::SameLine();
+    c->ortho = (bool)toolBarTextButton((unsigned int)c->ortho,(unsigned int)true,"Ortho##ORTHO2");
+    ImGui::SameLine();
+    SVG *svg = &svgs["cameraspeed"];                        
+  
+    ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h));
+    ImGui::SameLine();
+    ImGui::PushItemWidth(70);
+    ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.9,0.9,0.9,1));
+    ImGui::InputFloat("##CAMERASPEED",&cameraSpeed,cameraSpeed>1?1:0.1,1,2);
+    if (cameraSpeed < 0) cameraSpeed = 0;
+    ImGui::PopStyleColor();
+    ImGui::PopItemWidth();
+    ImGui::SameLine();
+    drawSeparator(0,0,23);
+    ImGui::SameLine();
+  } else {
+    int found = -1;
+    for (int i = 0; i < gameObjects.size(); i++) {
+      if (gameObjects[i]->isCamera[currentCamera]) found = i;
+    }
+    if (found == -1)
+      ImGui::Text("Camera %d",currentCamera);
+    else
+      ImGui::Text("Camera %d %d\"%s\"",currentCamera,found,gameObjects[found]->name);
+    ImGui::SameLine();
+    drawSeparator(0,0,23);
+    ImGui::SameLine();
+  }
   fullScreen = (bool)toolBarTextButton((unsigned int)fullScreen,(unsigned int)true,"View##EDITMODE1");
   ImGui::SameLine();
   fullScreen  = (bool)toolBarTextButton((unsigned int)fullScreen,(unsigned int)false,"Edit##EDITMODE2");

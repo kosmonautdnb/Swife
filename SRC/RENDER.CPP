@@ -39,9 +39,10 @@
 #include "STL/SET.HPP"
 #include <math.h>
 
+double stretchy = 1.0;
+
 Camera cameras[CAMERA_COUNT];
 int currentCamera = 0;
-double stretchy = 1.0;
 
 void rotateCameraBy(double degrees, double x, double y, double z) {
   Camera *c = &cameras[currentCamera];
@@ -95,7 +96,18 @@ void Camera::wasdControls() {
 }
 
 void updateCamera() {
-  cameras[currentCamera].wasdControls();
+  if (currentCamera == CAMERA_USER) 
+    cameras[currentCamera].wasdControls();
+  else {
+    bool one = false;
+    for (int i = 0; i < gameObjects.size(); i++) {
+      if (gameObjects[i]->isCamera[currentCamera]) {
+        cameras[currentCamera] = gameObjects[i]->camera;
+        one = true;
+      }
+    }
+    if (!one) {currentCamera = CAMERA_USER; renderingUpdated = true;}
+  }
 }
 
 unsigned int clearColor = 0xff604020;
@@ -260,7 +272,7 @@ void blitFrameBuffer(bool tiny) {
 void paintSimpleGameObject(GameObject *o, bool showModificators) {
   switch(o->type) {
   case GAMEOBJECT_MESH: {paintMesh(o,showModificators);} break;
-  case GAMEOBJECT_CAMERA: {} break;
+  case GAMEOBJECT_CAMERA: {paintCamera(o);} break;
   case GAMEOBJECT_PATH: {} break;
   case GAMEOBJECT_BILLBOARD: {} break;
   case GAMEOBJECT_TRIGGER: {paintTrigger(o,showModificators);} break;

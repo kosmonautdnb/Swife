@@ -112,7 +112,7 @@ void renderLoop() {
 }
 
 void defaultInit() {
-  addGameObject("Skybox")->setType(GAMEOBJECT_SKYBOX)->loadSkyBox((appFolder+"DATA/CUBEMAPS/SKYBOX1.PNG").c_str());
+  addGameObject("Skybox")->setType(GAMEOBJECT_SKYBOX)->loadSkyBox((appFolder+"DATA/CUBEMAPS/SKYBOX6.PNG").c_str());
   loadBaseSVGs();
   initGameObjects();
   initToolBar();

@@ -143,6 +143,11 @@ GameObject *GameObject::loadMesh(const char *fileName) {
   return this;
 }
 
+GameObject *GameObject::setCamera(const Camera *camera) {
+  this->camera = *camera;
+  return this;
+}
+
 Matrix GameObject::getRenderTransform() const {
   return parentTransform * getObjectTransform();
 }
@@ -171,6 +176,22 @@ void applyGrid(Grid *grid, Vector *t, Vector *s, Quaternion *r) {
 }
 
 Matrix GameObject::getObjectTransform() const {
+  if (type == GAMEOBJECT_CAMERA) {
+    Matrix ret;
+    int mode; glGetIntegerv(GL_MATRIX_MODE, &mode);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    glTranslatef(camera.position.x,camera.position.y,camera.position.z);
+    glMultMatrixd(camera.rotation.rotationMatrix().m);
+    glScalef(scaling.x,scaling.y,scaling.z);
+    glGetDoublev(GL_MODELVIEW_MATRIX, ret.m);
+    glPopMatrix();
+    glMatrixMode(mode);
+    return ret;
+
+  }
+
   Vector translation2 = translation;
   Vector scaling2 = scaling;
   Quaternion rotation2 = rotation;

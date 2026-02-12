@@ -31,6 +31,7 @@
 #include "STL/QUATERNN.HPP"
 #include "STL/MATRIX.HPP"
 #include "SERIALZE.HPP"
+#include "RENDER.HPP" // for camera
 #include <stdio.h>
 
 enum GAMEOBJECTTYPE {
@@ -137,6 +138,7 @@ public:
     boundingBoxMax.set(1,1,1);
     outlinerShouldFocusThis = false;
     fileBindingId = 0;
+    memset(isCamera,0,sizeof(isCamera));
   }
   ~GameObject();
   GameObject *setName(const char *name);
@@ -180,8 +182,12 @@ public:
 
   GameObject *loadSkyBox(const char *fileName);
   GameObject *loadMesh(const char *fileName);
+  GameObject *setCamera(const Camera *camera);
 
   Array<BakedVertex> *getBakedTriangles();
+
+  Camera camera;
+  bool isCamera[CAMERA_COUNT];
 };
 
 extern HashMap<unsigned int, const char*> iconNameForGameObjectType;

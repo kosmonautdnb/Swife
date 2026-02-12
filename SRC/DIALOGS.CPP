@@ -141,6 +141,7 @@ void dialogAddObject(bool openIt, unsigned int type) {
     o->layers = outlinerLayers;
     for (int i = 0; i < gameObjects.size(); i++) gameObjects[i]->selected = false;
     gameObjects.insert(o,0);
+    if (t == GAMEOBJECT_CAMERA) o->setCamera(&cameras[currentCamera]);
     renderingUpdated = true;
     ImGui::CloseCurrentPopup();
   }

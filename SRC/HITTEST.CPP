@@ -27,6 +27,7 @@
 #include "CONFIG.HPP"
 #include "TOOLBAR.HPP"
 #include "GAMEOBJ.HPP"
+#include "RENDER.HPP"
 #include "STL/MATRIX.HPP"
 #include <math.h>
 
@@ -160,19 +161,55 @@ void addHitTestCube(class GameObject *o, int toolId, const Vector &minB, const V
   }
 }
 
+
+bool isBackFace(const Matrix *m, const Matrix *invModelView, const Vector *v0,const Vector *v1,const Vector *v2) {
+  bool ret = false;
+  Vector a = *v1 - *v0;
+  Vector b = *v2 - *v0;
+  Vector n = cross(a,b);
+  // check if orthographic projection by x,y,z not influencing w
+  if (m->m[0*4+3] == 0 && m->m[1*4+3] == 0 && m->m[2*4+3] == 0) {
+    ret = dot(Vector(invModelView->m[4*2+0],invModelView->m[4*2+1],invModelView->m[4*2+2]),n) < 0;
+  } else {
+    Vector v = *v0 - Vector(invModelView->m[4*3+0],invModelView->m[4*3+1],invModelView->m[4*3+2]);
+    ret = dot(v,n) > 0;
+  }
+  return ret;
+}
+
 void addHitTestTriangles(class GameObject *o, int toolId, Array<BakedVertex> *triangles, const Vector &minB, const Vector &maxB) {
   if (!doHitTest) return;
 
   Array<Vector> collisionPoints;
-  Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m); Vector center = (minB+maxB) * 0.5; Matrix scale;  scale.translate(center); scale.scale3((maxB-minB)*0.5);
+  Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m); 
+  Vector center = (minB+maxB) * 0.5; Matrix scale;  scale.translate(center); scale.scale3((maxB-minB)*0.5);
   if (hitTestCubeAndLine(hitTestInverseModelView*modelView*scale, mouseHitStart, mouseHitEnd, collisionPoints, true)) {
-    Vector t0,t1,t2;
+    Vector t0,t1,t2,v0,v1,v2;
     Matrix m2 = hitTestInverseModelView*modelView;
+    Matrix projection; glGetDoublev(GL_PROJECTION_MATRIX, projection.m); Matrix m3 = projection * modelView;
+    Matrix invModelView = inverse(modelView);
     for (int i = 0; i < triangles->size(); i+=3) {
       BakedVertex *t = &(*triangles)[i];
       t0.set(t->x,t->y,t->z); t++;
       t1.set(t->x,t->y,t->z); t++;
       t2.set(t->x,t->y,t->z);      
+      if (!twoSidedOn) {
+        // this one may be not working fully, since triangles are not clipped on nearplane
+        // backface by normal on the other hand may not work well with orthogonal matrices
+        //v0 = m3 * t0;
+        //v1 = m3 * t1;
+        //v2 = m3 * t2;
+        //if (v0.w != 0) v0 /= v0.w;
+        //if (v1.w != 0) v1 /= v1.w;
+        //if (v2.w != 0) v2 /= v2.w;
+        //double dx0 = v1.x - v0.x;
+        //double dy0 = v1.y - v0.y;
+        //double dx1 = v2.x - v0.x;
+        //double dy1 = v2.y - v0.y;
+        //if ((dx0*dy1 - dy0*dx1) < 0) continue;
+        if (isBackFace(&m3,&invModelView,&t0,&t1,&t2)) continue;
+      }
+
       t0 = m2*t0;
       t1 = m2*t1;
       t2 = m2*t2;

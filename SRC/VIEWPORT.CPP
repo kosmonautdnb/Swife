@@ -250,52 +250,54 @@ void drawViewport() {
     }
   }
   drawCameraRotationGizmo();
-  ImGui::Text2("Camera"); ImGui::SameLine();
-  if (ImGui::Checkbox("##VIEWPORTOVERLAYON",&viewportOn)) {;}
-  if (viewportOn) {
-    ImGui::BeginChild("VIEWPORTSETTING");
-    Camera *c = &cameras[currentCamera];
-    float k;
-    ImGui::PushItemWidth(15*7);
-    ImGui::Text2("CamX"); ImGui::SameLine(); k = c->position.x;if (ImGui::InputFloat("##VIEWPORTCAMX",&k,10,10)) {renderingUpdated = true;} c->position.x = k;
-    ImGui::Text2("CamY"); ImGui::SameLine(); k = c->position.y;if (ImGui::InputFloat("##VIEWPORTCAMY",&k,10,10)) {renderingUpdated = true;} c->position.y = k;
-    ImGui::Text2("CamZ"); ImGui::SameLine(); k = c->position.z;if (ImGui::InputFloat("##VIEWPORTCAMZ",&k,10,10)) {renderingUpdated = true;} c->position.z = k;
-    Vector yawPitchRoll = c->rotation.getYawPitchRoll();
-    ImGui::Text2("RotA"); ImGui::SameLine(); k = yawPitchRoll.x*180.0/PI;if (ImGui::InputFloat("##VIEWPORTYAW",&k,10,10)) {renderingUpdated = true; c->rotation.yawPitchRoll(k*PI/180.0,yawPitchRoll.y,yawPitchRoll.z);}
-    ImGui::Text2("RotB"); ImGui::SameLine(); k = yawPitchRoll.y*180.0/PI;if (ImGui::InputFloat("##VIEWPORTPITCH",&k,10,10)) {renderingUpdated = true; c->rotation.yawPitchRoll(yawPitchRoll.x,k*PI/180,yawPitchRoll.z);}
-    ImGui::Text2("RotC"); ImGui::SameLine(); k = yawPitchRoll.z*180.0/PI;if (ImGui::InputFloat("##VIEWPORTROLL",&k,10,10)) {renderingUpdated = true; c->rotation.yawPitchRoll(yawPitchRoll.x,yawPitchRoll.y,k*PI/180.0);}
-    if (!c->ortho) {
-      ImGui::Text2("Fov"); ImGui::SameLine();
-      if (ImGui::InputFloat("##VIEWPORTFOV",&c->fov,10,10)) {renderingUpdated = true;}
-    } else {
-      ImGui::Text2("Ortho scale"); ImGui::SameLine();
-      if (ImGui::InputFloat("##VIEWPORTORTHOSCALE",&c->orthoScale,10,10)) {renderingUpdated = true;}
+  if (currentCamera == CAMERA_USER) {
+    ImGui::Text2("Camera"); ImGui::SameLine();
+    if (ImGui::Checkbox("##VIEWPORTOVERLAYON",&viewportOn)) {;}
+    if (viewportOn) {
+      ImGui::BeginChild("VIEWPORTSETTING");
+      Camera *c = &cameras[currentCamera];
+      float k;
+      ImGui::PushItemWidth(15*7);
+      ImGui::Text2("CamX"); ImGui::SameLine(); k = c->position.x;if (ImGui::InputFloat("##VIEWPORTCAMX",&k,10,10)) {renderingUpdated = true;} c->position.x = k;
+      ImGui::Text2("CamY"); ImGui::SameLine(); k = c->position.y;if (ImGui::InputFloat("##VIEWPORTCAMY",&k,10,10)) {renderingUpdated = true;} c->position.y = k;
+      ImGui::Text2("CamZ"); ImGui::SameLine(); k = c->position.z;if (ImGui::InputFloat("##VIEWPORTCAMZ",&k,10,10)) {renderingUpdated = true;} c->position.z = k;
+      Vector yawPitchRoll = c->rotation.getYawPitchRoll();
+      ImGui::Text2("RotA"); ImGui::SameLine(); k = yawPitchRoll.x*180.0/PI;if (ImGui::InputFloat("##VIEWPORTYAW",&k,10,10)) {renderingUpdated = true; c->rotation.yawPitchRoll(k*PI/180.0,yawPitchRoll.y,yawPitchRoll.z);}
+      ImGui::Text2("RotB"); ImGui::SameLine(); k = yawPitchRoll.y*180.0/PI;if (ImGui::InputFloat("##VIEWPORTPITCH",&k,10,10)) {renderingUpdated = true; c->rotation.yawPitchRoll(yawPitchRoll.x,k*PI/180,yawPitchRoll.z);}
+      ImGui::Text2("RotC"); ImGui::SameLine(); k = yawPitchRoll.z*180.0/PI;if (ImGui::InputFloat("##VIEWPORTROLL",&k,10,10)) {renderingUpdated = true; c->rotation.yawPitchRoll(yawPitchRoll.x,yawPitchRoll.y,k*PI/180.0);}
+      if (!c->ortho) {
+        ImGui::Text2("Fov"); ImGui::SameLine();
+        if (ImGui::InputFloat("##VIEWPORTFOV",&c->fov,10,10)) {renderingUpdated = true;}
+      } else {
+        ImGui::Text2("Ortho scale"); ImGui::SameLine();
+        if (ImGui::InputFloat("##VIEWPORTORTHOSCALE",&c->orthoScale,10,10)) {renderingUpdated = true;}
+      }
+      if (c->orthoScale < 0) c->orthoScale = 0;
+      if (c->fov < 1) c->fov = 1; if (c->fov>180) c->fov = 180;
+      ImGui::Text2("Aspect ratio"); ImGui::SameLine();
+  
+      if (ImGui::InputFloat("##VIEWPORTASPECTRATIO",&c->aspect,0.1,0.1)) {renderingUpdated = true;}
+      ImGui::PopItemWidth();
+      ImGui::PushItemWidth(9*7);
+      ImGui::Text2("Near plane"); ImGui::SameLine();
+      if (ImGui::InputFloat("##VIEWPORTNEAR",&c->nearPlane)) {renderingUpdated = true;} if (c->nearPlane < 0.00001) c->nearPlane = 0.00001;
+      ImGui::Text2("Far plane"); ImGui::SameLine();
+      if (ImGui::InputFloat("##VIEWPORTFAR",&c->farPlane)) {renderingUpdated = true;} if (c->farPlane < c->nearPlane+0.00001) c->farPlane = c->nearPlane + 0.00001;
+      ImGui::Text2("Use grid"); ImGui::SameLine();
+      if (ImGui::Checkbox("##VIEWPORTUSEGRID",&USEGRID)) {renderingUpdated = true;}
+      if (USEGRID) {
+        ImGui::Text2("Grid size"); ImGui::SameLine();
+        k = XGRIDSIZE; if (ImGui::InputFloat("##VIEWPORTGRIDSIZE",&k)) {XGRIDSIZE=ZGRIDSIZE=k;renderingUpdated = true;}
+        ImGui::Text2("Grid steps"); ImGui::SameLine();
+        k = GRIDSTEPS; if (ImGui::InputFloat("##VIEWPORTGRIDSTEPS",&k)) {GRIDSTEPS=k;renderingUpdated = true;}
+        ImGui::Text2("Grid"); ImGui::SameLine();
+        colorItem("","##VIEWPORTBACKGRIDCOLOR", &gridColor, true);
+      }
+      ImGui::Text2("Background"); ImGui::SameLine();
+      colorItem("","##VIEWPORTBACKGROUND", &clearColor, true);
+      ImGui::PopItemWidth();
+      ImGui::EndChild();
     }
-    if (c->orthoScale < 0) c->orthoScale = 0;
-    if (c->fov < 1) c->fov = 1; if (c->fov>180) c->fov = 180;
-    ImGui::Text2("Aspect ratio"); ImGui::SameLine();
-
-    if (ImGui::InputFloat("##VIEWPORTASPECTRATIO",&c->aspect,0.1,0.1)) {renderingUpdated = true;}
-    ImGui::PopItemWidth();
-    ImGui::PushItemWidth(9*7);
-    ImGui::Text2("Near plane"); ImGui::SameLine();
-    if (ImGui::InputFloat("##VIEWPORTNEAR",&c->nearPlane)) {renderingUpdated = true;} if (c->nearPlane < 0.00001) c->nearPlane = 0.00001;
-    ImGui::Text2("Far plane"); ImGui::SameLine();
-    if (ImGui::InputFloat("##VIEWPORTFAR",&c->farPlane)) {renderingUpdated = true;} if (c->farPlane < c->nearPlane+0.00001) c->farPlane = c->nearPlane + 0.00001;
-    ImGui::Text2("Use grid"); ImGui::SameLine();
-    if (ImGui::Checkbox("##VIEWPORTUSEGRID",&USEGRID)) {renderingUpdated = true;}
-    if (USEGRID) {
-      ImGui::Text2("Grid size"); ImGui::SameLine();
-      k = XGRIDSIZE; if (ImGui::InputFloat("##VIEWPORTGRIDSIZE",&k)) {XGRIDSIZE=ZGRIDSIZE=k;renderingUpdated = true;}
-      ImGui::Text2("Grid steps"); ImGui::SameLine();
-      k = GRIDSTEPS; if (ImGui::InputFloat("##VIEWPORTGRIDSTEPS",&k)) {GRIDSTEPS=k;renderingUpdated = true;}
-      ImGui::Text2("Grid"); ImGui::SameLine();
-      colorItem("","##VIEWPORTBACKGRIDCOLOR", &gridColor, true);
-    }
-    ImGui::Text2("Background"); ImGui::SameLine();
-    colorItem("","##VIEWPORTBACKGROUND", &clearColor, true);
-    ImGui::PopItemWidth();
-    ImGui::EndChild();
   }
   ImGui::PopStyleColor();
   ImGui::PopStyleColor();

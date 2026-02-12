@@ -40,5 +40,6 @@ void initPaint();
 void paintSkyBox(class GameObject *o);
 void paintTrigger(class GameObject *o, bool showModificators);
 void paintMesh(class GameObject *o, bool showModificators);
+void paintCamera(class GameObject *o);
 
 #endif //__PAINT_HPP__

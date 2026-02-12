@@ -276,6 +276,46 @@ void showTriggerProperties(GameObject *object) {
   showTransform(object,"##TRIGGERPROP");
 }
 
+void showCameraProperties(GameObject *object) {
+  ImGui::Text("Camera");
+  for (int i = 1; i < CAMERA_COUNT; i++) { // not user camera (0)
+    ImGui::Text(" Camera %d",i);
+    ImGui::SameLine();
+    if (ImGui::Checkbox(("##CAMERAPROPISCAMERA"+String::fromInt(i)).c_str(),&object->isCamera[i])) {
+      if (object->isCamera[i]) {
+        for (int k = 1; k < CAMERA_COUNT; k++) object->isCamera[k] = false;
+        for (int j = 0; j < gameObjects.size(); j++) {
+          gameObjects[j]->isCamera[i] = false;
+        }
+        object->isCamera[i] = true;
+      }
+    }
+    renderingUpdated = true;
+  }
+  ImGui::Text("     View"); ImGui::SameLine();
+  if (propsButton("Get##CAMERAPROPGET",strlen("Get")+4+5)) {object->setCamera(&cameras[currentCamera]); renderingUpdated = true;}
+  ImGui::SameLine();
+  if (propsButton("Put##CAMERAPROPPUT",strlen("Put")+4)) {cameras[currentCamera] = object->camera; renderingUpdated = true;}
+  ImGui::Separator();
+  if (vectorInput("P.",&object->camera.position,"##CAMERAPROPTRANSLATION")) {renderingUpdated = true;}
+  if (quaternionInput("R.",&object->camera.rotation,"##CAMERAPROPROTATION")) {renderingUpdated = true;}
+  ImGui::PushItemWidth(9*7);
+  ImGui::Text("Size"); ImGui::SameLine(); float k = object->scaling.x; if (ImGui::InputFloat("##CAMERAPROPSCALE",&k)) {renderingUpdated = true;} if (k<0.001) k = 0.001; object->scaling = Vector(k,k,k); 
+  ImGui::Separator();
+  if (!object->camera.ortho) {ImGui::Text("Fov"); ImGui::SameLine(); if (ImGui::InputFloat("##CAMERAPROPFOV",&object->camera.fov)) {renderingUpdated = true;}
+  } else {ImGui::Text("Ortho scale"); ImGui::SameLine(); if (ImGui::InputFloat("##CAMERAPROPORTHOSCALE",&object->camera.orthoScale)) {renderingUpdated = true;}}
+  ImGui::Text("Aspect ratio"); ImGui::SameLine(); if (ImGui::InputFloat("##CAMERAPROPASPECTRATIO",&object->camera.aspect)) {renderingUpdated = true;}
+  ImGui::Text("Near plane"); ImGui::SameLine(); if (ImGui::InputFloat("##CAMERAPROPNEAR",&object->camera.nearPlane)) {renderingUpdated = true;}
+  ImGui::Text("Far plane"); ImGui::SameLine(); if (ImGui::InputFloat("##CAMERAPROPFAR",&object->camera.farPlane)) {renderingUpdated = true;}
+  if (object->camera.orthoScale < 0) object->camera.orthoScale = 0;
+  if (object->camera.fov < 1) object->camera.fov = 1; if (object->camera.fov>180) object->camera.fov = 180;
+  if (object->camera.nearPlane < 0.00001) object->camera.nearPlane = 0.00001;
+  if (object->camera.farPlane < object->camera.nearPlane+0.00001) object->camera.farPlane = object->camera.nearPlane + 0.00001;
+  ImGui::PopItemWidth();
+
+  ImGui::Separator();
+}
+
 void drawProperties() {
   int count = 0;
   int count2 = 0;
@@ -337,6 +377,7 @@ void drawProperties() {
       case GAMEOBJECT_SKYBOX: {showSkyBoxProperties(first);} break;
       case GAMEOBJECT_LINK: {showLinkProperties(first);} break;
       case GAMEOBJECT_TRIGGER: {showTriggerProperties(first);} break;
+      case GAMEOBJECT_CAMERA: {showCameraProperties(first);} break;
       default:
         showMeshProperties(first);
       }

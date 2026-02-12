@@ -256,6 +256,91 @@ void paintTrigger(class GameObject *o, bool showModificators) {
   glPopMatrix();
 }
 
+void paintCamera(class GameObject *o) {
+  if (!isInViewport(o)) return;
+
+  glPushMatrix();
+
+  Matrix m = o->getRenderTransform();
+  Vector minB = o->boundingBoxMin;
+  Vector maxB = o->boundingBoxMax;
+  glMultMatrixd(m.m);
+  glEnable(GL_TEXTURE_2D);
+  glEnable(GL_ALPHA_TEST);
+  glAlphaFunc(GL_GREATER,0);
+  glBindTexture(GL_TEXTURE_2D,gridTexture);
+
+
+  glPushMatrix();
+  Vector center = (minB+maxB)*0.5;
+  Vector siz = (maxB-minB)*0.5;
+  glTranslatef(center.x,center.y,center.z);
+  glScalef(siz.x,siz.y,siz.z);
+  glGetDoublev(GL_MODELVIEW_MATRIX,m.m);
+  Vector scal(length(m.getColumn(0)),length(m.getColumn(1)),length(m.getColumn(2)));
+  for (int i = 0; i < 2; i++) {
+    unsigned int col = o->color;
+    if (i == 1) col = ((col>>1)&0x007f7f7f)|(col & 0xff000000);
+    glFrontFace(i & 1 ? GL_CW : GL_CCW);
+    glBegin(GL_QUADS);
+    glColor4f((col & 255)/255.f,((col>>8) & 255)/255.f,((col>>16) & 255)/255.f,((col>>24) & 255)/255.f);
+    glNormal3f(0,0,1);
+    float tx,ty;
+    float ta = 1;
+    tx = ta * scal.x;
+    ty = ta * scal.y;
+    glTexCoord2f(0,ty); glVertex3f(-1,-1,+1);
+    glTexCoord2f(tx,ty);  glVertex3f(+1,-1,+1);
+    glTexCoord2f(tx,0);  glVertex3f(+1,+1,+1);
+    glTexCoord2f(0,0);  glVertex3f(-1,+1,+1);
+    glNormal3f(0,1,0);
+    tx = ta * scal.z;
+    ty = ta * scal.x;
+    glTexCoord2f(tx,ty);  glVertex3f(-1,+1,+1);
+    glTexCoord2f(tx,0);  glVertex3f(+1,+1,+1);
+    glTexCoord2f(0,0);  glVertex3f(+1,+1,-1);
+    glTexCoord2f(0,ty);  glVertex3f(-1,+1,-1);
+    glNormal3f(1,0,0);
+    tx = ta * scal.z;
+    ty = ta * scal.y;
+    glTexCoord2f(tx,ty);   glVertex3f(+1,-1,-1);
+    glTexCoord2f(tx,0);    glVertex3f(+1,+1,-1);
+    glTexCoord2f(0,0);   glVertex3f(+1,+1,+1);
+    glTexCoord2f(0,ty);  glVertex3f(+1,-1,+1);
+    glNormal3f(0,0,-1);
+    tx = ta * scal.x;
+    ty = ta * scal.y;
+    glTexCoord2f(tx,0);    glVertex3f(-1,+1,-1);
+    glTexCoord2f(0,0);   glVertex3f(+1,+1,-1);
+    glTexCoord2f(0,ty);  glVertex3f(+1,-1,-1);
+    glTexCoord2f(tx,ty);   glVertex3f(-1,-1,-1);
+    glNormal3f(0,-1,0);
+    tx = ta * scal.z;
+    ty = ta * scal.x;
+    glTexCoord2f(0,0);  glVertex3f(-1,-1,-1);
+    glTexCoord2f(0,ty);  glVertex3f(+1,-1,-1);
+    glTexCoord2f(tx,ty);  glVertex3f(+1,-1,+1);
+    glTexCoord2f(tx,0);  glVertex3f(-1,-1,+1);
+    glNormal3f(-1,0,0);
+    tx = ta * scal.z;
+    ty = ta * scal.y;
+    glTexCoord2f(tx,ty);   glVertex3f(-1,-1,+1);
+    glTexCoord2f(tx,0);   glVertex3f(-1,+1,+1);
+    glTexCoord2f(0,0);  glVertex3f(-1,+1,-1);
+    glTexCoord2f(0,ty);  glVertex3f(-1,-1,-1);
+    glEnd();
+    glFrontFace(GL_CCW);
+  }
+  glPopMatrix();
+
+  glDisable(GL_ALPHA_TEST);
+  glDisable(GL_TEXTURE_2D);
+
+  addHitTestCube(o,0,minB,maxB);
+
+  glPopMatrix();
+}
+
 void paintMesh(class GameObject *o, bool showModificators) {
   Array<BakedVertex> *triangles = o->getBakedTriangles();
   if (triangles == NULL) {
