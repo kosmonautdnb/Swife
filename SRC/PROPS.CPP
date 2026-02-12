@@ -170,6 +170,7 @@ void showTransform(GameObject *object, const char *id) {
   Vector anchor = object->anchor;
   if (vectorInput("A.",&anchor,(String(id)+String("ANCHOR")).c_str())) {renderingUpdated = true;}
   object->anchor = anchor;
+  if (propsButton(("Center anchor"+String(id)+"USEGRID").c_str(),strlen("Center anchor")+4)) {object->anchor = (object->boundingBoxMin+object->boundingBoxMax)*0.5; renderingUpdated = true;}
   ImGui::Separator();
   Vector translation = object->translation;
   Vector scaling = object->scaling;

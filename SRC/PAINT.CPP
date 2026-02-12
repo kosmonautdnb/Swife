@@ -246,9 +246,11 @@ void paintTrigger(class GameObject *o, bool showModificators) {
   glTranslatef(o->anchor.x,o->anchor.y,o->anchor.z);
 
   if (showModificators) {
-    addHitTestMoveGizmo(o,minB,maxB);
-    addHitTestScaleGizmo(o,minB,maxB);
-    addHitTestRotateGizmo(o,minB,maxB);
+    Vector minB2 = minB - o->anchor;
+    Vector maxB2 = maxB - o->anchor;
+    addHitTestMoveGizmo(o,minB2,maxB2);
+    addHitTestScaleGizmo(o,minB2,maxB2);
+    addHitTestRotateGizmo(o,minB2,maxB2);
   }
 
   glPopMatrix();
@@ -297,9 +299,11 @@ void paintMesh(class GameObject *o, bool showModificators) {
   glTranslatef(o->anchor.x,o->anchor.y,o->anchor.z);
 
   if (showModificators) {
-    addHitTestMoveGizmo(o,minB,maxB);
-    addHitTestScaleGizmo(o,minB,maxB);
-    addHitTestRotateGizmo(o,minB,maxB);
+    Vector minB2 = minB - o->anchor;
+    Vector maxB2 = maxB - o->anchor;
+    addHitTestMoveGizmo(o,minB2,maxB2);
+    addHitTestScaleGizmo(o,minB2,maxB2);
+    addHitTestRotateGizmo(o,minB2,maxB2);
   }
 
   glPopMatrix();
