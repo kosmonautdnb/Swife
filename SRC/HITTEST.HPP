@@ -26,6 +26,7 @@
 
 #include "STL/ARRAY.HPP"
 #include "STL/VECTOR.HPP"
+#include "SERIALZE.HPP"
 
 enum TOOLID {
   HITTESTTOOL_NONE = 0,
@@ -73,6 +74,9 @@ extern class GameObject *activatedToolObjectBase;
 void prepareMouseHitTest(int mouseX, int mouseY);
 
 void addHitTestCube(class GameObject *o, int toolId, const Vector &minB, const Vector &maxB);
+void addHitTestTriangles(class GameObject *o, int toolId, Array<BakedVertex> *triangles, const Vector &minB, const Vector &maxB);
+
+
 Hit *getNearestHit(unsigned int *counter, double lastDepth);
 Hit *getNearestToolHit();
 

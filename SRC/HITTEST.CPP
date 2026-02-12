@@ -110,12 +110,43 @@ bool hitTestCubeAndLine(const Matrix &cube, const Vector &p0,const Vector &p1, A
   return ret;
 }
 
+double hitTestTrianglesSignedVolume(const Vector &a, const Vector &b, const Vector &c, const Vector &d) {return (1.0/6.0)*dot(cross(b-a,c-a),d-a);}
+
+bool hitTestTrianglesCollided(const Vector &l0,const Vector &l1, const Vector &t0, const Vector &t1, const Vector &t2) {
+  const double s0 = hitTestTrianglesSignedVolume(l0,t0,t1,t2);
+  const double s1 = hitTestTrianglesSignedVolume(l1,t0,t1,t2);
+  if (s0*s1>=0) return false;
+  const double a0 = hitTestTrianglesSignedVolume(l0,l1,t0,t1);
+  const double a1 = hitTestTrianglesSignedVolume(l0,l1,t1,t2);
+  if (a0*a1<0) return false;
+  const double a2 = hitTestTrianglesSignedVolume(l0,l1,t2,t0);
+  if (a1*a2<0) return false;
+  return true;
+}
+
+bool hitTestTrianglesCollisionPoint(const Vector &l0,const Vector &l1, const Vector &t0, const Vector &t1, const Vector &t2, Vector &collisionPoint) {
+  Vector e1 = t1-t0;
+  Vector e2 = t2-t0;
+  Vector rd = normalize(l1-l0); // ray dir
+  Vector n = cross(e1,e2);
+  double det = -dot(rd,n);
+  double invdet = det!=0?1.0/det:1.0;
+  Vector a0 = l0 - t0;
+  Vector da0 = cross(a0,rd);
+  double u = dot(e2,da0)*invdet;
+  double v = -dot(e1,da0)*invdet;
+  double t = dot(a0,n)*invdet;
+  bool hit = fabs(det)>=1e-6&&t>=0.0&&u>=0.0&&v>=0.0&&(u+v)<=1.0;
+  if (hit) collisionPoint = l0 + t * rd;
+  return hit;
+}
+
 void addHitTestCube(class GameObject *o, int toolId, const Vector &minB, const Vector &maxB) {
   if (!doHitTest) return;
 
   Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m);
   Vector center = (minB+maxB) * 0.5;
-  Matrix scale; scale.scale3((maxB-minB)*0.5); scale.translate(-center);
+  Matrix scale;  scale.translate(center); scale.scale3((maxB-minB)*0.5);
   Array<Vector> collisionPoints;
   if (hitTestCubeAndLine(hitTestInverseModelView*modelView*scale, mouseHitStart, mouseHitEnd, collisionPoints, true)) {
     for (int i = 0; i < collisionPoints.size(); i++) {
@@ -125,6 +156,37 @@ void addHitTestCube(class GameObject *o, int toolId, const Vector &minB, const V
       h.object = o;
       h.toolId = toolId;
       hits.push_back(h);
+    }
+  }
+}
+
+void addHitTestTriangles(class GameObject *o, int toolId, Array<BakedVertex> *triangles, const Vector &minB, const Vector &maxB) {
+  if (!doHitTest) return;
+
+  Array<Vector> collisionPoints;
+  Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m); Vector center = (minB+maxB) * 0.5; Matrix scale;  scale.translate(center); scale.scale3((maxB-minB)*0.5);
+  if (hitTestCubeAndLine(hitTestInverseModelView*modelView*scale, mouseHitStart, mouseHitEnd, collisionPoints, true)) {
+    Vector t0,t1,t2;
+    Matrix m2 = hitTestInverseModelView*modelView;
+    for (int i = 0; i < triangles->size(); i+=3) {
+      BakedVertex *t = &(*triangles)[i];
+      t0.set(t->x,t->y,t->z); t++;
+      t1.set(t->x,t->y,t->z); t++;
+      t2.set(t->x,t->y,t->z);      
+      t0 = m2*t0;
+      t1 = m2*t1;
+      t2 = m2*t2;
+      if (hitTestTrianglesCollided(mouseHitStart,mouseHitEnd, t0, t1, t2)) {
+        Vector collisionPoint;
+        if (hitTestTrianglesCollisionPoint(mouseHitStart,mouseHitEnd, t0, t1, t2, collisionPoint)) {
+          Hit h;
+          h.depth = length(collisionPoint - mouseHitStart);
+          h.point = collisionPoint;
+          h.object = o;
+          h.toolId = toolId;
+          hits.push_back(h);
+        }
+      }
     }
   }
 }

@@ -113,7 +113,6 @@ void renderLoop() {
 
 void defaultInit() {
   addGameObject("Skybox")->setType(GAMEOBJECT_SKYBOX)->loadSkyBox((appFolder+"DATA/CUBEMAPS/SKYBOX1.PNG").c_str());
-  addGameObject("Trigger")->setType(GAMEOBJECT_TRIGGER);
   loadBaseSVGs();
   initGameObjects();
   initToolBar();

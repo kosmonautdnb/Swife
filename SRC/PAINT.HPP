@@ -30,6 +30,7 @@ extern double ZGRIDSIZE;
 extern double GRIDSTEPS;
 extern unsigned int gridColor;
 extern unsigned int gridTexture;
+extern bool justDrawBoundingBoxes;
 
 void initGizmos();
 void draw3DGrid();
@@ -38,5 +39,6 @@ void initPaint();
 
 void paintSkyBox(class GameObject *o);
 void paintTrigger(class GameObject *o, bool showModificators);
+void paintMesh(class GameObject *o, bool showModificators);
 
 #endif //__PAINT_HPP__

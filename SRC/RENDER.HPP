@@ -63,6 +63,7 @@ extern Camera cameras[CAMERA_COUNT];
 extern int currentCamera;
 
 extern unsigned int clearColor;
+extern unsigned int renderedTriangles;
 
 extern bool renderingUpdated;
 extern bool renderingUpdated2; // for continuos / animation

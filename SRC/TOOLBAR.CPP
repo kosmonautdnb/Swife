@@ -30,6 +30,7 @@
 #include "SVG.HPP"
 #include "RENDER.HPP"
 #include "VIEWPORT.HPP"
+#include "PAINT.HPP"
 #include "STL/ARRAY.HPP"
 
 int mode = MODE_UNDEFINED;
@@ -152,5 +153,7 @@ void drawToolBar() {
   fullScreen  = (bool)toolBarTextButton((unsigned int)fullScreen,(unsigned int)false,"Edit##EDITMODE2");
   ImGui::SameLine();
   drawSeparator(0,0,23);
+  ImGui::SameLine();
+  if (ImGui::Checkbox("##DRAWBOUNDINGBOXES",&justDrawBoundingBoxes)) {renderingUpdated = true;}
   ImGui::End();
 }

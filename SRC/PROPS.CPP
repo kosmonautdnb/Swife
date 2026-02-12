@@ -134,6 +134,7 @@ void showSkyBoxProperties(GameObject *object) {
   Quaternion rotation = object->rotation;
   if (quaternionInput("R.",&rotation,"##SKYBOXPROPROTATION")) {renderingUpdated = true;}
   object->rotation = rotation;
+  colorItem("C.","##SKYBOXPROPCOLOR",&object->color, true);
   ImGui::Separator();
   ImGui::Text("Binding");
   FileBinding *binding = getBindingById(object->fileBindingId);
@@ -159,13 +160,17 @@ void showSkyBoxProperties(GameObject *object) {
     ImGui::Text("%s",binding->fileName.last(19).c_str());
   }
   if (propsButton("Load##SKYBOXPROPLOAD",strlen("Load")+4)) {
-    dialogLoadSaveSetFileNameAndPath = binding == NULL ? NULL : binding->fileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADSKYBOX);
+    dialogLoadSaveSetFileNameAndPath = binding == NULL ? "" : binding->fileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADSKYBOX);
   }
   ImGui::Separator();
 }
 
 void showTransform(GameObject *object, const char *id) {
   ImGui::Text("Transform");
+  Vector anchor = object->anchor;
+  if (vectorInput("A.",&anchor,(String(id)+String("ANCHOR")).c_str())) {renderingUpdated = true;}
+  object->anchor = anchor;
+  ImGui::Separator();
   Vector translation = object->translation;
   Vector scaling = object->scaling;
   Quaternion rotation = object->rotation;
@@ -176,21 +181,29 @@ void showTransform(GameObject *object, const char *id) {
   object->scaling = scaling;  
   object->rotation = rotation;
   colorItem("C.",(String(id)+String("COLOR")).c_str(),&object->color, true);
+  if (propsButton(("Quantize"+String(id)+"BAKEGRID").c_str(),strlen("Grid off")+14)) {applyGrid(&grids[object->gridId],&object->translation,&object->scaling,&object->rotation); object->useGrid = false; renderingUpdated = true;}
+  ImGui::SameLine();
+  if (propsButton(((object->useGrid?"Grid off":"Grid on")+String(id)+"USEGRID").c_str(),strlen("Grid off")+4)) {object->useGrid = !object->useGrid; renderingUpdated = true;}
   ImGui::Separator();
 }
 
 void showMeshProperties(GameObject *object) {
   showTransform(object,"##MESHPROP");
   ImGui::Text("Binding");
-  const char *fname = object->fileName;
-  if (strlen(fname)>NAMEMAX)
-    fname = fname + strlen(fname)-NAMEMAX;
-  if (strlen(fname)==0) fname = NONAME;
-  ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.9,0.9,0.9,1));
-  ImGui::Text("File"); ImGui::SameLine();ImGui::Button((String(fname)+String("##PROPFILENAME")).c_str());
-  if (propsButton("Reimport##PROPSREIMPORT",strlen("Reimport")+4)) {
+  FileBinding *binding = getBindingById(object->fileBindingId);
+  if (binding != NULL) {
+    ImGui::SameLine(); if (propsButton("Reload##MESHPROPRELOAD",strlen("Reload")+4)) {
+      binding->reload();
+    }
+    if (!binding->triangles.empty()) {
+      ImGui::Text(" Binding ID:%d",binding->uniqueId);
+      ImGui::Text("Triangles:%d",binding->triangles.size());
+    }
+    ImGui::Text("%s",binding->fileName.last(19).c_str());
   }
-  ImGui::PopStyleColor();
+  if (propsButton("Load##MESHPROPLOAD",strlen("Load")+4)) {
+    dialogLoadSaveSetFileNameAndPath = binding == NULL ? "" : binding->fileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADMESH);
+  }
   ImGui::Separator();
 }
 
@@ -318,6 +331,7 @@ void drawProperties() {
     ImGui::BeginChild("PROPERTIESPROPERTIES",ImVec2(0,0));
     if (count == 1) {
       switch(first->type) {
+      case GAMEOBJECT_MESH: {showMeshProperties(first);} break;
       case GAMEOBJECT_SKYBOX: {showSkyBoxProperties(first);} break;
       case GAMEOBJECT_LINK: {showLinkProperties(first);} break;
       case GAMEOBJECT_TRIGGER: {showTriggerProperties(first);} break;

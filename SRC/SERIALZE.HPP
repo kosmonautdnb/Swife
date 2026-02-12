@@ -25,30 +25,46 @@
 #define __SERIALZE_HPP__
 
 #include "STL/ARRAY.HPP"
+#include "STL/VECTOR.HPP"
 #include "STL/STRING.HPP"
 
 enum FILETYPE {
   FILETYPE_NONE = 0,
   FILETYPE_SKYBOX = 1,
-  FILETYPE_COUNT = 2
+  FILETYPE_MESH = 2,
+  FILETYPE_COUNT = 3
 };
 extern char *fileTypeNames[FILETYPE_COUNT];
 
 extern unsigned int bindingUniqueId;
+
+class BakedVertex {
+public:
+  float x,y,z;
+  float nx,ny,nz;
+  float tx,ty;
+  unsigned int color;
+  unsigned int textureId;
+};
 
 class FileBinding {
 public:
   FileBinding() {
     uniqueId = bindingUniqueId++;
     type = FILETYPE_NONE;
+    boundingBoxMin.set(-1,-1,-1);
+    boundingBoxMax.set(1,1,1);
   }
   ~FileBinding();
   unsigned int type;
   String fileName;
   unsigned int uniqueId;
   Array<unsigned int> textureIds;
+  Vector boundingBoxMin;
+  Vector boundingBoxMax;
+  Array<BakedVertex> triangles;
   void load(const char *fileName, unsigned int type);
-  void reload();
+  bool reload();
   void free();
 };
 
@@ -64,5 +80,7 @@ void saveScene(const char *path, const char *fileName);
 
 void loadSkyBoxForObject(class GameObject *o, const char *fileName);
 void loadSkyBox(const char *path, const char *fileName);
+void loadMeshForObject(class GameObject *o, const char *fileName);
+void loadMesh(const char *path, const char *fileName);
 
 #endif //__SERIALZE_HPP__

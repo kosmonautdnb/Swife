@@ -28,10 +28,12 @@
 #include "GAMEOBJ.HPP"
 #include "OUTLINER.HPP"
 #include "RENDER.HPP"
+#include "SVG.HPP"
 #include "TEXTURES.HPP"
 #include "STL/DOS.HPP"
 #include "UTIL/LOG.HPP"
 #include "SERIALZE.HPP"
+#include "PROPS.HPP"
 #include <math.h>
 
 #define DIALOGSTART(__name__) static int keyboardFocusNew = 0; static bool openItNextTime = false;  if (openIt) {openItNextTime = true; keyboardFocusNew = 2; return;}  if (openItNextTime) {openItNextTime = false; ImGui::OpenPopup(__name__); } ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0,0,0,1)); ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(1,1,1,1); if (ImGui::BeginPopupModal(__name__,NULL,ImGuiWindowFlags_AlwaysAutoResize)) { ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(0,0,0,1); ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.4,0.4,0.4,1));disableRenderMouseClicks();
@@ -595,9 +597,10 @@ void dialogLoadSave(bool openIt, int dialogMode) {
 
   static int mode = DIALOG_NONE; if (dialogMode != DIALOG_NONE) mode = dialogMode;
 
-  static const char *dialogCaption[DIALOG_COUNT] = {"NO MODE","Load a scene","Save a scene","Load a skybox"};
-  static const char *proceedButton[DIALOG_COUNT] = {"<button>", "Load", "Save","Load"};
-  static LOADSAVEFUNC funcs[DIALOG_COUNT] = {NULL, loadScene, saveScene, loadSkyBox};
+  static const char *dialogCaption[DIALOG_COUNT] = {"NO MODE","Load a scene","Save a scene","Load a skybox","Load a mesh"};
+  static const char *proceedButton[DIALOG_COUNT] = {"<button>", "Load", "Save","Load","Load"};
+  static LOADSAVEFUNC funcs[DIALOG_COUNT] = {NULL, loadScene, saveScene, loadSkyBox, loadMesh};
+  static char filter[NAMEMAX];
 
   static bool driveReady = true;
   static bool needsRescanFiles = false;
@@ -613,6 +616,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   const int NAMEMAXHERE = 100;
   if (openIt) {
     initColumns = true;
+    memset(filter,0,sizeof(filter));
     needsRescanFiles = true;
     driveLetters.clear();
     for (int i = 'A'; i <= 'Z'; i++) {
@@ -666,6 +670,8 @@ void dialogLoadSave(bool openIt, int dialogMode) {
     }
   }
   ImGui::Separator();
+  SVG *svg = &svgs["search"];ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h));ImGui::SameLine();ImGui::InputText("##DIALOGLOADSAVEFILTER",filter,NAMEMAX);
+  ImGui::Separator();
   ImGui::TextWrapped("%s",path2.c_str());
   ImGui::Separator();
   if (paths[mode].length() > 3 && ImGui::Button("..##DIALOGLOADSAVEPATHBACK")) {
@@ -694,7 +700,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   } else {
     ImGui::BeginChild("DIALOGLOADSAVECHILD",ImVec2(w,h));
     ImGui::Columns(4);
-  
+    String filter2 = toLower(filter);  
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(1,0));  
     for (int j = 0; j < 4; j++) {
       if (initColumns) {
@@ -703,6 +709,9 @@ void dialogLoadSave(bool openIt, int dialogMode) {
           if (j == 3) ImGui::SetColumnOffset(j,ImGui::GetColumnOffset(j-1)+7*10);
       }
       for (int i = 0; i < (int)files.size(); i++) {
+
+        String fullFileName = toLower(files[i].name.name + files[i].name.extension);
+        if (!filter2.empty() && fullFileName.findFirst(filter2)<0) continue;
         bool isDir = files[i].attributes & DOS_ATTR_SUBDIR;
         if (isDir) {
           if (j == 0) {
@@ -780,6 +789,19 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   }
 }
 
+void dialogMessage(bool openIt, const char *message) {
+  static String alertMessage; if (message != NULL) alertMessage = message;
+  DIALOGSTART("ALERT MESSAGE")
+  ImGui::Text("%s",alertMessage.c_str());
+  ImGui::Separator();
+  if (ImGui::Button("Close##DIALOGALERTMESSAGECLOSE")) {
+    alertMessage = "<no message>";
+    ImGui::CloseCurrentPopup();
+  }
+  DIALOGEND()
+}
+
+
 void dialogViewBindings(bool openIt) {
   static Array<bool> checked;
   checked.resize(bindings.size());
@@ -804,6 +826,51 @@ void dialogViewBindings(bool openIt) {
   ImGui::EndChild();
   ImGui::Separator();
   if (ImGui::Button("Close##DIALOGVIEWBINDINGSCLOSE")) {
+    ImGui::CloseCurrentPopup();
+  }
+  DIALOGEND()
+}
+
+void clippy(double *v) {
+  if (*v < 0.0001) *v = 0.0001;
+}
+
+void dialogGridSettings(bool openIt) {
+  DIALOGSTART("Grid Settings")
+  Grid *grid = &grids[0];
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(1,0));
+  ImGui::Text("Translation/Position");
+  if (vectorInput(" XYZ",&grid->posGranularity,"##DIALOGGRIDSETTINGSISGRIDTR")) {renderingUpdated = true;}
+  ImGui::Text(" Grid on X"); ImGui::SameLine();if (ImGui::Checkbox("##DIALOGGRIDSETTINGSISGRIDTX",&grid->posXEnabled)) {renderingUpdated = true;}
+  ImGui::SameLine();
+  ImGui::Text("Grid on Y"); ImGui::SameLine();if (ImGui::Checkbox("##DIALOGGRIDSETTINGSISGRIDTY",&grid->posYEnabled)) {renderingUpdated = true;}
+  ImGui::SameLine();
+  ImGui::Text("Grid on Z"); ImGui::SameLine();if (ImGui::Checkbox("##DIALOGGRIDSETTINGSISGRIDTZ",&grid->posZEnabled)) {renderingUpdated = true;}
+  ImGui::Separator();
+  ImGui::Text("Scaling");
+  if (vectorInput(" XYZ",&grid->scaleGranularity,"##DIALOGGRIDSETTINGSISGRIDSC")) {renderingUpdated = true;}
+  ImGui::Text(" Grid on X"); ImGui::SameLine();if (ImGui::Checkbox("##DIALOGGRIDSETTINGSISGRIDSX",&grid->scaleXEnabled)) {renderingUpdated = true;}
+  ImGui::SameLine();
+  ImGui::Text("Grid on Y"); ImGui::SameLine();if (ImGui::Checkbox("##DIALOGGRIDSETTINGSISGRIDSY",&grid->scaleYEnabled)) {renderingUpdated = true;}
+  ImGui::SameLine();
+  ImGui::Text("Grid on Z"); ImGui::SameLine();if (ImGui::Checkbox("##DIALOGGRIDSETTINGSISGRIDSZ",&grid->scaleZEnabled)) {renderingUpdated = true;}
+  ImGui::Separator();
+  ImGui::Text("Rotation");
+  float k;
+  ImGui::PushItemWidth(64);
+  k = grid->rotGranularity; ImGui::Text(" Angle"); ImGui::SameLine(); if (ImGui::InputFloat("##DIALOGGRIDSETTINGSISGRIDR",&k)) {grid->rotGranularity = k; renderingUpdated = true;}
+  ImGui::PopItemWidth();
+  ImGui::Text(" Grid on Angle"); ImGui::SameLine(); if (ImGui::Checkbox("##DIALOGGRIDSETTINGSISGRIDRA",&grid->rotEnabled)) { renderingUpdated = true;}
+  ImGui::Separator();
+  ImGui::PopStyleVar();
+  clippy(&grid->rotGranularity);
+  clippy(&grid->posGranularity.x);
+  clippy(&grid->posGranularity.y);
+  clippy(&grid->posGranularity.z);
+  clippy(&grid->scaleGranularity.x);
+  clippy(&grid->scaleGranularity.y);
+  clippy(&grid->scaleGranularity.z);
+  if (ImGui::Button("Close##DIALOGGRIDSETTINGSCLOSE")) {
     ImGui::CloseCurrentPopup();
   }
   DIALOGEND()

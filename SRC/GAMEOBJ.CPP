@@ -27,8 +27,10 @@
 #include "PAINT.HPP"
 #include "SERIALZE.HPP"
 #include <string.h>
+#include <math.h>
 
 HashMap<unsigned int, const char*> iconNameForGameObjectType;
+Grid grids[MAXGRIDS];
 
 const char *gameObjectTypeNames[GAMEOBJECT_COUNT] = {"undefined", "mesh", "camera", "skybox", "path", "billboard","section","trigger","link"};
 const char *propertyTypeNames[GAMEOBJECTPROPERTY_COUNT] = {"undefined", "bool", "int", "float", "float4", "text", "color"};
@@ -125,7 +127,9 @@ GameObject *GameObject::setType(unsigned int type) {
 
 GameObject *GameObject::clone() {
   GameObject *o2 = new GameObject();
+  unsigned int a = o2->uniqueId;
   memcpy(o2,this,sizeof(GameObject));
+  o2->uniqueId = a;
   return o2;
 }
 
@@ -134,23 +138,66 @@ GameObject *GameObject::loadSkyBox(const char *fileName) {
   return this;
 }
 
-Matrix GameObject::getRenderTransform() {
+GameObject *GameObject::loadMesh(const char *fileName) {
+  loadMeshForObject(this,fileName);
+  return this;
+}
+
+Matrix GameObject::getRenderTransform() const {
   return parentTransform * getObjectTransform();
 }
 
-Matrix GameObject::getObjectTransform() {
+double quantize(double v, double g) {
+  if (g == 0) return v;
+  return floor((v / g)+0.5)*g;
+}
+
+void applyGrid(Grid *grid, Vector *t, Vector *s, Quaternion *r) {
+  if (grid->posXEnabled) t->x = quantize(t->x,grid->posGranularity.x);
+  if (grid->posYEnabled) t->y = quantize(t->y,grid->posGranularity.y);
+  if (grid->posZEnabled) t->z = quantize(t->z,grid->posGranularity.z);
+  if (grid->scaleXEnabled) s->x = quantize(s->x,grid->scaleGranularity.x);
+  if (grid->scaleYEnabled) s->y = quantize(s->y,grid->scaleGranularity.y);
+  if (grid->scaleZEnabled) s->z = quantize(s->z,grid->scaleGranularity.z);
+  if (grid->rotEnabled) {
+    Vector k = r->getYawPitchRoll();
+    k *= 180.0/PI;
+    k.x = quantize(k.x, grid->rotGranularity);
+    k.y = quantize(k.y, grid->rotGranularity);
+    k.z = quantize(k.z, grid->rotGranularity);
+    k /= 180.0/PI;
+    r->yawPitchRoll(k.x,k.y,k.z);
+  }
+}
+
+Matrix GameObject::getObjectTransform() const {
+  Vector translation2 = translation;
+  Vector scaling2 = scaling;
+  Quaternion rotation2 = rotation;
+  if (useGrid) applyGrid(&grids[gridId],&translation2,&scaling2,&rotation2);
   Matrix ret;
   int mode; glGetIntegerv(GL_MATRIX_MODE, &mode);
   glMatrixMode(GL_MODELVIEW);
   glPushMatrix();
   glLoadIdentity();
-  glTranslatef(translation.x,translation.y,translation.z);
-  glMultMatrixd(rotation.rotationMatrix().m);
-  glScalef(scaling.x,scaling.y,scaling.z);
+  glTranslatef(translation2.x,translation2.y,translation2.z);
+  glMultMatrixd(rotation2.rotationMatrix().m);
+  glScalef(scaling2.x,scaling2.y,scaling2.z);
+  glTranslatef(-anchor.x,-anchor.y,-anchor.z);
   glGetDoublev(GL_MODELVIEW_MATRIX, ret.m);
   glPopMatrix();
   glMatrixMode(mode);
   return ret;
+}
+
+Array<BakedVertex> *GameObject::getBakedTriangles() {
+  FileBinding *binding = getBindingById(fileBindingId);
+  if (binding != NULL) {
+    boundingBoxMin = binding->boundingBoxMin;
+    boundingBoxMax = binding->boundingBoxMax;
+    return &binding->triangles;
+  }
+  return NULL;
 }
 
 Array<GameObject*> gameObjects;

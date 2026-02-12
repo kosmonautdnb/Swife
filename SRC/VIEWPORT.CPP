@@ -140,9 +140,9 @@ void duplicate() {
   renderingUpdated = true;
 }
 
-void minMaxFromRotationAndScale(Vector *m, Vector *n, const Vector &p, const Quaternion &r, const Vector &s) {
+void minMaxOfGameObject(const GameObject *o, Vector *m, Vector *n) {
   for (int i = 0; i < 8; i++) {
-    Vector k = p+r.rotateVector(Vector((i&1)?-s.x:s.x,(i&2)?-s.y:s.y,(i&4)?-s.z:s.z));
+    Vector k = o->getRenderTransform() * Vector((i&1)?o->boundingBoxMax.x:o->boundingBoxMin.x,(i&2)?o->boundingBoxMax.y:o->boundingBoxMin.y,(i&4)?o->boundingBoxMax.z:o->boundingBoxMin.z);
     if (i == 0 || k.x < n->x) n->x = k.x;
     if (i == 0 || k.y < n->y) n->y = k.y;
     if (i == 0 || k.z < n->z) n->z = k.z;
@@ -159,7 +159,7 @@ void centerSelection() {
     GameObject *o =gameObjects[i2];
     if (o->selected) {
       Vector n,m;
-      minMaxFromRotationAndScale(&m,&n,o->translation,o->rotation,o->scaling);
+      minMaxOfGameObject(o,&m,&n);
       if (first || n.x < n2.x) n2.x = n.x;
       if (first || n.y < n2.y) n2.y = n.y;
       if (first || n.z < n2.z) n2.z = n.z;
@@ -182,14 +182,6 @@ void setOrthoLookTo(double x, double y, double z) {
   Camera *c = &cameras[currentCamera];
   c->ortho = true;
   c->rotation.yawPitchRoll(-x*90*PI/180.0,y*90*PI/180.0+(z>0?180*PI/180.0:0),z*90*PI/180.0+(z!=0?90*PI/180.0:0));
-  renderingUpdated = true;
-}
-
-void rotateCameraBy(double degrees, double x, double y, double z) {
-  Camera *c = &cameras[currentCamera];
-  double d = degrees * PI / 180.0;
-  Quaternion r; r.yawPitchRoll(x*d,y*d,z*d);
-  c->rotation = normalize(c->rotation * r);
   renderingUpdated = true;
 }
 
@@ -311,7 +303,4 @@ void drawViewport() {
   ImGui::End();
 
   ImGui::PopStyleColor();
-
-  if (ImGui::IsKeyPressed('o')) rotateCameraBy(-90,0,0,1);
-  if (ImGui::IsKeyPressed('p')) rotateCameraBy(90,0,0,1);
 }

@@ -126,6 +126,7 @@ void drawMenuBar() {
       }
       ImGui::Separator();
       if (ImGui::MenuItem("View bindings")) {on = true;  dialogViewBindings(true);}
+      if (ImGui::MenuItem("Grid settings")) {on = true;  dialogGridSettings(true);}
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Help")) {

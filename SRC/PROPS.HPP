@@ -26,6 +26,9 @@
 
 extern int properties_width;
 
+bool vectorInput(const char *name,class Vector *v, const char *dcl);
+bool quaternionInput(const char *name,class Quaternion *q, const char *dcl);
+
 void drawProperties();
 
 #endif //__PROPS_HPP__

@@ -47,6 +47,8 @@ double GRIDSTEPS = 10.0;
 unsigned int gridColor = 0xffe0e0ff;
 unsigned int gridTexture;
 
+bool justDrawBoundingBoxes = false;
+
 unsigned int getGridColor(int x, int y) {
   unsigned int a = ((x/16)^(y/16))&1?0xff:0x00;
   unsigned int g = (rand() & 15)+200-15;
@@ -101,7 +103,7 @@ void draw3DGrid() {
 void initPaint() {
 }
 
-void drawSkyboxQuad(unsigned int texture, float size, float quadRot, const Vector &camPos, const Quaternion &rotation, const Quaternion &rotation2, const Vector &pos) {
+void drawSkyboxQuad(unsigned int color, unsigned int texture, float size, float quadRot, const Vector &camPos, const Quaternion &rotation, const Quaternion &rotation2, const Vector &pos) {
   Matrix m = normalize(rotation).rotationMatrix();
   Matrix m2 = normalize(rotation2).rotationMatrix();
   glDisable(GL_DEPTH_TEST);
@@ -114,7 +116,7 @@ void drawSkyboxQuad(unsigned int texture, float size, float quadRot, const Vecto
   glTranslatef(pos.x,pos.y,pos.z);
   glMultMatrixd(m.m);
   glBegin(GL_QUADS);
-  glColor4f(1,1,1,1);
+  glColor4ubv((GLubyte*)&color);
   glTexCoord2f(1,0); glVertex3f(size,size,0);
   glTexCoord2f(0,0); glVertex3f(-size,size,0);
   glTexCoord2f(0,1); glVertex3f(-size,-size,0);
@@ -140,12 +142,12 @@ void paintSkyBox(class GameObject *o) {
   Quaternion back; back.yawPitchRoll(k * 180,0,0);
   Quaternion top; top.yawPitchRoll(0,k * 90,0);
   Quaternion bottom; bottom.yawPitchRoll(0,k * -90,0);
-  drawSkyboxQuad(binding->textureIds[SKYBOX_LEFT], size,0,cameraPosition,left,r,Vector(-size,0,0));
-  drawSkyboxQuad(binding->textureIds[SKYBOX_RIGHT], size,0,cameraPosition,right,r,Vector(size,0,0));
-  drawSkyboxQuad(binding->textureIds[SKYBOX_FRONT], size,0,cameraPosition,front,r,Vector(0,0,-size));
-  drawSkyboxQuad(binding->textureIds[SKYBOX_BACK], size,0,cameraPosition,back,r,Vector(0,0,size));
-  drawSkyboxQuad(binding->textureIds[SKYBOX_TOP], size,0,cameraPosition,top,r,Vector(0,size,0));
-  drawSkyboxQuad(binding->textureIds[SKYBOX_BOTTOM], size,0,cameraPosition,bottom,r,Vector(0,-size,0));
+  drawSkyboxQuad(o->color,binding->textureIds[SKYBOX_LEFT], size,0,cameraPosition,left,r,Vector(-size,0,0));
+  drawSkyboxQuad(o->color,binding->textureIds[SKYBOX_RIGHT], size,0,cameraPosition,right,r,Vector(size,0,0));
+  drawSkyboxQuad(o->color,binding->textureIds[SKYBOX_FRONT], size,0,cameraPosition,front,r,Vector(0,0,-size));
+  drawSkyboxQuad(o->color,binding->textureIds[SKYBOX_BACK], size,0,cameraPosition,back,r,Vector(0,0,size));
+  drawSkyboxQuad(o->color,binding->textureIds[SKYBOX_TOP], size,0,cameraPosition,top,r,Vector(0,size,0));
+  drawSkyboxQuad(o->color,binding->textureIds[SKYBOX_BOTTOM], size,0,cameraPosition,bottom,r,Vector(0,-size,0));
 }
 
 bool isInViewport(GameObject *o) {
@@ -173,8 +175,14 @@ void paintTrigger(class GameObject *o, bool showModificators) {
   glAlphaFunc(GL_GREATER,0);
   glBindTexture(GL_TEXTURE_2D,gridTexture);
 
-  Vector scal(length(m.getColumn(0)),length(m.getColumn(1)),length(m.getColumn(2)));
 
+  glPushMatrix();
+  Vector center = (minB+maxB)*0.5;
+  Vector siz = (maxB-minB)*0.5;
+  glTranslatef(center.x,center.y,center.z);
+  glScalef(siz.x,siz.y,siz.z);
+  glGetDoublev(GL_MODELVIEW_MATRIX,m.m);
+  Vector scal(length(m.getColumn(0)),length(m.getColumn(1)),length(m.getColumn(2)));
   for (int i = 0; i < 2; i++) {
     unsigned int col = o->color;
     if (i == 1) col = ((col>>1)&0x007f7f7f)|(col & 0xff000000);
@@ -228,16 +236,68 @@ void paintTrigger(class GameObject *o, bool showModificators) {
     glEnd();
     glFrontFace(GL_CCW);
   }
+  glPopMatrix();
 
   glDisable(GL_ALPHA_TEST);
   glDisable(GL_TEXTURE_2D);
+
+  addHitTestCube(o,0,minB,maxB);
+
+  glTranslatef(o->anchor.x,o->anchor.y,o->anchor.z);
 
   if (showModificators) {
     addHitTestMoveGizmo(o,minB,maxB);
     addHitTestScaleGizmo(o,minB,maxB);
     addHitTestRotateGizmo(o,minB,maxB);
   }
-  addHitTestCube(o,0,minB,maxB);
+
+  glPopMatrix();
+}
+
+void paintMesh(class GameObject *o, bool showModificators) {
+  Array<BakedVertex> *triangles = o->getBakedTriangles();
+  if (triangles == NULL) {
+    o->hasDrawProblem = true;
+    drawProblems++;
+    return;
+  }
+  if (!isInViewport(o)) return;
+  if (justDrawBoundingBoxes) {paintTrigger(o,showModificators); return;}
+
+  glPushMatrix();
+
+  Matrix m = o->getRenderTransform();
+  Vector minB = o->boundingBoxMin;
+  Vector maxB = o->boundingBoxMax;
+
+  glMultMatrixd(m.m);
+  glEnable(GL_TEXTURE_2D);
+  glEnable(GL_ALPHA_TEST);
+  glAlphaFunc(GL_GREATER,0);
+
+  glBegin(GL_TRIANGLES);
+  for (int i = 0; i < triangles->size(); i++) {
+    BakedVertex *v = &(*triangles)[i];
+    glBindTexture(GL_TEXTURE_2D,v->textureId); // non standard opengl (in glBegin/glEnd here)
+    glColor4ubv((GLubyte*)&v->color);
+    glTexCoord2f(v->tx,v->ty);
+    glNormal3f(v->nx,v->ny,v->nz);
+    glVertex3f(v->x,v->y,v->z);
+  }
+  glEnd();
+
+  glDisable(GL_ALPHA_TEST);
+  glDisable(GL_TEXTURE_2D);
+
+  addHitTestTriangles(o,0,triangles,minB,maxB);
+
+  glTranslatef(o->anchor.x,o->anchor.y,o->anchor.z);
+
+  if (showModificators) {
+    addHitTestMoveGizmo(o,minB,maxB);
+    addHitTestScaleGizmo(o,minB,maxB);
+    addHitTestRotateGizmo(o,minB,maxB);
+  }
 
   glPopMatrix();
 }

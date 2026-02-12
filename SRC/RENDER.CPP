@@ -43,6 +43,14 @@ Camera cameras[CAMERA_COUNT];
 int currentCamera = 0;
 double stretchy = 1.0;
 
+void rotateCameraBy(double degrees, double x, double y, double z) {
+  Camera *c = &cameras[currentCamera];
+  double d = degrees * PI / 180.0;
+  Quaternion r; r.yawPitchRoll(x*d,y*d,z*d);
+  c->rotation = normalize(c->rotation * r);
+  renderingUpdated = true;
+}
+
 void Camera::wasdControls() {
   if (ImGui::GetIO().WantCaptureKeyboard) return;
   double walkSpeed = cameraSpeed <= 0 ? 0 : pow(2.0,cameraSpeed) * 20.0;
@@ -55,6 +63,8 @@ void Camera::wasdControls() {
   if (isKeyPressed(SCANCODE_A)) {position += q.rotateVector(Vector(-1,0,0))*walkSpeed*timeDelta; renderingUpdated2=true;}
   if (isKeyPressed(SCANCODE_Q)) {position += q.rotateVector(Vector(0,-1,0))*walkSpeed*timeDelta; renderingUpdated2=true;}
   if (isKeyPressed(SCANCODE_E)) {position += q.rotateVector(Vector(0,1,0))*walkSpeed*timeDelta; renderingUpdated2=true;}
+  if (ImGui::IsKeyPressed('o')) rotateCameraBy(-90,0,0,1);
+  if (ImGui::IsKeyPressed('p')) rotateCameraBy(90,0,0,1);
 
   GLboolean alt,shift,ctrl;
   glSpecialKeys(&shift, &ctrl, &alt);
@@ -89,6 +99,7 @@ void updateCamera() {
 }
 
 unsigned int clearColor = 0xff604020;
+unsigned int renderedTriangles = 0;
 
 bool renderingUpdated = false;
 bool renderingUpdated2 = false;
@@ -248,7 +259,7 @@ void blitFrameBuffer(bool tiny) {
 
 void paintSimpleGameObject(GameObject *o, bool showModificators) {
   switch(o->type) {
-  case GAMEOBJECT_MESH: {} break;
+  case GAMEOBJECT_MESH: {paintMesh(o,showModificators);} break;
   case GAMEOBJECT_CAMERA: {} break;
   case GAMEOBJECT_PATH: {} break;
   case GAMEOBJECT_BILLBOARD: {} break;
@@ -614,8 +625,13 @@ void drawScene() {
     drawProblems = 0;
     drawSkyBox();
     draw3DGrid();
+
+    glDrawnTrianglesFrame = 0;
     drawGameObjects();
+    renderedTriangles = glDrawnTrianglesFrame;
+
     drawSelecting(tiny);
+
 
     if (hitTestOn) handleHitTest();
 

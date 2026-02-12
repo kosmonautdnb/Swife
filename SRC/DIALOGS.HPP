@@ -49,7 +49,8 @@ enum DIALOGMODE {
   DIALOG_LOADSCENE = 1,
   DIALOG_SAVESCENE = 2,
   DIALOG_LOADSKYBOX = 3,
-  DIALOG_COUNT = 4
+  DIALOG_LOADMESH = 4,
+  DIALOG_COUNT = 5
 };
 
 String longFileName(const String &a);
@@ -59,6 +60,8 @@ extern unsigned int dialogLoadSaveGameObjectUniqueId;
 extern String dialogLoadSaveSetFileNameAndPath;
 void dialogLoadSave(bool openIt, int dialogMode);
 
+void dialogMessage(bool openIt, const char *alertMessage);
 void dialogViewBindings(bool openIt);
+void dialogGridSettings(bool openIt);
 
 #endif // __DIALOGS_HPP__

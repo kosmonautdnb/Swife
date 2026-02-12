@@ -30,6 +30,7 @@
 #include "STL/VECTOR.HPP"
 #include "STL/QUATERNN.HPP"
 #include "STL/MATRIX.HPP"
+#include "SERIALZE.HPP"
 #include <stdio.h>
 
 enum GAMEOBJECTTYPE {
@@ -81,14 +82,44 @@ public:
 
 extern unsigned int currentUniqueGameObjectId;
 
+class Grid {
+public:
+  Grid() {
+    posXEnabled = true;
+    posYEnabled = true;
+    posZEnabled = true;
+    scaleXEnabled = true;
+    scaleYEnabled = true;
+    scaleZEnabled = true;
+    rotEnabled = true;
+    posGranularity.set(1,1,1);
+    scaleGranularity.set(1,1,1);
+    rotGranularity = 45;
+  }
+  bool posXEnabled;
+  bool posYEnabled;
+  bool posZEnabled;
+  bool scaleXEnabled;
+  bool scaleYEnabled;
+  bool scaleZEnabled;
+  bool rotEnabled;
+  Vector posGranularity;
+  Vector scaleGranularity;
+  double rotGranularity;
+};
+
+#define MAXGRIDS 1
+extern Grid grids[MAXGRIDS];
+void applyGrid(Grid *grid, Vector *t, Vector *s, Quaternion *r);
+
 class GameObject { // not virtual (clone wouldn't work)
 public:
   GameObject() {
     layers = 1;
     type = GAMEOBJECT_UNDEFINED;
     sprintf(name,NONAME);
-    sprintf(fileName,NONAME);
     selected = false;
+    anchor.set(0,0,0);
     translation.set(0,0,0);
     scaling.set(1,1,1);
     color = 0xFFFFFFFF;
@@ -98,6 +129,8 @@ public:
     visible1 = true;
     visible2 = true;
     uniqueId = currentUniqueGameObjectId++;
+    useGrid = false;
+    gridId = 0;
     hasDrawProblem = false;
     parentTransform.identity();
     boundingBoxMin.set(-1,-1,-1);
@@ -113,9 +146,9 @@ public:
   Vector translation;
   Vector scaling;
   Quaternion rotation;
+  Vector anchor;
   unsigned int color;
   char name[NAMEMAX];
-  char fileName[FILENAMEMAX];
   bool selected;
   bool sectionOn;
   bool showLinks;
@@ -123,6 +156,8 @@ public:
   bool visible1;
   bool visible2;
   bool hasDrawProblem;
+  bool useGrid;
+  int gridId;
   int uniqueId;
   Vector boundingBoxMin;
   Vector boundingBoxMax;
@@ -139,11 +174,14 @@ public:
   GameObject *addText(const char *name, const char *text);
   GameObject *addColor(const char *name, unsigned int color);
   GameObject *clone();
-  Matrix getRenderTransform();
-  Matrix getObjectTransform();
+  Matrix getRenderTransform() const;
+  Matrix getObjectTransform() const;
   unsigned int fileBindingId;
 
   GameObject *loadSkyBox(const char *fileName);
+  GameObject *loadMesh(const char *fileName);
+
+  Array<BakedVertex> *getBakedTriangles();
 };
 
 extern HashMap<unsigned int, const char*> iconNameForGameObjectType;
