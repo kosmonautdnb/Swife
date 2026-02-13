@@ -32,6 +32,7 @@
 #define CGLTF_IMPLEMENTATION
 #include "cgltf.hpp"
 #include "STL/SMPLOBJL.HPP"
+#include "STL/SPRTEOBJ.HPP"
 #include <math.h>
 
 char *fileTypeNames[FILETYPE_COUNT] = {"none","skybox","mesh","billboard"};
@@ -160,6 +161,13 @@ bool FileBinding::reload() {
         billBoardIsTexture = true;
         return true;
       }
+      if (loadMeshForBinding(fileName, this)) {
+        billBoardOriginalWidth = defaultRenderTargetWidth;
+        billBoardOriginalHeight = defaultRenderTargetHeight;
+        spriteObject = new SpriteObject();
+        createSpriteObjectFrameBuffer(spriteObject,billBoardOriginalWidth,billBoardOriginalHeight);
+        return true;
+      }
       dialogMessage(true,(String("Couldn't load file:<")+fileName+">").c_str()); 
       return false;
     } break;
@@ -173,6 +181,7 @@ void FileBinding::free() {
   }
   textureIds.clear();
   triangles.clear();
+  if (spriteObject != 0) {freeSpriteObject(spriteObject); delete spriteObject; spriteObject = NULL;}
 }
 
 unsigned int bindingUniqueId = 1;
@@ -258,7 +267,7 @@ void loadMesh(const char *path, const char *fileName) {
 }
 
 void loadBillBoardForObject(class GameObject *o, const char *fileName) {
-  FileBinding *binding = getBindingByFileName(fileName, FILETYPE_MESH);
+  FileBinding *binding = getBindingByFileName(fileName, FILETYPE_BILLBOARD);
   if (binding == NULL) {
     binding = newBinding();
     binding->load(fileName, FILETYPE_BILLBOARD);

@@ -61,4 +61,7 @@ extern char *logFileName;
 extern int maxTextureWidth;
 extern int maxTextureHeight;
 
+extern int defaultRenderTargetWidth;
+extern int defaultRenderTargetHeight;
+
 #endif //__CONFIG_H__

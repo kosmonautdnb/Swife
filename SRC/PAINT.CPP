@@ -31,6 +31,7 @@
 #include "STL/MATRIX.HPP"
 #include "HITTEST.HPP"
 #include "SERIALZE.HPP"
+#include "STL/SPRTEOBJ.HPP"
 #include <math.h>
 
 #define SKYBOX_LEFT 0
@@ -399,9 +400,8 @@ void paintMesh(class GameObject *o, bool showModificators) {
 
 
 void paintBillBoard(class GameObject *o, bool showModificators) {
-  if (!isInViewport(o)) return;
-
   FileBinding *binding = getBindingById(o->fileBindingId);
+
   float tx0=0,ty0=0,tx1=1,ty1=1;
   unsigned int textureId = gridTexture;
   if (binding != NULL) {
@@ -416,7 +416,14 @@ void paintBillBoard(class GameObject *o, bool showModificators) {
       ty1 = o->billBoardTY1/h;
       if (binding->textureIds.size()==1) textureId = binding->textureIds[0];
     }
+    if (!binding->billBoardIsTexture && binding->spriteObject != NULL) {
+      textureId = binding->spriteObject->frameBufferColor;
+      o->boundingBoxMin.set(binding->spriteObject->minx,binding->spriteObject->miny,-0.01);
+      o->boundingBoxMax.set(binding->spriteObject->maxx,binding->spriteObject->maxy,0.01);
+    }
   }
+
+  if (!isInViewport(o)) return;
 
   bool lightingWasOn = glIsEnabled(GL_LIGHTING);
   glDisable(GL_LIGHTING);
@@ -443,10 +450,10 @@ void paintBillBoard(class GameObject *o, bool showModificators) {
   unsigned int col = o->color;
   glColor4f((col & 255)/255.f,((col>>8) & 255)/255.f,((col>>16) & 255)/255.f,((col>>24) & 255)/255.f);
   glNormal3f(0,0,1);
-  glTexCoord2f(tx0,ty1); glVertex3f(-1,-1,+1);
-  glTexCoord2f(tx1,ty1);  glVertex3f(+1,-1,+1);
-  glTexCoord2f(tx1,ty0);  glVertex3f(+1,+1,+1);
-  glTexCoord2f(tx0,ty0);  glVertex3f(-1,+1,+1);
+  glTexCoord2f(tx0,ty1); glVertex3f(-1,-1,0);
+  glTexCoord2f(tx1,ty1);  glVertex3f(+1,-1,0);
+  glTexCoord2f(tx1,ty0);  glVertex3f(+1,+1,0);
+  glTexCoord2f(tx0,ty0);  glVertex3f(-1,+1,0);
   glEnd();
 
   glPopMatrix();
@@ -467,4 +474,49 @@ void paintBillBoard(class GameObject *o, bool showModificators) {
   glPopMatrix();
 
   if (lightingWasOn) glEnable(GL_LIGHTING); else glDisable(GL_LIGHTING);
+}
+
+void paintBillBoardContents() {
+  for (int i = 0; i < bindings.size(); i++) {
+    FileBinding *b = bindings[i];
+    if (b->type == FILETYPE_BILLBOARD && (!b->billBoardIsTexture) && b->spriteObject != NULL) {
+
+      startSpriteObjectPainting(b->spriteObject, &b->boundingBoxMin, &b->boundingBoxMax);
+
+      Array<BakedVertex> *triangles = &b->triangles;
+
+      if (triangles != NULL) {
+    
+        glPushMatrix();
+      
+        Vector minB = b->boundingBoxMin;
+        Vector maxB = b->boundingBoxMax;
+      
+        if (texturedOn) glEnable(GL_TEXTURE_2D); else glDisable(GL_TEXTURE_2D);
+        if (twoSidedOn) glDisable(GL_CULL_FACE); else glEnable(GL_CULL_FACE);
+      
+        glEnable(GL_ALPHA_TEST);
+        glAlphaFunc(GL_GREATER,0);
+      
+        glBegin(GL_TRIANGLES);
+        for (int i = 0; i < triangles->size(); i++) {
+          BakedVertex *v = &(*triangles)[i];
+          glBindTexture(GL_TEXTURE_2D,v->textureId); // non standard opengl (in glBegin/glEnd here)
+          glColor4ubv((GLubyte*)&v->color);
+          glTexCoord2f(v->tx,v->ty);
+          glNormal3f(v->nx,v->ny,v->nz);
+          glVertex3f(v->x,v->y,v->z);
+        }
+        glEnd();
+      
+        glDisable(GL_ALPHA_TEST);
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_CULL_FACE);
+
+        glPopMatrix();
+      }
+
+      finishSpriteObjectPainting();
+    }
+  }
 }

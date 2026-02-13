@@ -47,3 +47,6 @@ String appFolder;
 
 int maxTextureWidth = 512;
 int maxTextureHeight = 512;
+
+int defaultRenderTargetWidth = 380;
+int defaultRenderTargetHeight = 380;

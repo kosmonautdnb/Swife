@@ -26,6 +26,7 @@
 #include "RENDER.HPP"
 #include "PAINT.HPP"
 #include "SERIALZE.HPP"
+#include "STL/SPRTEOBJ.HPP"
 #include <string.h>
 #include <math.h>
 

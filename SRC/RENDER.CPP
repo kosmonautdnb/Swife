@@ -652,23 +652,30 @@ void drawScene() {
   bool tiny = k == 1;
   if (k < 3) {
     GLboolean f = glFastTexturing; glFastTexturing = GL_FALSE;
+
+    stretchy = 1; cameras[currentCamera].applyToGL();
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glDepthFunc(GL_LEQUAL);      
+
+    lightSetup(lightOn);
+    paintBillBoardContents();
+    lightSetup(false);
     
     enableFrameBuffer(tiny);
+
+    cameras[currentCamera].applyToGL(); // needed after enableFrameBuffer(tiny) because of aspect ratio
   
     glClearDepth(1.f);
     glClearStencil(0);
     glClearColor((clearColor & 255)/255.0,((clearColor>>8) & 255)/255.0,((clearColor>>16) & 255)/255.0,((clearColor>>24) & 255)/255.0);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
-  
-    cameras[currentCamera].applyToGL();
+
     if (hitTestOn) 
       prepareMouseHitTest(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
     else
       prepareMouseHitTest(-1,-1);
-
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glDepthFunc(GL_LEQUAL);      
 
     drawProblems = 0;
     drawSkyBox();

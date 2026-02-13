@@ -43,4 +43,6 @@ void paintMesh(class GameObject *o, bool showModificators);
 void paintCamera(class GameObject *o);
 void paintBillBoard(class GameObject *o, bool showModificators);
 
+void paintBillBoardContents();
+
 #endif //__PAINT_HPP__

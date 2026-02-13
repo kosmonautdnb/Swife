@@ -58,6 +58,7 @@ public:
     billBoardIsTexture = false;
     billBoardOriginalWidth = 0;
     billBoardOriginalHeight = 0;
+    spriteObject = NULL;
   }
   ~FileBinding();
   unsigned int type;
@@ -70,6 +71,7 @@ public:
   bool billBoardIsTexture;
   int billBoardOriginalWidth;
   int billBoardOriginalHeight;
+  class SpriteObject *spriteObject;
   void load(const char *fileName, unsigned int type);
   bool reload();
   void free();
