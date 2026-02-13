@@ -111,7 +111,7 @@ void drawMenuBar() {
       if (ImGui::MenuItem("Add skybox")) {on = true; dialogAddObject(true,GAMEOBJECT_SKYBOX);}
       if (ImGui::MenuItem("Add billboard")) {on = true; dialogAddObject(true,GAMEOBJECT_BILLBOARD);}
       if (ImGui::MenuItem("Add trigger")) {on = true; dialogAddObject(true,GAMEOBJECT_TRIGGER);}
-      if (ImGui::MenuItem("Add path")) {on = true; dialogAddObject(true,GAMEOBJECT_PATH);}
+      //if (ImGui::MenuItem("Add path")) {on = true; dialogAddObject(true,GAMEOBJECT_PATH);}
       ImGui::Separator();
       if (ImGui::MenuItem("Add link")) {on = true; dialogAddObject(true,GAMEOBJECT_LINK);}
       if (ImGui::MenuItem("Add section")) {on = true; dialogAddObject(true,GAMEOBJECT_SECTION);}

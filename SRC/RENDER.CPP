@@ -54,9 +54,13 @@ void rotateCameraBy(double degrees, double x, double y, double z) {
 
 void Camera::wasdControls() {
   if (ImGui::GetIO().WantCaptureKeyboard) return;
+  bool rightMousePressed = mouseB & 2;
+  double mouseDeltaXHere = mouseDX;
+  double mouseDeltaYHere = mouseDY;
   double walkSpeed = cameraSpeed <= 0 ? 0 : pow(2.0,cameraSpeed) * 20.0;
   double mouseRotationSpeed = 0.01;
   double mouseWalkSpeed = 0.01;
+  double rotationSpeedKeyboard = 200.0;
   Quaternion q = normalize(rotation);
   if (isKeyPressed(SCANCODE_W)) {position += q.rotateVector(Vector(0,0,-1))*walkSpeed*timeDelta; renderingUpdated2=true;}
   if (isKeyPressed(SCANCODE_S)) {position += q.rotateVector(Vector(0,0,1))*walkSpeed*timeDelta; renderingUpdated2=true;}
@@ -64,28 +68,32 @@ void Camera::wasdControls() {
   if (isKeyPressed(SCANCODE_A)) {position += q.rotateVector(Vector(-1,0,0))*walkSpeed*timeDelta; renderingUpdated2=true;}
   if (isKeyPressed(SCANCODE_Q)) {position += q.rotateVector(Vector(0,-1,0))*walkSpeed*timeDelta; renderingUpdated2=true;}
   if (isKeyPressed(SCANCODE_E)) {position += q.rotateVector(Vector(0,1,0))*walkSpeed*timeDelta; renderingUpdated2=true;}
+  if (isKeyPressed(SCANCODE_LEFT)) {mouseDeltaXHere = -rotationSpeedKeyboard*timeDelta; rightMousePressed = true; mouseDeltaYHere = 0;}
+  if (isKeyPressed(SCANCODE_RIGHT)) {mouseDeltaXHere = rotationSpeedKeyboard*timeDelta; rightMousePressed = true; mouseDeltaYHere = 0;}
+  if (isKeyPressed(SCANCODE_UP)) {mouseDeltaYHere = -rotationSpeedKeyboard*timeDelta; rightMousePressed = true; mouseDeltaXHere = 0;}
+  if (isKeyPressed(SCANCODE_DOWN)) {mouseDeltaYHere = rotationSpeedKeyboard*timeDelta; rightMousePressed = true; mouseDeltaXHere = 0;}
   if (ImGui::IsKeyPressed('o')) rotateCameraBy(-90,0,0,1);
   if (ImGui::IsKeyPressed('p')) rotateCameraBy(90,0,0,1);
 
   GLboolean alt,shift,ctrl;
   glSpecialKeys(&shift, &ctrl, &alt);
 
-  if (mouseB & 2) {
+  if (rightMousePressed) {
     if (shift) {
       Vector positionBefore = position;
-      position += q.rotateVector(Vector(1,0,0))*walkSpeed*mouseWalkSpeed*mouseDX;
-      position += q.rotateVector(Vector(0,-1,0))*walkSpeed*mouseWalkSpeed*mouseDY;
+      position += q.rotateVector(Vector(1,0,0))*walkSpeed*mouseWalkSpeed*mouseDeltaXHere;
+      position += q.rotateVector(Vector(0,-1,0))*walkSpeed*mouseWalkSpeed*mouseDeltaYHere;
       if (position != positionBefore) renderingUpdated2 = true;
     } else {
       Quaternion rotationBefore = rotation;
       Quaternion cameraRotation = rotation;
       if (!ctrl) {
-        Quaternion ym; ym.yawPitchRoll(0,-mouseDY * mouseRotationSpeed,0); 
-        Quaternion xm; xm.yawPitchRoll(-mouseDX * mouseRotationSpeed,0,0); 
+        Quaternion ym; ym.yawPitchRoll(0,-mouseDeltaYHere * mouseRotationSpeed,0); 
+        Quaternion xm; xm.yawPitchRoll(-mouseDeltaXHere * mouseRotationSpeed,0,0); 
         cameraRotation = cameraRotation * ym;
         cameraRotation = cameraRotation * xm;
       } else {
-        Quaternion xm; xm.yawPitchRoll(0,0,-mouseDX * mouseRotationSpeed); 
+        Quaternion xm; xm.yawPitchRoll(0,0,-mouseDeltaXHere * mouseRotationSpeed); 
         cameraRotation = cameraRotation * xm;
       }
       cameraRotation = normalize(cameraRotation);

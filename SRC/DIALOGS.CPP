@@ -342,6 +342,7 @@ void dialogControls(bool openIt) {
     "Use A to move left.\n"
     "Use E to move up.\n"
     "Use Q to move down.\n"
+    "Use CURSOR keys to rotate camera.\n"
     "Use O and P to rotate view 90 degrees.\n"
     "Mouse:\n"
     "Right mouse button and mouse to rotate view.\n"

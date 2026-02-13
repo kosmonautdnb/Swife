@@ -44,7 +44,7 @@
 bool USEGRID = true;
 double XGRIDSIZE = 100.0;
 double ZGRIDSIZE = 100.0;
-double GRIDSTEPS = 10.0;
+double GRIDSTEPS = 20.0;
 unsigned int gridColor = 0xffe0e0ff;
 unsigned int gridTexture;
 
