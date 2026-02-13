@@ -34,7 +34,7 @@
 #include "STL/SMPLOBJL.HPP"
 #include <math.h>
 
-char *fileTypeNames[FILETYPE_COUNT] = {"none","skybox","mesh"};
+char *fileTypeNames[FILETYPE_COUNT] = {"none","skybox","mesh","billboard"};
 
 FileBinding::~FileBinding() {
   free();
@@ -78,6 +78,65 @@ unsigned int vectorToColor(const Vector &v) {
   return r|(g<<8)|(b<<16)|(a<<24);
 }
 
+bool loadMeshForBinding(const String &fileName, FileBinding *binding) {
+  String a = toLower(fileName);
+  if (a.endsWith(".obj")) { // WAVEFRONT OBJECT IMPORT
+    SMPL_File *obj = loadObj(fileName.c_str(), true);
+    if (obj == NULL) return false;
+    allGenTexturesHere.clear();
+    obj->loadTextures(OBJloadTexture);
+    binding->textureIds = allGenTexturesHere;
+    bool first = true;
+    binding->boundingBoxMin.set(-1,-1,-1);
+    binding->boundingBoxMax.set(1,1,1);
+    for (int o = 0; o < obj->objs.size(); o++) {
+      SMPL_Object *so = &obj->objs[o];
+      for (int f = so->faceStart; f < so->faceEnd; f++) {
+        SMPL_Face *fo = &obj->faces[f];
+        unsigned int _m = fo->m;
+        SMPL_Material *mat = NULL;
+        if (obj->materialNames.has(_m)) {
+          const String &materialName = obj->materialNames[_m];
+          mat = &obj->materials[materialName];
+        }
+        for (int t = 0; t < 3; t++) {
+          Vector *_p = &obj->vertices[fo->v[t]];
+          if (first||_p->x<binding->boundingBoxMin.x) binding->boundingBoxMin.x = _p->x;
+          if (first||_p->y<binding->boundingBoxMin.y) binding->boundingBoxMin.y = _p->y;
+          if (first||_p->z<binding->boundingBoxMin.z) binding->boundingBoxMin.z = _p->z;
+          if (first||_p->x>binding->boundingBoxMax.x) binding->boundingBoxMax.x = _p->x;
+          if (first||_p->y>binding->boundingBoxMax.y) binding->boundingBoxMax.y = _p->y;
+          if (first||_p->z>binding->boundingBoxMax.z) binding->boundingBoxMax.z = _p->z;
+          first = false;
+          Vector *_n = &obj->normals[fo->n[t]];
+          Vector *_t = &obj->texCoords[fo->t[t]];
+          BakedVertex k;
+          k.x = _p->x;
+          k.y = _p->y;
+          k.z = _p->z;
+          k.nx = _n->x;
+          k.ny = _n->y;
+          k.nz = _n->z;
+          k.tx = _t->x;
+          k.ty = _t->y;
+          k.color = 0xffffffff;
+          k.textureId = 0;
+          if (mat != NULL) {
+            k.color = vectorToColor(mat->diffuse);
+            if (mat->mapDiffuse.used && mat->mapDiffuse.glHandle != 0) {
+              k.textureId = mat->mapDiffuse.glHandle;
+            }
+          }
+          binding->triangles.push_back(k);
+        }
+      }
+    }
+    delete obj;
+    return true;
+  }
+  return false;
+}
+
 bool FileBinding::reload() {
   free();
   renderingUpdated = true;
@@ -89,62 +148,19 @@ bool FileBinding::reload() {
       s.free();
       return true;
     } break;
-  case FILETYPE_MESH: {
-      String a = toLower(this->fileName);
-      if (a.endsWith(".obj")) { // WAVEFRONT OBJECT IMPORT
-        SMPL_File *obj = loadObj(fileName.c_str(), true);
-        if (obj == NULL) return false;
-        allGenTexturesHere.clear();
-        obj->loadTextures(OBJloadTexture);
-        textureIds = allGenTexturesHere;
-        bool first = true;
-        boundingBoxMin.set(-1,-1,-1);
-        boundingBoxMax.set(1,1,1);
-        for (int o = 0; o < obj->objs.size(); o++) {
-          SMPL_Object *so = &obj->objs[o];
-          for (int f = so->faceStart; f < so->faceEnd; f++) {
-            SMPL_Face *fo = &obj->faces[f];
-            unsigned int _m = fo->m;
-            SMPL_Material *mat = NULL;
-            if (obj->materialNames.has(_m)) {
-              const String &materialName = obj->materialNames[_m];
-              mat = &obj->materials[materialName];
-            }
-            for (int t = 0; t < 3; t++) {
-              Vector *_p = &obj->vertices[fo->v[t]];
-              if (first||_p->x<boundingBoxMin.x) boundingBoxMin.x = _p->x;
-              if (first||_p->y<boundingBoxMin.y) boundingBoxMin.y = _p->y;
-              if (first||_p->z<boundingBoxMin.z) boundingBoxMin.z = _p->z;
-              if (first||_p->x>boundingBoxMax.x) boundingBoxMax.x = _p->x;
-              if (first||_p->y>boundingBoxMax.y) boundingBoxMax.y = _p->y;
-              if (first||_p->z>boundingBoxMax.z) boundingBoxMax.z = _p->z;
-              first = false;
-              Vector *_n = &obj->normals[fo->n[t]];
-              Vector *_t = &obj->texCoords[fo->t[t]];
-              BakedVertex k;
-              k.x = _p->x;
-              k.y = _p->y;
-              k.z = _p->z;
-              k.nx = _n->x;
-              k.ny = _n->y;
-              k.nz = _n->z;
-              k.tx = _t->x;
-              k.ty = _t->y;
-              k.color = 0xffffffff;
-              k.textureId = 0;
-              if (mat != NULL) {
-                k.color = vectorToColor(mat->diffuse);
-                if (mat->mapDiffuse.used && mat->mapDiffuse.glHandle != 0) {
-                  k.textureId = mat->mapDiffuse.glHandle;
-                }
-              }
-              triangles.push_back(k);
-            }
-          }
-        }
-        delete obj;
+  case FILETYPE_MESH: return loadMeshForBinding(fileName,this);
+  case FILETYPE_BILLBOARD: {
+      billBoardIsTexture = false;
+      RGBAImage s = RGBAImage::fromFile(fileName.c_str());
+      if (s.data != NULL) {
+        billBoardOriginalWidth = s.width;
+        billBoardOriginalHeight = s.height;
+        textureIds.push_back(textureFromImage(&s));
+        s.free();
+        billBoardIsTexture = true;
         return true;
       }
+      dialogMessage(true,(String("Couldn't load file:<")+fileName+">").c_str()); 
       return false;
     } break;
   }
@@ -239,4 +255,29 @@ void loadMesh(const char *path, const char *fileName) {
   if (j<0) return;
   GameObject *o = gameObjects[j];
   loadMeshForObject(o,(shortFileName(String(path)+String(fileName))).c_str());
+}
+
+void loadBillBoardForObject(class GameObject *o, const char *fileName) {
+  FileBinding *binding = getBindingByFileName(fileName, FILETYPE_MESH);
+  if (binding == NULL) {
+    binding = newBinding();
+    binding->load(fileName, FILETYPE_BILLBOARD);
+  }
+  o->fileBindingId = binding->uniqueId;
+  if (binding->billBoardIsTexture) {
+    o->billBoardTX0 = 0;
+    o->billBoardTY0 = 0;
+    o->billBoardTX1 = binding->billBoardOriginalWidth;
+    o->billBoardTY1 = binding->billBoardOriginalHeight;
+    if (binding->billBoardOriginalWidth != 0 && binding->billBoardOriginalHeight != 0) {
+      o->billBoardAspect = (double)binding->billBoardOriginalWidth/binding->billBoardOriginalHeight;
+    }
+  }
+}
+
+void loadBillBoard(const char *path, const char *fileName) {
+  int j = getObjectIdByUniqueId(dialogLoadSaveGameObjectUniqueId);
+  if (j<0) return;
+  GameObject *o = gameObjects[j];
+  loadBillBoardForObject(o,(shortFileName(String(path)+String(fileName))).c_str());
 }

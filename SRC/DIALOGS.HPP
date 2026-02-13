@@ -50,7 +50,8 @@ enum DIALOGMODE {
   DIALOG_SAVESCENE = 2,
   DIALOG_LOADSKYBOX = 3,
   DIALOG_LOADMESH = 4,
-  DIALOG_COUNT = 5
+  DIALOG_LOADBILLBOARD = 5,
+  DIALOG_COUNT = 6
 };
 
 String longFileName(const String &a);

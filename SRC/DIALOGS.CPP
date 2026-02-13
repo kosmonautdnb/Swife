@@ -36,6 +36,12 @@
 #include "PROPS.HPP"
 #include <math.h>
 
+typedef void (*LOADSAVEFUNC)(const char *shortPath, const char *longFileName);
+const char *dialogCaption[DIALOG_COUNT] = {"NO MODE","Load a scene","Save a scene","Load a skybox","Load a mesh","Load a billboard"};
+const char *proceedButton[DIALOG_COUNT] = {"<button>", "Load", "Save","Load","Load","Load"};
+ LOADSAVEFUNC funcs[DIALOG_COUNT] = {NULL, loadScene, saveScene, loadSkyBox, loadMesh, loadBillBoard};
+
+
 #define DIALOGSTART(__name__) static int keyboardFocusNew = 0; static bool openItNextTime = false;  if (openIt) {openItNextTime = true; keyboardFocusNew = 2; return;}  if (openItNextTime) {openItNextTime = false; ImGui::OpenPopup(__name__); } ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0,0,0,1)); ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(1,1,1,1); if (ImGui::BeginPopupModal(__name__,NULL,ImGuiWindowFlags_AlwaysAutoResize)) { ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(0,0,0,1); ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.4,0.4,0.4,1));disableRenderMouseClicks();
 #define DIALOGEND() ImGui::PopStyleColor(); ImGui::EndPopup();} ImGui::PopStyleColor();
 #define DIALOGKEYSHERE() {if (keyboardFocusNew>0) {keyboardFocusNew--;ImGui::SetKeyboardFocusHere();}}
@@ -118,7 +124,7 @@ void dialogAddObject(bool openIt, unsigned int type) {
   DIALOGSTART(title)
   ImGui::PushItemWidth(7*NAMEMAX);
   ImGui::Text("Name"); ImGui::SameLine(); DIALOGKEYSHERE(); ImGui::InputText("##DIALOGADDGAMEOBJECTNAME", name, NAMEMAX);
-  if (t == GAMEOBJECT_MESH) {
+  if (t == GAMEOBJECT_MESH || t == GAMEOBJECT_BILLBOARD) {
     if (ImGui::Button("Load##DIALOGADDGAMEOBJECTLOAD")) {
       GameObject *o = new GameObject();
       o->setName(name);
@@ -127,7 +133,12 @@ void dialogAddObject(bool openIt, unsigned int type) {
       o->layers = outlinerLayers;
       for (int i = 0; i < gameObjects.size(); i++) gameObjects[i]->selected = false;
       gameObjects.insert(o,0);
-      dialogLoadSaveSetFileNameAndPath = ""; dialogLoadSaveGameObjectUniqueId = o->uniqueId; dialogLoadSave(true, DIALOG_LOADMESH);
+      unsigned int k = DIALOG_NONE;
+      switch(t) {
+        case GAMEOBJECT_MESH: {k = DIALOG_LOADMESH;} break;
+        case GAMEOBJECT_BILLBOARD: {k = DIALOG_LOADBILLBOARD;} break;
+      }
+      dialogLoadSaveSetFileNameAndPath = ""; dialogLoadSaveGameObjectUniqueId = o->uniqueId; dialogLoadSave(true, k);
       renderingUpdated = true;
       ImGui::CloseCurrentPopup();
     }
@@ -606,17 +617,12 @@ void sortFileNames(Array<File> &files, int column, bool sortOrder) {
   }
 }
 
-typedef void (*LOADSAVEFUNC)(const char *shortPath, const char *longFileName);
 unsigned int dialogLoadSaveGameObjectUniqueId = 0;
 String dialogLoadSaveSetFileNameAndPath;
 
 void dialogLoadSave(bool openIt, int dialogMode) {
 
   static int mode = DIALOG_NONE; if (dialogMode != DIALOG_NONE) mode = dialogMode;
-
-  static const char *dialogCaption[DIALOG_COUNT] = {"NO MODE","Load a scene","Save a scene","Load a skybox","Load a mesh"};
-  static const char *proceedButton[DIALOG_COUNT] = {"<button>", "Load", "Save","Load","Load"};
-  static LOADSAVEFUNC funcs[DIALOG_COUNT] = {NULL, loadScene, saveScene, loadSkyBox, loadMesh};
   static char filter[NAMEMAX];
 
   static bool driveReady = true;

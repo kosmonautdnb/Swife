@@ -32,7 +32,8 @@ enum FILETYPE {
   FILETYPE_NONE = 0,
   FILETYPE_SKYBOX = 1,
   FILETYPE_MESH = 2,
-  FILETYPE_COUNT = 3
+  FILETYPE_BILLBOARD = 3,
+  FILETYPE_COUNT = 4
 };
 extern char *fileTypeNames[FILETYPE_COUNT];
 
@@ -54,6 +55,9 @@ public:
     type = FILETYPE_NONE;
     boundingBoxMin.set(-1,-1,-1);
     boundingBoxMax.set(1,1,1);
+    billBoardIsTexture = false;
+    billBoardOriginalWidth = 0;
+    billBoardOriginalHeight = 0;
   }
   ~FileBinding();
   unsigned int type;
@@ -63,6 +67,9 @@ public:
   Vector boundingBoxMin;
   Vector boundingBoxMax;
   Array<BakedVertex> triangles;
+  bool billBoardIsTexture;
+  int billBoardOriginalWidth;
+  int billBoardOriginalHeight;
   void load(const char *fileName, unsigned int type);
   bool reload();
   void free();
@@ -82,5 +89,7 @@ void loadSkyBoxForObject(class GameObject *o, const char *fileName);
 void loadSkyBox(const char *path, const char *fileName);
 void loadMeshForObject(class GameObject *o, const char *fileName);
 void loadMesh(const char *path, const char *fileName);
+void loadBillBoardForObject(class GameObject *o, const char *fileName);
+void loadBillBoard(const char *path, const char *fileName);
 
 #endif //__SERIALZE_HPP__

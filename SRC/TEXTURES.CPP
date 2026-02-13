@@ -122,3 +122,7 @@ void correctTextureSize(class RGBAImage *image) {
     *image = zwo;
   }
 }
+
+unsigned int textureFromImage(const class RGBAImage *s) {
+  return textureFromImageArea(s,0,0,s->width,s->height);
+}

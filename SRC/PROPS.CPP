@@ -21,6 +21,7 @@
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 */
+#include "GL.H"
 #include "IMGUIGL.HPP"
 #include "PROPS.HPP"
 #include "CONFIG.HPP"
@@ -33,6 +34,7 @@
 #include "PAINT.HPP"
 #include "TEXTURES.HPP"
 #include "SERIALZE.HPP"
+#include <math.h>
 
 int properties_width = 160;
 char properties_filter[NAMEMAX] = {0};
@@ -279,9 +281,7 @@ void showTriggerProperties(GameObject *object) {
 void showCameraProperties(GameObject *object) {
   ImGui::Text("Camera");
   for (int i = 1; i < CAMERA_COUNT; i++) { // not user camera (0)
-    ImGui::Text(" Camera %d",i);
-    ImGui::SameLine();
-    if (ImGui::Checkbox(("##CAMERAPROPISCAMERA"+String::fromInt(i)).c_str(),&object->isCamera[i])) {
+    ImGui::Text(" Camera %d",i); ImGui::SameLine(); if (ImGui::Checkbox(("##CAMERAPROPISCAMERA"+String::fromInt(i)).c_str(),&object->isCamera[i])) {
       if (object->isCamera[i]) {
         for (int k = 1; k < CAMERA_COUNT; k++) object->isCamera[k] = false;
         for (int j = 0; j < gameObjects.size(); j++) {
@@ -313,6 +313,63 @@ void showCameraProperties(GameObject *object) {
   if (object->camera.farPlane < object->camera.nearPlane+0.00001) object->camera.farPlane = object->camera.nearPlane + 0.00001;
   ImGui::PopItemWidth();
 
+  ImGui::Separator();
+}
+
+void showBillboardProperties(GameObject *object) {
+  ImGui::Text("Billboard");
+  ImGui::Text(" Rotate around Z"); ImGui::SameLine(); if (ImGui::Checkbox("##BILLBOARDPROPROTATEZ",&object->billBoardRotateZ)) {renderingUpdated = true;}
+
+  Vector anchor = object->anchor;
+  if (vectorInput("A.",&anchor,"##BILLBOARDPROPANCHOR")) {renderingUpdated = true;}
+  object->anchor = anchor;
+  Vector translation = object->translation;
+  if (vectorInput("P.",&translation,"##BILLBOARDPROPTRANSLATION")) {renderingUpdated = true;}
+  object->translation = translation;
+  ImGui::Text("Rotation"); ImGui::SameLine(); if (ImGui::InputFloat("##BILLBOARDPROPROTATION",&object->billBoardRotation)) {renderingUpdated = true;}
+  ImGui::PushItemWidth(9*7);
+  ImGui::Text("Scale"); ImGui::SameLine(); if (ImGui::InputFloat("##BILLBOARDPROPSCALE",&object->billBoardScale)) {renderingUpdated = true;}
+  object->scaling.x = object->scaling.y = object->scaling.z = object->billBoardScale; // just that the anchor gets processed properly
+  ImGui::Text("Aspect"); ImGui::SameLine(); if (ImGui::InputFloat("##BILLBOARDPROPASPECT",&object->billBoardAspect)) {renderingUpdated = true;}
+  colorItem("C.","##BILLBOARDPROPCOLOR",&object->color, true);
+  ImGui::Separator();
+  ImGui::Text("Texture X0"); ImGui::SameLine(); if (ImGui::InputInt("##BILLBOARDPROPTX0",&object->billBoardTX0,0,0)) {renderingUpdated = true;}
+  ImGui::Text("Texture Y0"); ImGui::SameLine(); if (ImGui::InputInt("##BILLBOARDPROPTY0",&object->billBoardTY0,0,0)) {renderingUpdated = true;}
+  ImGui::Text("Texture X1"); ImGui::SameLine(); if (ImGui::InputInt("##BILLBOARDPROPTX1",&object->billBoardTX1,0,0)) {renderingUpdated = true;}
+  ImGui::Text("Texture Y1"); ImGui::SameLine(); if (ImGui::InputInt("##BILLBOARDPROPTY1",&object->billBoardTY1,0,0)) {renderingUpdated = true;}
+  if (object->billBoardTX1 < object->billBoardTX0) object->billBoardTX1 = object->billBoardTX0;
+  if (object->billBoardTY1 < object->billBoardTY0) object->billBoardTY1 = object->billBoardTY0;
+  if (propsButton("Recalculate aspect##BILLBOARDPROPASPECT",strlen("Recalculate aspect")+4)) {
+    double sx = fabs(object->billBoardTX1-object->billBoardTX0);
+    double sy = fabs(object->billBoardTY1-object->billBoardTY0);
+    if (sx != 0 && sy != 0) {
+      object->billBoardAspect = sx/sy;
+    }
+    renderingUpdated = true;
+  }
+
+  ImGui::PopItemWidth();
+  ImGui::Separator();
+
+  ImGui::Text("Binding");
+  FileBinding *binding = getBindingById(object->fileBindingId);
+  if (binding != NULL) {
+    ImGui::SameLine(); if (propsButton("Reload##BILLBOARDPROPRELOAD",strlen("Reload")+4)) {
+      binding->reload();
+    }
+    if (binding->billBoardIsTexture && binding->textureIds.size()==1) {
+      ImGui::Text(" Binding ID:%d",binding->uniqueId);
+      bool rescaledWidth = glGetTextureWidth(binding->textureIds[0]) != binding->billBoardOriginalWidth;
+      bool rescaledHeight = glGetTextureHeight(binding->textureIds[0]) != binding->billBoardOriginalHeight;
+      if (rescaledWidth || rescaledHeight) ImGui::Text("Texture rescaled");
+      ImGui::Text("Original width:%d",binding->billBoardOriginalWidth);
+      ImGui::Text("Original height:%d",binding->billBoardOriginalHeight);
+    }
+    ImGui::Text("%s",binding->fileName.last(19).c_str());
+  }
+  if (propsButton("Load##BILLBOARDPROPLOAD",strlen("Load")+4)) {
+    dialogLoadSaveSetFileNameAndPath = binding == NULL ? "" : binding->fileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADBILLBOARD);
+  }
   ImGui::Separator();
 }
 
@@ -378,6 +435,7 @@ void drawProperties() {
       case GAMEOBJECT_LINK: {showLinkProperties(first);} break;
       case GAMEOBJECT_TRIGGER: {showTriggerProperties(first);} break;
       case GAMEOBJECT_CAMERA: {showCameraProperties(first);} break;
+      case GAMEOBJECT_BILLBOARD: {showBillboardProperties(first);} break;
       default:
         showMeshProperties(first);
       }

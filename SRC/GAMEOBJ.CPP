@@ -143,13 +143,62 @@ GameObject *GameObject::loadMesh(const char *fileName) {
   return this;
 }
 
+GameObject *GameObject::loadBillBoard(const char *fileName) {
+  loadBillBoardForObject(this,fileName);
+  return this;
+}
+
 GameObject *GameObject::setCamera(const Camera *camera) {
   this->camera = *camera;
   return this;
 }
 
+void getCameraMatrices(Matrix *projection, Matrix *modelView) {
+  int mode; glGetIntegerv(GL_MATRIX_MODE, &mode);
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  cameras[currentCamera].applyToGL();
+  glGetDoublev(GL_PROJECTION_MATRIX,projection->m);
+  glGetDoublev(GL_MODELVIEW_MATRIX,modelView->m);
+  glPopMatrix();
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glMatrixMode(mode);
+}
+
+Matrix toBillBoardTransform(const GameObject *o, const Matrix &m) {
+  Matrix ret; 
+  Matrix t; t.identity(); t.translate(m.getColumn(3));
+  Matrix projection,modelView; getCameraMatrices(&projection,&modelView);
+  Matrix invCam = inverse(modelView);
+  double rot = o->billBoardRotation*PI/180.0;
+  if (o->billBoardRotateZ) {
+    Vector p0 = projection*modelView*m*Vector(0,0,0);
+    Vector p1 = projection*modelView*m*Vector(0,1,0);
+    Vector p2 = projection*modelView*m*Vector(1,0,0);
+    if (p0.w != 0) p0 /= p0.w;
+    if (p1.w != 0) p1 /= p1.w;
+    if (p2.w != 0) p2 /= p2.w;
+    p1 -= p0;
+    p2 -= p0;
+    if (length(p1)>length(p2))
+       rot -= atan2(-p1.y,p1.x)+PI*0.5;
+    else
+       rot -= atan2(-p2.y,p2.x)+PI*0.5;
+  }
+  Matrix angleZ = rotationMatrixAngleAxis(rot, 0, 0, 1);
+  double aspect = o->billBoardAspect; if (aspect == 0) aspect = 1;
+  Matrix scale; scale.identity(); scale.scale3(Vector(o->billBoardScale,o->billBoardScale*aspect,0.001)); // z needs a bit
+  ret = t * invCam.rotationMatrix3x3() * angleZ * scale;
+  return ret;
+}
+
 Matrix GameObject::getRenderTransform() const {
-  return parentTransform * getObjectTransform();
+  Matrix ret = parentTransform * getObjectTransform();
+  if (type == GAMEOBJECT_BILLBOARD) ret = toBillBoardTransform(this, ret);
+  return ret;
 }
 
 double quantize(double v, double g) {
@@ -189,7 +238,6 @@ Matrix GameObject::getObjectTransform() const {
     glPopMatrix();
     glMatrixMode(mode);
     return ret;
-
   }
 
   Vector translation2 = translation;
@@ -208,6 +256,7 @@ Matrix GameObject::getObjectTransform() const {
   glGetDoublev(GL_MODELVIEW_MATRIX, ret.m);
   glPopMatrix();
   glMatrixMode(mode);
+  if (type == GAMEOBJECT_BILLBOARD) ret = toBillBoardTransform(this, ret);
   return ret;
 }
 

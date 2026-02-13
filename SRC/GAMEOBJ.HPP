@@ -139,6 +139,14 @@ public:
     outlinerShouldFocusThis = false;
     fileBindingId = 0;
     memset(isCamera,0,sizeof(isCamera));
+    billBoardRotateZ = false;
+    billBoardScale = 1.0;
+    billBoardAspect = 1.0;
+    billBoardRotation = 0;
+    billBoardTX0 = 0;
+    billBoardTY0 = 0;
+    billBoardTX1 = 0;
+    billBoardTY1 = 0;
   }
   ~GameObject();
   GameObject *setName(const char *name);
@@ -182,12 +190,21 @@ public:
 
   GameObject *loadSkyBox(const char *fileName);
   GameObject *loadMesh(const char *fileName);
+  GameObject *loadBillBoard(const char *fileName);
   GameObject *setCamera(const Camera *camera);
 
   Array<BakedVertex> *getBakedTriangles();
 
   Camera camera;
   bool isCamera[CAMERA_COUNT];
+  bool billBoardRotateZ;
+  float billBoardRotation;
+  float billBoardScale;
+  float billBoardAspect;
+  int billBoardTX0;
+  int billBoardTY0;
+  int billBoardTX1;
+  int billBoardTY1;
 };
 
 extern HashMap<unsigned int, const char*> iconNameForGameObjectType;

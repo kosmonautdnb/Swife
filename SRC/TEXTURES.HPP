@@ -29,6 +29,8 @@ bool textureButton(const char *id, unsigned int textureId, int w, int h, bool de
 unsigned int textureFromImageArea(const class RGBAImage *i, int x0, int y0, int x1, int y1);
 void skyBoxFromHorizontalCrossImage(unsigned int t[6], const class RGBAImage *s);
 
+unsigned int textureFromImage(const class RGBAImage *s);
+
 void correctTextureSize(class RGBAImage *image);
 
 #endif // __TEXTURES_HPP__

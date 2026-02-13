@@ -153,12 +153,15 @@ void paintSkyBox(class GameObject *o) {
 bool isInViewport(GameObject *o) {
   Matrix projection; glGetDoublev(GL_PROJECTION_MATRIX, projection.m);
   Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m);
+  unsigned int allOut = 1|2|4|8; // if all points are out on atleast one screen side
   for (int i = 0; i < 8; i++) {
     Vector t = projection * modelView * o->getRenderTransform() * Vector((i&1)?o->boundingBoxMax.x:o->boundingBoxMin.x,(i&2)?o->boundingBoxMax.y:o->boundingBoxMin.y,(i&4)?o->boundingBoxMax.z:o->boundingBoxMin.z);
-    if (t.x >= -t.w && t.x <= t.w) return true;
-    if (t.y >= -t.w && t.y <= t.w) return true;
+    if (t.x >= -t.w) allOut &= ~1;
+    if (t.x <= t.w) allOut &= ~2;
+    if (t.y >= -t.w) allOut &= ~4;
+    if (t.y <= t.w) allOut &= ~8;
   }
-  return false;
+  return allOut == 0;
 }
 
 void paintTrigger(class GameObject *o, bool showModificators) {
@@ -392,4 +395,76 @@ void paintMesh(class GameObject *o, bool showModificators) {
   }
 
   glPopMatrix();
+}
+
+
+void paintBillBoard(class GameObject *o, bool showModificators) {
+  if (!isInViewport(o)) return;
+
+  FileBinding *binding = getBindingById(o->fileBindingId);
+  float tx0=0,ty0=0,tx1=1,ty1=1;
+  unsigned int textureId = gridTexture;
+  if (binding != NULL) {
+    if (binding->billBoardIsTexture) {
+      double w = binding->billBoardOriginalWidth;
+      double h = binding->billBoardOriginalHeight;
+      if (w == 0) w = 1;
+      if (h == 0) h = 1;
+      tx0 = o->billBoardTX0/w;
+      ty0 = o->billBoardTY0/h;
+      tx1 = o->billBoardTX1/w;
+      ty1 = o->billBoardTY1/h;
+      if (binding->textureIds.size()==1) textureId = binding->textureIds[0];
+    }
+  }
+
+  bool lightingWasOn = glIsEnabled(GL_LIGHTING);
+  glDisable(GL_LIGHTING);
+
+  glPushMatrix();
+
+  Matrix m = o->getRenderTransform();
+  Vector minB = o->boundingBoxMin;
+  Vector maxB = o->boundingBoxMax;
+
+  glMultMatrixd(m.m);
+  glEnable(GL_TEXTURE_2D);
+  glEnable(GL_ALPHA_TEST);
+  glAlphaFunc(GL_GREATER,0);
+  glBindTexture(GL_TEXTURE_2D,textureId);
+
+  glPushMatrix();
+  Vector center = (minB+maxB)*0.5;
+  Vector siz = (maxB-minB)*0.5;
+  glTranslatef(center.x,center.y,center.z);
+  glScalef(siz.x,siz.y,siz.z);
+
+  glBegin(GL_QUADS);
+  unsigned int col = o->color;
+  glColor4f((col & 255)/255.f,((col>>8) & 255)/255.f,((col>>16) & 255)/255.f,((col>>24) & 255)/255.f);
+  glNormal3f(0,0,1);
+  glTexCoord2f(tx0,ty1); glVertex3f(-1,-1,+1);
+  glTexCoord2f(tx1,ty1);  glVertex3f(+1,-1,+1);
+  glTexCoord2f(tx1,ty0);  glVertex3f(+1,+1,+1);
+  glTexCoord2f(tx0,ty0);  glVertex3f(-1,+1,+1);
+  glEnd();
+
+  glPopMatrix();
+
+  glDisable(GL_ALPHA_TEST);
+  glDisable(GL_TEXTURE_2D);
+
+  addHitTestCube(o,0,minB,maxB);
+
+  glTranslatef(o->anchor.x,o->anchor.y,o->anchor.z);
+
+  if (showModificators) {
+    Vector minB2 = minB - o->anchor;
+    Vector maxB2 = maxB - o->anchor;
+    addHitTestMoveGizmo(o,minB2,maxB2);
+  }
+
+  glPopMatrix();
+
+  if (lightingWasOn) glEnable(GL_LIGHTING); else glDisable(GL_LIGHTING);
 }

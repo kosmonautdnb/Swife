@@ -274,7 +274,7 @@ void paintSimpleGameObject(GameObject *o, bool showModificators) {
   case GAMEOBJECT_MESH: {paintMesh(o,showModificators);} break;
   case GAMEOBJECT_CAMERA: {paintCamera(o);} break;
   case GAMEOBJECT_PATH: {} break;
-  case GAMEOBJECT_BILLBOARD: {} break;
+  case GAMEOBJECT_BILLBOARD: {paintBillBoard(o,showModificators);} break;
   case GAMEOBJECT_TRIGGER: {paintTrigger(o,showModificators);} break;
   }
 }
@@ -452,12 +452,16 @@ bool mouseNotInRenderView() {
 
 void screenSpacePlane(GameObject *o, Vector *d2d, Vector *d3d, double x, double y, double z) {
 
-  *d3d = normalize(normalize(o->rotation).rotationMatrix() * Vector(x,y,z));
+  Matrix m = o->getRenderTransform();
+  Vector translation = m.getColumn(3);
+  Matrix rotation = m.rotationMatrix3x3();
+
+  *d3d = rotation * Vector(x,y,z);
 
   Matrix projection; glGetDoublev(GL_PROJECTION_MATRIX, projection.m);
   Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m);
 
-  Vector t0 = projection * modelView * (o->translation);
+  Vector t0 = projection * modelView * (translation);
   if (t0.w != 0) {t0/=t0.w; t0.w = 1;}
   Vector t1 = t0;
   t1.x += 2.0/main_window_xres;
@@ -469,8 +473,8 @@ void screenSpacePlane(GameObject *o, Vector *d2d, Vector *d3d, double x, double 
 
   *d3d *= length(d1-d0);                                                                         
 
-  Vector p0 = projection * modelView * (o->translation);
-  Vector p1 = projection * modelView * (o->translation + normalize(o->rotation).rotateVector(Vector(x,y,z)));
+  Vector p0 = projection * modelView * (translation);
+  Vector p1 = projection * modelView * (translation + rotation * Vector(x,y,z));
 
   if (p0.w != 0) {p0/=p0.w; p0.w = 1;}
   if (p1.w != 0) {p1/=p1.w; p1.w = 1;}

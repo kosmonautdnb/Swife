@@ -122,6 +122,8 @@ void defaultInit() {
   initPaint();
 }
 
+#include "STL/IMAGE.HPP"
+
 int main(int argc, const char *argv[]) {
 
   //appFolder = getPath(argv[0]);
