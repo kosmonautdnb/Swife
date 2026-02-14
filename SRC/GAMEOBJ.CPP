@@ -208,9 +208,9 @@ double quantize(double v, double g) {
 }
 
 void applyGrid(Grid *grid, Vector *t, Vector *s, Quaternion *r) {
-  if (grid->posXEnabled) t->x = quantize(t->x,grid->posGranularity.x);
-  if (grid->posYEnabled) t->y = quantize(t->y,grid->posGranularity.y);
-  if (grid->posZEnabled) t->z = quantize(t->z,grid->posGranularity.z);
+  if (grid->posXEnabled) {*t -= grid->gridPos; t->x = quantize(t->x,grid->posGranularity.x); *t += grid->gridPos;}
+  if (grid->posYEnabled) {*t -= grid->gridPos; t->y = quantize(t->y,grid->posGranularity.y); *t += grid->gridPos;}
+  if (grid->posZEnabled) {*t -= grid->gridPos; t->z = quantize(t->z,grid->posGranularity.z); *t += grid->gridPos;}
   if (grid->scaleXEnabled) s->x = quantize(s->x,grid->scaleGranularity.x);
   if (grid->scaleYEnabled) s->y = quantize(s->y,grid->scaleGranularity.y);
   if (grid->scaleZEnabled) s->z = quantize(s->z,grid->scaleGranularity.z);

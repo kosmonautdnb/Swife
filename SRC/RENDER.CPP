@@ -460,14 +460,20 @@ bool mouseNotInRenderView() {
 
 void screenSpacePlane(GameObject *o, Vector *d2d, Vector *d3d, double x, double y, double z) {
 
+  Matrix projection; glGetDoublev(GL_PROJECTION_MATRIX, projection.m);
+  Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m);
+
   Matrix m = o->getRenderTransform();
+
+  if (o->type == GAMEOBJECT_BILLBOARD) {
+    Matrix k; k.identity();
+    combineForNoRotation(&m, &k);
+  }
+
   Vector translation = m.getColumn(3);
   Matrix rotation = m.rotationMatrix3x3();
 
   *d3d = rotation * Vector(x,y,z);
-
-  Matrix projection; glGetDoublev(GL_PROJECTION_MATRIX, projection.m);
-  Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m);
 
   Vector t0 = projection * modelView * (translation);
   if (t0.w != 0) {t0/=t0.w; t0.w = 1;}

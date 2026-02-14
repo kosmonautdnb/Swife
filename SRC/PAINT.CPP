@@ -41,11 +41,6 @@
 #define SKYBOX_TOP 4
 #define SKYBOX_BOTTOM 5
 
-bool USEGRID = true;
-double XGRIDSIZE = 100.0;
-double ZGRIDSIZE = 100.0;
-double GRIDSTEPS = 20.0;
-unsigned int gridColor = 0xffe0e0ff;
 unsigned int gridTexture;
 
 bool justDrawBoundingBoxes = false;
@@ -71,34 +66,28 @@ void initGizmos() {
 }
 
 void draw3DGrid() {
-  if (!USEGRID) return;
+  Grid *grid = &grids[0];
+  if (!grid->displayGridOn) return;
   glEnable(GL_TEXTURE_2D);
   glEnable(GL_ALPHA_TEST);
   glDisable(GL_CULL_FACE);
   glAlphaFunc(GL_GREATER,0.5);
   glBindTexture(GL_TEXTURE_2D, gridTexture);
-  double s = GRIDSTEPS/16.0;
+  double s = 1.0;
+  float xs = grid->displayGridSize;
+  float zs = grid->displayGridSize;
+  if (grid->displayGridSteps != 0) s = grid->displayGridSize*2.0/grid->displayGridSteps/16.0;
+  Vector gridPos = grid->gridPos;
   glBegin(GL_QUADS);
-  glColor4f( ((gridColor)&255)/255.0, ((gridColor>>8)&255)/255.0, ((gridColor>>16)&255)/255.0, ((gridColor>>24)&255)/255.0);
-  glTexCoord2f(s,0);glVertex3f(XGRIDSIZE,0,-ZGRIDSIZE);
-  glTexCoord2f(0,0);glVertex3f(-XGRIDSIZE,0,-ZGRIDSIZE);
-  glTexCoord2f(0,s);glVertex3f(-XGRIDSIZE,0,ZGRIDSIZE);
-  glTexCoord2f(s,s);glVertex3f(XGRIDSIZE,0,ZGRIDSIZE);
+  glColor4f( ((grid->displayGridColor)&255)/255.0, ((grid->displayGridColor>>8)&255)/255.0, ((grid->displayGridColor>>16)&255)/255.0, ((grid->displayGridColor>>24)&255)/255.0);
+  glTexCoord2f(s,0);glVertex3f(xs+gridPos.x,gridPos.y,-zs+gridPos.z);
+  glTexCoord2f(0,0);glVertex3f(-xs+gridPos.x,gridPos.y,-zs+gridPos.z);
+  glTexCoord2f(0,s);glVertex3f(-xs+gridPos.x,gridPos.y,zs+gridPos.z);
+  glTexCoord2f(s,s);glVertex3f(xs+gridPos.x,gridPos.y,zs+gridPos.z);
   glEnd();
   glEnable(GL_CULL_FACE);
   glDisable(GL_ALPHA_TEST);
   glDisable(GL_TEXTURE_2D);
-//  glBegin(GL_LINES);
-//  glColor4f(gridColor.x,gridColor.y,gridColor.z,gridColor.w);
-//  for (double x = -XGRIDSIZE; x <= XGRIDSIZE; x += (double)XGRIDSIZE*2/GRIDSTEPS) {
-//    glVertex3f(x,0,-ZGRIDSIZE);
-//    glVertex3f(x,0,+ZGRIDSIZE);
-//  }
-//  for (double z = -ZGRIDSIZE; z <= ZGRIDSIZE; z += (double)ZGRIDSIZE*2/GRIDSTEPS) {
-//    glVertex3f(-XGRIDSIZE,0,z);
-//    glVertex3f(+XGRIDSIZE,0,z);
-//  }
-//  glEnd();
 }
 
 void initPaint() {
@@ -398,9 +387,22 @@ void paintMesh(class GameObject *o, bool showModificators) {
   glPopMatrix();
 }
 
+void combineForNoRotation(class Matrix *modelViewMatrix, const class Matrix *modelViewMatrixToGetRotationFrom) {
+  double scaleX = length(modelViewMatrix->getColumn(0));
+  double scaleY = length(modelViewMatrix->getColumn(1));
+  double scaleZ = length(modelViewMatrix->getColumn(2));
+  double scale = scaleX; if (scaleY > scale) scale = scaleY; if (scaleZ > scale) scale = scaleZ;
+  Matrix ret = *modelViewMatrix;
+  ret.setColumn3(0,modelViewMatrixToGetRotationFrom->getColumn(0)*scale);
+  ret.setColumn3(1,modelViewMatrixToGetRotationFrom->getColumn(1)*scale);
+  ret.setColumn3(2,modelViewMatrixToGetRotationFrom->getColumn(2)*scale);
+  *modelViewMatrix = ret;
+}
 
 void paintBillBoard(class GameObject *o, bool showModificators) {
   FileBinding *binding = getBindingById(o->fileBindingId);
+
+  Matrix cameraMatrix; glGetDoublev(GL_MODELVIEW_MATRIX, cameraMatrix.m);
 
   float tx0=0,ty0=0,tx1=1,ty1=1;
   unsigned int textureId = gridTexture;
@@ -468,6 +470,9 @@ void paintBillBoard(class GameObject *o, bool showModificators) {
   if (showModificators) {
     Vector minB2 = minB - o->anchor;
     Vector maxB2 = maxB - o->anchor;
+    Matrix objectMatrix; glGetDoublev(GL_MODELVIEW_MATRIX, objectMatrix.m);
+    combineForNoRotation(&objectMatrix,&cameraMatrix);
+    glLoadMatrixd(objectMatrix.m);
     addHitTestMoveGizmo(o,minB2,maxB2);
   }
 

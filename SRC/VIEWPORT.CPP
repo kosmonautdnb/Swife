@@ -283,16 +283,6 @@ void drawViewport() {
       if (ImGui::InputFloat("##VIEWPORTNEAR",&c->nearPlane)) {renderingUpdated = true;} if (c->nearPlane < 0.00001) c->nearPlane = 0.00001;
       ImGui::Text2("Far plane"); ImGui::SameLine();
       if (ImGui::InputFloat("##VIEWPORTFAR",&c->farPlane)) {renderingUpdated = true;} if (c->farPlane < c->nearPlane+0.00001) c->farPlane = c->nearPlane + 0.00001;
-      ImGui::Text2("Use grid"); ImGui::SameLine();
-      if (ImGui::Checkbox("##VIEWPORTUSEGRID",&USEGRID)) {renderingUpdated = true;}
-      if (USEGRID) {
-        ImGui::Text2("Grid size"); ImGui::SameLine();
-        k = XGRIDSIZE; if (ImGui::InputFloat("##VIEWPORTGRIDSIZE",&k)) {XGRIDSIZE=ZGRIDSIZE=k;renderingUpdated = true;}
-        ImGui::Text2("Grid steps"); ImGui::SameLine();
-        k = GRIDSTEPS; if (ImGui::InputFloat("##VIEWPORTGRIDSTEPS",&k)) {GRIDSTEPS=k;renderingUpdated = true;}
-        ImGui::Text2("Grid"); ImGui::SameLine();
-        colorItem("","##VIEWPORTBACKGRIDCOLOR", &gridColor, true);
-      }
       ImGui::Text2("Background"); ImGui::SameLine();
       colorItem("","##VIEWPORTBACKGROUND", &clearColor, true);
       ImGui::PopItemWidth();

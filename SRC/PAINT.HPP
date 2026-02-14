@@ -24,12 +24,6 @@
 #ifndef __PAINT_HPP__
 #define __PAINT_HPP__
 
-extern bool USEGRID;
-extern double XGRIDSIZE;
-extern double ZGRIDSIZE;
-extern double GRIDSTEPS;
-extern unsigned int gridColor;
-extern unsigned int gridTexture;
 extern bool justDrawBoundingBoxes;
 
 void initGizmos();
@@ -44,5 +38,7 @@ void paintCamera(class GameObject *o);
 void paintBillBoard(class GameObject *o, bool showModificators);
 
 void paintBillBoardContents();
+
+void combineForNoRotation(class Matrix *modelViewMatrix, const class Matrix *modelViewMatrixToGetRotationFrom);
 
 #endif //__PAINT_HPP__

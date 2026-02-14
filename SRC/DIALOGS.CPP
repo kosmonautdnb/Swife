@@ -34,11 +34,16 @@
 #include "UTIL/LOG.HPP"
 #include "SERIALZE.HPP"
 #include "PROPS.HPP"
+#include "PAINT.HPP"
 #include <math.h>
 
 typedef void (*LOADSAVEFUNC)(const char *shortPath, const char *longFileName);
+const char *images = ".png,.jpg,.tga,.bmp,.psd,.gif,.pic,.pnm,.hdr";
+const char *meshes = ".obj";
+const char *imagesAndMeshes = ".png,.jpg,.tga,.bmp,.psd,.gif,.pic,.pnm,.hdr,.obj";
 const char *dialogCaption[DIALOG_COUNT] = {"NO MODE","Load a scene","Save a scene","Load a skybox","Load a mesh","Load a billboard"};
 const char *proceedButton[DIALOG_COUNT] = {"<button>", "Load", "Save","Load","Load","Load"};
+const char *dialogFileTypes[DIALOG_COUNT] = {"",".sfs",".sfs",images,meshes,imagesAndMeshes};
  LOADSAVEFUNC funcs[DIALOG_COUNT] = {NULL, loadScene, saveScene, loadSkyBox, loadMesh, loadBillBoard};
 
 
@@ -698,6 +703,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
       //log_setBiosCursor(0,0);
     }
   }
+  ImGui::Text("%s",dialogFileTypes[mode]);
   ImGui::Separator();
   SVG *svg = &svgs["search"];ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h));ImGui::SameLine();ImGui::InputText("##DIALOGLOADSAVEFILTER",filter,NAMEMAX);
   ImGui::Separator();
@@ -803,7 +809,6 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   ImGui::InputText("##DIALOGLOADSAVEFILENAME",&fileNames[mode][0],NAMEMAXHERE);
   ImGui::PopItemWidth();
   ImGui::Separator();
-
   if (ImGui::Button((String(proceedButton[mode])+String("##DIALOGLOADSAVEPROCEED")).c_str())) {
     result = true;
     ImGui::CloseCurrentPopup();
@@ -869,7 +874,9 @@ void dialogGridSettings(bool openIt) {
   DIALOGSTART("Grid Settings")
   Grid *grid = &grids[0];
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(1,0));
-  ImGui::Text("Translation/Position");
+  ImGui::Text("Grid offset");
+  if (vectorInput(" XYZ",&grid->gridPos,"##DIALOGGRIDSETTINGSISGRIDPOS")) {renderingUpdated = true;}
+  ImGui::Text("Apply to position");
   if (vectorInput(" XYZ",&grid->posGranularity,"##DIALOGGRIDSETTINGSISGRIDTR")) {renderingUpdated = true;}
   ImGui::Text(" Grid on X"); ImGui::SameLine();if (ImGui::Checkbox("##DIALOGGRIDSETTINGSISGRIDTX",&grid->posXEnabled)) {renderingUpdated = true;}
   ImGui::SameLine();
@@ -877,7 +884,7 @@ void dialogGridSettings(bool openIt) {
   ImGui::SameLine();
   ImGui::Text("Grid on Z"); ImGui::SameLine();if (ImGui::Checkbox("##DIALOGGRIDSETTINGSISGRIDTZ",&grid->posZEnabled)) {renderingUpdated = true;}
   ImGui::Separator();
-  ImGui::Text("Scaling");
+  ImGui::Text("Apply to scaling");
   if (vectorInput(" XYZ",&grid->scaleGranularity,"##DIALOGGRIDSETTINGSISGRIDSC")) {renderingUpdated = true;}
   ImGui::Text(" Grid on X"); ImGui::SameLine();if (ImGui::Checkbox("##DIALOGGRIDSETTINGSISGRIDSX",&grid->scaleXEnabled)) {renderingUpdated = true;}
   ImGui::SameLine();
@@ -885,12 +892,24 @@ void dialogGridSettings(bool openIt) {
   ImGui::SameLine();
   ImGui::Text("Grid on Z"); ImGui::SameLine();if (ImGui::Checkbox("##DIALOGGRIDSETTINGSISGRIDSZ",&grid->scaleZEnabled)) {renderingUpdated = true;}
   ImGui::Separator();
-  ImGui::Text("Rotation");
+  ImGui::Text("Apply to rotation");
   float k;
   ImGui::PushItemWidth(64);
   k = grid->rotGranularity; ImGui::Text(" Angle"); ImGui::SameLine(); if (ImGui::InputFloat("##DIALOGGRIDSETTINGSISGRIDR",&k)) {grid->rotGranularity = k; renderingUpdated = true;}
   ImGui::PopItemWidth();
   ImGui::Text(" Grid on Angle"); ImGui::SameLine(); if (ImGui::Checkbox("##DIALOGGRIDSETTINGSISGRIDRA",&grid->rotEnabled)) { renderingUpdated = true;}
+  ImGui::Text("Display");
+  ImGui::Text(" Display grid"); ImGui::SameLine(); if (ImGui::Checkbox("##DIALOGGRIDSETTINGSUSEGRID",&grid->displayGridOn)) {renderingUpdated = true;}
+  if (grid->displayGridOn) {
+    ImGui::PushItemWidth(64);
+    ImGui::Text(" Grid size"); ImGui::SameLine(); if (ImGui::InputFloat("##DIALOGGRIDSETTINGSGRIDSIZE",&grid->displayGridSize)) {renderingUpdated = true;}
+    ImGui::Text(" Grid steps"); ImGui::SameLine(); if (ImGui::InputFloat("##DIALOGGRIDSETTINGSGRIDSTEPS",&grid->displayGridSteps)) {renderingUpdated = true;}
+    if (grid->displayGridSteps < 0.001) grid->displayGridSteps = 0.001;
+    ImGui::PopStyleVar();
+    ImGui::Text(" Grid color"); ImGui::SameLine(); colorItem("","##DIALOGGRIDSETTINGSGRIDCOLOR", &grid->displayGridColor, true);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(1,0));
+    ImGui::PopItemWidth();
+  }
   ImGui::Separator();
   ImGui::PopStyleVar();
   clippy(&grid->rotGranularity);

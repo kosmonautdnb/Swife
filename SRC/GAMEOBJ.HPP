@@ -89,6 +89,7 @@ public:
     posXEnabled = true;
     posYEnabled = true;
     posZEnabled = true;
+    gridPos = Vector(0,0,0);
     scaleXEnabled = true;
     scaleYEnabled = true;
     scaleZEnabled = true;
@@ -96,6 +97,10 @@ public:
     posGranularity.set(1,1,1);
     scaleGranularity.set(1,1,1);
     rotGranularity = 45;
+    displayGridOn = true;
+    displayGridSize = 100;
+    displayGridSteps = 1;
+    displayGridColor = 0xffe0e0ff;
   }
   bool posXEnabled;
   bool posYEnabled;
@@ -104,9 +109,14 @@ public:
   bool scaleYEnabled;
   bool scaleZEnabled;
   bool rotEnabled;
+  Vector gridPos;
   Vector posGranularity;
   Vector scaleGranularity;
   double rotGranularity;
+  bool displayGridOn;
+  unsigned int displayGridColor;
+  float displayGridSize;
+  float displayGridSteps;
 };
 
 #define MAXGRIDS 1

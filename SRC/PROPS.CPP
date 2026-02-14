@@ -334,6 +334,9 @@ void showBillboardProperties(GameObject *object) {
   object->scaling.x = object->scaling.y = object->scaling.z = object->billBoardScale; // just that the anchor gets processed properly
   if (isTexture) {ImGui::Text("Aspect ratio"); ImGui::SameLine(); if (ImGui::InputFloat("##BILLBOARDPROPASPECT",&object->billBoardAspect)) {renderingUpdated = true;}}
   colorItem("C.","##BILLBOARDPROPCOLOR",&object->color, true);
+  if (propsButton("Quantize##BILLBOARDPROPBAKEGRID",strlen("Grid off")+14)) {applyGrid(&grids[object->gridId],&object->translation,&object->scaling,&object->rotation); object->useGrid = false; renderingUpdated = true;}
+  ImGui::SameLine();
+  if (propsButton((String(object->useGrid?"Grid off":"Grid on")+"##BILLBOARDPROPUSEGRID").c_str(),strlen("Grid off")+4)) {object->useGrid = !object->useGrid; renderingUpdated = true;}
   ImGui::Separator();
   if (isTexture) {
     ImGui::Text("Texture X0"); ImGui::SameLine(); if (ImGui::InputInt("##BILLBOARDPROPTX0",&object->billBoardTX0,0,0)) {renderingUpdated = true;}
