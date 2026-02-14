@@ -52,6 +52,18 @@ public:
   void wasdControls();
 };
 
+#define S_CAMERA(__name__,__o__)\
+  S_OBJECT_OPEN(__name__);\
+  S_FLOAT("fov",(__o__)->fov);\
+  S_FLOAT("orthoScale",(__o__)->orthoScale);\
+  S_FLOAT("nearPlane",(__o__)->nearPlane);\
+  S_FLOAT("farPlane",(__o__)->farPlane);\
+  S_FLOAT("aspect",(__o__)->aspect);\
+  S_BOOL("ortho",(__o__)->ortho);\
+  S_VECTOR("position",(__o__)->position);\
+  S_QUATERNION("rotation",(__o__)->rotation);\
+  S_OBJECT_CLOSE();
+
 enum CAMERAS {
   CAMERA_USER = 0,
   CAMERA_CAMERA1 = 1,

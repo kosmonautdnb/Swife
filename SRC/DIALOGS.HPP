@@ -64,5 +64,6 @@ void dialogLoadSave(bool openIt, int dialogMode);
 void dialogMessage(bool openIt, const char *alertMessage);
 void dialogViewBindings(bool openIt);
 void dialogGridSettings(bool openIt);
+void dialogOverwrite(bool openIt);
 
 #endif // __DIALOGS_HPP__

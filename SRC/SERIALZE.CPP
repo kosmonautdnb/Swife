@@ -33,9 +33,232 @@
 #include "cgltf.hpp"
 #include "STL/SMPLOBJL.HPP"
 #include "STL/SPRTEOBJ.HPP"
+#include "STL/DOS.HPP"
+#include "STL/PARSON.HPP"
+#include "STL/JSONWRT.HPP"
 #include <math.h>
+#include "OUTLINER.HPP"
+#include "TOOLBAR.HPP"
+#include "VIEWPORT.HPP"
+#include "PAINT.HPP"
+
+int version = 100;
 
 char *fileTypeNames[FILETYPE_COUNT] = {"none","skybox","mesh","billboard"};
+
+enum JSONTYPE {
+  JSONTYPE_NULL = 0,
+  JSONTYPE_BOOL = 1,
+  JSONTYPE_INT = 2,
+  JSONTYPE_UINT = 3,
+  JSONTYPE_FLOAT = 4,
+  JSONTYPE_DOUBLE = 5,
+  JSONTYPE_STRING = 6,
+  JSONTYPE_NAME = 7,
+  JSONTYPE_ARRAY_OPEN = 8,
+  JSONTYPE_ARRAY_CLOSE = 9,
+  JSONTYPE_OBJECT_OPEN = 10,
+  JSONTYPE_OBJECT_CLOSE = 11,
+  JSONTYPE_VECTOR = 12,
+  JSONTYPE_QUATERNION = 13,
+  JSONTYPE_FLOAT4 = 14,
+  JSONTYPE_MATRIX = 15
+};
+
+JSON_Value * json_parse_string(const char *string);
+
+#define JSONPORTIONLENGTH 1024
+
+#define STARTSERIALIZATION(__save__, __file__) int arrayIndex = 0; bool error = false; JSON_Value *jval; Array<JSON_Value*> jvals; Array<char> jsonArray; jsonArray.resize(JSONPORTIONLENGTH); jsonArray[0] = '{'; char *jsonPos = &jsonArray[1]; bool jsonIsSaving = __save__; if (!jsonIsSaving) {loadArray(&jsonArray,file);jval=json_parse_string_with_comments(&jsonArray[0]); jvals.push_back(jval); jsonPos = (char*)&jvals; if (jval==NULL) error = true;}
+#define FINISHSERIALIZATION(__file__) {if (jsonIsSaving) {if (jsonPos[-1] == ',' ) jsonPos--; sprintf(jsonPos,"}");fputs(&jsonArray[0],file);}}
+
+#define S_NULL(__name__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_NULL, __name__, NULL, jsonIsSaving,arrayIndex)
+#define S_BOOL(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_BOOL, __name__, &(__v__), jsonIsSaving,arrayIndex)
+#define S_INT(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_INT, __name__, &(__v__), jsonIsSaving,arrayIndex)
+#define S_UINT(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_UINT, __name__, &(__v__), jsonIsSaving,arrayIndex)
+#define S_FLOAT(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_FLOAT, __name__, &(__v__), jsonIsSaving,arrayIndex)
+#define S_DOUBLE(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_DOUBLE, __name__, &(__v__), jsonIsSaving,arrayIndex)
+#define S_STRING(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_STRING, __name__, &(__v__), jsonIsSaving,arrayIndex)
+#define S_NAME(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_NAME, __name__, (__v__), jsonIsSaving,arrayIndex)
+#define S_ARRAY_OPEN(__name__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_ARRAY_OPEN, __name__, NULL, jsonIsSaving,arrayIndex)
+#define S_ARRAY_CLOSE()  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_ARRAY_CLOSE, NULL, NULL, jsonIsSaving,arrayIndex)
+#define S_OBJECT_OPEN(__name__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_OBJECT_OPEN, __name__, NULL, jsonIsSaving,arrayIndex)
+#define S_OBJECT_CLOSE()  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_OBJECT_CLOSE, NULL, NULL, jsonIsSaving,arrayIndex)
+#define S_VECTOR(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_VECTOR, __name__, &(__v__), jsonIsSaving,arrayIndex)
+#define S_QUATERNION(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_QUATERNION, __name__, &(__v__), jsonIsSaving,arrayIndex)
+#define S_FLOAT4(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_FLOAT4, __name__, &(__v__), jsonIsSaving,arrayIndex)
+#define S_MATRIX(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_MATRIX, __name__, &(__v__), jsonIsSaving,arrayIndex)
+int arraySize = 0; 
+#define S_ARRAY(__name__,__array__,__elementFunc__) {\
+  S_ARRAY_OPEN(__name__);\
+  if (!save) {\
+    (__array__).clear(); (__array__).resize(arraySize);\
+  }\
+  int k = arrayIndex;\
+  for (int i = 0; i < (__array__).size(); i++) {\
+    arrayIndex = i;\
+    __elementFunc__;\
+  }\
+  arrayIndex = k;\
+  S_ARRAY_CLOSE();\
+}
+#define S_ARRAY_POINTER_RESIZE(__array__,__type__,__count__) {\
+  if (!save) {\
+    for (int i1 = 0; i1 < (__array__).size(); i1++) if ((__array__)[i1] != NULL) {delete (__array__)[i1]; (__array__)[i1]=NULL;}\
+    (__array__).clear(); (__array__).resize(__count__);\
+    for (int i2 = 0; i2 < (__array__).size(); i2++) (__array__)[i2] = new (__type__);\
+  }\
+}
+#define S_CARRAY(__name__,__array__,__elementFunc__,__count__) {\
+  S_ARRAY_OPEN(__name__);\
+  int k = arrayIndex;\
+  for (int i = 0; i < (__count__); i++) {\
+    arrayIndex = i;\
+    __elementFunc__;\
+  }\
+  arrayIndex = k;\
+  S_ARRAY_CLOSE();\
+}
+
+char tempBuffer[256];
+
+void jsonSerialize(void *json, void **jsonPos, int type, const char *name, void *data, bool save, int arrayIndex) {
+  if (save) {
+    Array<char> *w = (Array<char>*)json;
+    char *oldPos = *(char**)jsonPos;
+    char *newPos = oldPos;
+    unsigned int len = &(*w)[w->size()] - oldPos;
+    switch(type) {
+      case JSONTYPE_NULL: {newPos = json_null( oldPos, name, &len );} break;
+      case JSONTYPE_BOOL: {newPos = json_bool( oldPos, name, *((bool*)data), &len );} break;
+      case JSONTYPE_INT: {newPos = json_int( oldPos, name, *((int*)data), &len );} break;
+      case JSONTYPE_UINT: {newPos = json_uint( oldPos, name, *((unsigned int*)data), &len );} break;
+      case JSONTYPE_FLOAT: {double v = *((float*)data); newPos = json_double( oldPos, name, v, &len );} break;
+      case JSONTYPE_DOUBLE: {newPos = json_double( oldPos, name, *((double*)data), &len );} break;
+      case JSONTYPE_STRING: {String str = *(String*)data; newPos = json_str( oldPos, name, str.c_str(), &len );} break;
+      case JSONTYPE_NAME: {String str = (const char *)data; newPos = json_str( oldPos, name, str.c_str(), &len );} break;
+      case JSONTYPE_ARRAY_OPEN: {newPos = json_arrOpen( oldPos, name, &len );} break;
+      case JSONTYPE_ARRAY_CLOSE: {newPos = json_arrClose( oldPos,&len );} break;
+      case JSONTYPE_OBJECT_OPEN: {newPos = json_objOpen( oldPos, name, &len );} break;
+      case JSONTYPE_OBJECT_CLOSE: {newPos = json_objClose( oldPos,&len );} break;
+      case JSONTYPE_VECTOR: {Vector *v = (Vector*)data; sprintf(tempBuffer,"%f,%f,%f,%f", v->x, v->y, v->z, v->w); newPos = json_str( oldPos, name, tempBuffer, &len );} break;
+      case JSONTYPE_QUATERNION: {Quaternion *v = (Quaternion*)data; sprintf(tempBuffer,"%f,%f,%f,%f", v->x, v->y, v->z, v->w); newPos = json_str( oldPos, name, tempBuffer, &len );} break;
+      case JSONTYPE_FLOAT4: {float *v = (float*)data; sprintf(tempBuffer,"%f,%f,%f,%f", v[0], v[1], v[2], v[3]); newPos = json_str( oldPos, name, tempBuffer, &len );} break;
+      case JSONTYPE_MATRIX: {double *v = ((Matrix*)data)->m; sprintf(tempBuffer,"%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f", v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8], v[9], v[10], v[11], v[12], v[13], v[14], v[15]); newPos = json_str( oldPos, name, tempBuffer, &len );} break;
+    }
+    int posInString = (int)(newPos - &(*w)[0]);
+    if (posInString > w->size()-JSONPORTIONLENGTH) {
+      w->resize(w->size() + JSONPORTIONLENGTH*2);
+      newPos = &(*w)[0] + posInString;
+    }
+    *jsonPos = newPos;
+  }
+  if (!save) {
+    Array<JSON_Value*> *jvals = *(Array<JSON_Value*>**)jsonPos;
+    JSON_Value *jval = jvals->back();
+    JSON_Value *val = NULL;
+    switch(json_value_get_type(jval)) {
+      case JSONObject: {val = json_object_get_value(json_value_get_object(jval), name);} break;
+      case JSONArray: {val = json_array_get_value(json_value_get_array(jval), arrayIndex);} break;
+    }
+    switch(type) {
+      case JSONTYPE_NULL: {} break;
+      case JSONTYPE_BOOL: {*((bool*)data) = json_value_get_boolean(val);} break;
+      case JSONTYPE_INT: {*((int*)data) = (int)json_value_get_number(val);} break;
+      case JSONTYPE_UINT: {*((unsigned int*)data) = (unsigned int)json_value_get_number(val);} break;
+      case JSONTYPE_FLOAT: {*((float*)data) = (float)json_value_get_number(val);} break;
+      case JSONTYPE_DOUBLE: {*((double*)data) = (double)json_value_get_number(val);} break;
+      case JSONTYPE_STRING: {*(String*)data = (const char *)json_value_get_string(val);} break;
+      case JSONTYPE_NAME: {sprintf((char*)data,"%s",(const char *)json_value_get_string(val));} break;
+      case JSONTYPE_ARRAY_OPEN: {jvals->push_back(val);arraySize=json_array_get_count(json_value_get_array(val));} break;
+      case JSONTYPE_ARRAY_CLOSE: {jvals->pop_back();} break;
+      case JSONTYPE_OBJECT_OPEN: {jvals->push_back(val);} break;
+      case JSONTYPE_OBJECT_CLOSE: {jvals->pop_back();} break;
+      case JSONTYPE_VECTOR: {Vector *v = (Vector*)data; String t = (const char *)json_value_get_string(val); sscanf(t.c_str(),"%lf,%lf,%lf,%lf", &v->x, &v->y, &v->z, &v->w);} break;
+      case JSONTYPE_QUATERNION: {Quaternion *v = (Quaternion*)data; String t = (const char *)json_value_get_string(val); sscanf(t.c_str(),"%lf,%lf,%lf,%lf", &v->x, &v->y, &v->z, &v->w);} break;
+      case JSONTYPE_FLOAT4: {float *v = (float*)data; String t = (const char *)json_value_get_string(val); sscanf(t.c_str(),"%f,%f,%f,%f", &v[0], &v[1], &v[2], &v[3]);} break;
+      case JSONTYPE_MATRIX: {double *v = ((Matrix*)data)->m; String t = (const char *)json_value_get_string(val); sscanf(t.c_str(),"%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf", &v[0], &v[1], &v[2], &v[3], &v[4], &v[5], &v[6], &v[7], &v[8], &v[9], &v[10], &v[11], &v[12], &v[13], &v[14], &v[15]);} break;
+    }
+  }
+}
+
+void loadArray(Array<char> *arr, FILE *in) {
+  fseek(in,0,SEEK_END);
+  unsigned int fileLen = ftell(in);
+  fseek(in,0,SEEK_SET);
+  arr->resize(fileLen);
+  fread(&(*arr)[0],1,fileLen,in);
+}
+
+void serializeAll(FILE *file, bool save) {
+  STARTSERIALIZATION(save, file);
+  if (error) {return;}
+
+  // ID/Header
+  S_STRING("id", String("SWIFE SCENE FILE"));
+  S_INT("version", version);
+
+  // CONFIG.HPP
+  S_BOOL("fullScreen",fullScreen);
+  S_STRING("appFolder",appFolder);
+  S_INT("maxTextureWidth",maxTextureWidth);
+  S_INT("maxTextureHeight",maxTextureHeight);
+  S_INT("defaultRenderTargetWidth",defaultRenderTargetWidth);
+  S_INT("defaultRenderTargetHeight",defaultRenderTargetHeight);
+
+  // GAMEOBJECT.HPP // some missing
+  S_ARRAY_OPEN("grids");
+  for (int i1 = 0; i1 < MAXGRIDS; i1++) {
+    S_GRID(NULL,&grids[i1]);
+  }
+  S_ARRAY_CLOSE();
+  S_ARRAY_OPEN("gameObjects");
+  S_ARRAY_POINTER_RESIZE(gameObjects,GameObject,arraySize);
+  for (int i2 = 0; i2 < gameObjects.size(); i2++) {
+    S_GAMEOBJECT(NULL,gameObjects[i2]);
+  }
+  S_ARRAY_CLOSE();
+
+  // OUTLINER.HPP
+  S_UINT("outlinerLayers",outlinerLayers);
+
+  // PAINT.HPP
+  S_BOOL("justDrawBoundingBoxes",justDrawBoundingBoxes);
+
+  // RENDER.HPP
+  S_INT("currentCamera",currentCamera);
+  S_UINT("clearColor", clearColor);
+  S_BOOL("lightOn", lightOn);
+  S_BOOL("texturedOn",texturedOn);
+  S_BOOL("twoSidedOn",twoSidedOn);
+  S_ARRAY_OPEN("cameras");
+  for (int i3 = 0; i3 < CAMERA_COUNT; i3++) {
+    S_CAMERA(NULL,&cameras[i3]);
+  }
+  S_ARRAY_CLOSE();
+
+  // SERIALIZE.HPP // some missing
+  S_UINT("bindingUniqueId",bindingUniqueId);
+
+  S_ARRAY_OPEN("bindings");
+  S_ARRAY_POINTER_RESIZE(bindings,FileBinding,arraySize);
+  for (int i4 = 0; i4 < bindings.size(); i4++) {
+    S_FILEBINDING(NULL,bindings[i4]);
+    if (!save) bindings[i4]->reload();
+  }
+  S_ARRAY_CLOSE();
+
+  // TOOLBAR.HPP
+  S_INT("mode",mode);
+  S_FLOAT("cameraSpeed",cameraSpeed);
+
+
+  // VIEWPORT.HPP
+  S_BOOL("toolOn", toolOn);
+  S_UINT("currentUniqueGameObjectId",currentUniqueGameObjectId);
+
+  FINISHSERIALIZATION(file);
+}
 
 FileBinding::~FileBinding() {
   free();
@@ -229,9 +452,28 @@ void freeBindings() {
 }
 
 void loadScene(const char *path, const char *fileName) {
+  String fullName = String(path) + fileName;
+  FILE *in = fopen(shortFileName(fullName).c_str(),"rb");
+  if (in == NULL) return;
+  serializeAll(in,false);
+  fclose(in);
 }
 
 void saveScene(const char *path, const char *fileName) {
+  String fileName2 = fileName;
+  String tempName = String(path)+"TMP.TMP";
+  dosRemoveFile(tempName.c_str());
+  String fullName = String(path) + fileName2;
+  FILE *out = fopen(tempName.c_str(),"w");
+  if (out == NULL) return;
+  serializeAll(out, true);
+  fclose(out);
+  if (!doslfnDeleteFiles(fullName.c_str(),false)) {
+    dosRemoveFile(fullName.c_str());
+  }
+  if (!doslfnRename(tempName.c_str(),fullName.c_str())) {
+    rename(tempName.c_str(),fullName.c_str());
+  }
 }
 
 void loadSkyBoxForObject(class GameObject *o, const char *fileName) {

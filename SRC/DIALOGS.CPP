@@ -44,6 +44,7 @@ const char *imagesAndMeshes = ".png,.jpg,.tga,.bmp,.psd,.gif,.pic,.pnm,.hdr,.obj
 const char *dialogCaption[DIALOG_COUNT] = {"NO MODE","Load a scene","Save a scene","Load a skybox","Load a mesh","Load a billboard"};
 const char *proceedButton[DIALOG_COUNT] = {"<button>", "Load", "Save","Load","Load","Load"};
 const char *dialogFileTypes[DIALOG_COUNT] = {"",".sfs",".sfs",images,meshes,imagesAndMeshes};
+const char *dialogDefaultExtension[DIALOG_COUNT] = {"",".SFS",".SFS","","",""};
  LOADSAVEFUNC funcs[DIALOG_COUNT] = {NULL, loadScene, saveScene, loadSkyBox, loadMesh, loadBillBoard};
 
 
@@ -626,6 +627,43 @@ void sortFileNames(Array<File> &files, int column, bool sortOrder) {
 unsigned int dialogLoadSaveGameObjectUniqueId = 0;
 String dialogLoadSaveSetFileNameAndPath;
 
+LOADSAVEFUNC loadSaveFunc = NULL; 
+String loadSaveShortPath; 
+String loadSaveLongFileName;
+
+void callLoadSaveFunc() {
+  if (loadSaveFunc == NULL) return;
+  loadSaveFunc(loadSaveShortPath.c_str(), loadSaveLongFileName.c_str());
+}
+
+void dialogOverwrite(bool openIt) {
+  if (openIt) {
+    String shortPath = shortFileName(loadSaveShortPath+loadSaveLongFileName);
+    FILE *in = fopen(shortPath.c_str(),"rb");
+    if (in == NULL) {
+      callLoadSaveFunc();
+      return;  // don't open dialog
+    }
+    fclose(in);
+  }
+  DIALOGSTART("Overwrite file")
+  ImGui::Text("Overwrite old file?");
+  ImGui::BeginChild("##DIALOGOVERWRITECHILD",ImVec2(main_window_xres/2,64));
+  ImGui::TextWrapped("Filename:%s",loadSaveLongFileName.c_str());
+  ImGui::TextWrapped("Path:%s",loadSaveShortPath.c_str());
+  ImGui::EndChild();
+  ImGui::Separator();
+  if (ImGui::Button("Overwrite##DIALOGOVERWRITEOVERWRITE")) {
+    callLoadSaveFunc();
+    ImGui::CloseCurrentPopup();
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Don't##DIALOGOVERWRITECLOSE")) {
+    ImGui::CloseCurrentPopup();
+  }
+  DIALOGEND()
+}
+
 void dialogLoadSave(bool openIt, int dialogMode) {
 
   static int mode = DIALOG_NONE; if (dialogMode != DIALOG_NONE) mode = dialogMode;
@@ -806,6 +844,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   }
   ImGui::Separator();
   ImGui::PushItemWidth(w);
+  ImGui::Text("Filename");
   ImGui::InputText("##DIALOGLOADSAVEFILENAME",&fileNames[mode][0],NAMEMAXHERE);
   ImGui::PopItemWidth();
   ImGui::Separator();
@@ -820,7 +859,18 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   DIALOGEND()
   if (scrollToHelper>0) scrollToHelper--; else scrollToFileName="";
   if (result) {
-    if (funcs[mode]!=NULL) funcs[mode](paths[mode].c_str(),fileNames[mode].c_str());
+    loadSaveFunc = NULL;
+    if (funcs[mode]!=NULL) {
+      loadSaveFunc = funcs[mode]; 
+      loadSaveShortPath = paths[mode]; 
+      loadSaveLongFileName = fileNames[mode];
+      loadSaveLongFileName.resize(strlen(loadSaveLongFileName.c_str()));
+      if (toLower(proceedButton[mode])=="save") {
+        if (loadSaveLongFileName.find(".")<0) {loadSaveLongFileName += dialogDefaultExtension[mode];}
+        dialogOverwrite(true);
+      } else
+        callLoadSaveFunc();
+    }
   }
 }
 

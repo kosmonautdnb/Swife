@@ -27,6 +27,7 @@
 #include "STL/ARRAY.HPP"
 #include "STL/VECTOR.HPP"
 #include "STL/STRING.HPP"
+#include <stdio.h>
 
 enum FILETYPE {
   FILETYPE_NONE = 0,
@@ -64,18 +65,30 @@ public:
   unsigned int type;
   String fileName;
   unsigned int uniqueId;
-  Array<unsigned int> textureIds;
   Vector boundingBoxMin;
   Vector boundingBoxMax;
-  Array<BakedVertex> triangles;
   bool billBoardIsTexture;
   int billBoardOriginalWidth;
   int billBoardOriginalHeight;
+  Array<unsigned int> textureIds;
+  Array<BakedVertex> triangles;
   class SpriteObject *spriteObject;
   void load(const char *fileName, unsigned int type);
   bool reload();
   void free();
 };
+#define S_FILEBINDING(__name__,__o__)\
+  S_OBJECT_OPEN(__name__);\
+  S_UINT("type", (__o__)->type);\
+  S_STRING("fileName",(__o__)->fileName);\
+  S_UINT("uniqueId",(__o__)->uniqueId);\
+  S_VECTOR("boundingBoxMin",(__o__)->boundingBoxMin);\
+  S_VECTOR("boundingBoxMax",(__o__)->boundingBoxMax);\
+  S_BOOL("billBoardIsTexture",(__o__)->billBoardIsTexture);\
+  S_INT("billBoardOriginalWidth",(__o__)->billBoardOriginalWidth);\
+  S_INT("billBoardOriginalHeight",(__o__)->billBoardOriginalHeight);\
+  S_OBJECT_CLOSE();
+// S_ARRAY("textureIds",(__o__)->textureIds,S_UINT(NULL,(__o__)->textureIds[i])); do a reload instead at serializing
 
 extern Array<FileBinding*> bindings;
 FileBinding *getBindingById(unsigned int uniqueId);
@@ -93,5 +106,7 @@ void loadMeshForObject(class GameObject *o, const char *fileName);
 void loadMesh(const char *path, const char *fileName);
 void loadBillBoardForObject(class GameObject *o, const char *fileName);
 void loadBillBoard(const char *path, const char *fileName);
+
+void serializeAll(FILE *file, bool save);
 
 #endif //__SERIALZE_HPP__

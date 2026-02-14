@@ -80,6 +80,21 @@ public:
   void setName(const char *name);
   void clearValue();
 };
+#define S_GAMEOBJECTPROPERTY(__name__,__o__)\
+  S_OBJECT_OPEN(__name__);\
+  S_NAME("name",(__o__)->name);\
+  S_UINT("type",(__o__)->type);\
+  switch((__o__)->type) {\
+  case GAMEOBJECTPROPERTY_UNDEFINED: {} break;\
+  case GAMEOBJECTPROPERTY_BOOL: {S_BOOL("goBool",(__o__)->goBool);} break;\
+  case GAMEOBJECTPROPERTY_INT: {S_INT("goInt",(__o__)->goInt);} break;\
+  case GAMEOBJECTPROPERTY_FLOAT: {S_FLOAT("goFloat",(__o__)->goFloat);} break;\
+  case GAMEOBJECTPROPERTY_FLOAT4: {S_FLOAT4("goFloat4",(__o__)->goFloat4);} break;\
+  case GAMEOBJECTPROPERTY_TEXT: {S_NAME("goText",(__o__)->goText);} break;\
+  case GAMEOBJECTPROPERTY_COLOR: {S_UINT("goColor",(__o__)->goColor);} break;\
+  }\
+  S_OBJECT_CLOSE();
+
 
 extern unsigned int currentUniqueGameObjectId;
 
@@ -118,6 +133,24 @@ public:
   float displayGridSize;
   float displayGridSteps;
 };
+#define S_GRID(__name__,__o__)\
+  S_OBJECT_OPEN(__name__);\
+  S_BOOL("posXEnabled",(__o__)->posXEnabled);\
+  S_BOOL("posYEnabled",(__o__)->posYEnabled);\
+  S_BOOL("posZEnabled",(__o__)->posZEnabled);\
+  S_BOOL("scaleXEnabled",(__o__)->scaleXEnabled);\
+  S_BOOL("scaleYEnabled",(__o__)->scaleYEnabled);\
+  S_BOOL("scaleZEnabled",(__o__)->scaleZEnabled);\
+  S_BOOL("rotEnabled",(__o__)->rotEnabled);\
+  S_VECTOR("gridPos",(__o__)->gridPos);\
+  S_VECTOR("posGranularity",(__o__)->posGranularity);\
+  S_VECTOR("scaleGranularity",(__o__)->scaleGranularity);\
+  S_DOUBLE("rotGranularity",(__o__)->rotGranularity);\
+  S_BOOL("displayGridOn",(__o__)->displayGridOn);\
+  S_UINT("displayGridColor",(__o__)->displayGridColor);\
+  S_FLOAT("displayGridSize",(__o__)->displayGridSize);\
+  S_FLOAT("displayGridSteps",(__o__)->displayGridSteps);\
+  S_OBJECT_CLOSE();
 
 #define MAXGRIDS 1
 extern Grid grids[MAXGRIDS];
@@ -159,8 +192,7 @@ public:
     billBoardTY1 = 0;
   }
   ~GameObject();
-  GameObject *setName(const char *name);
-  GameObject *setType(unsigned int type);
+
   unsigned int layers;
   unsigned int type;
   Vector translation;
@@ -178,13 +210,27 @@ public:
   bool hasDrawProblem;
   bool useGrid;
   int gridId;
-  int uniqueId;
+  unsigned int uniqueId;
   Vector boundingBoxMin;
   Vector boundingBoxMax;
   bool outlinerShouldFocusThis;
+  Matrix parentTransform;
+  unsigned int fileBindingId;
+  bool billBoardRotateZ;
+  float billBoardRotation;
+  float billBoardScale;
+  float billBoardAspect;
+  int billBoardTX0;
+  int billBoardTY0;
+  int billBoardTX1;
+  int billBoardTY1;
+  bool isCamera[CAMERA_COUNT];
   Array<GameObjectProperty> properties;
   Array<unsigned int> uniqueLinkIds;
-  Matrix parentTransform;
+  Camera camera;
+
+  GameObject *setName(const char *name);
+  GameObject *setType(unsigned int type);
   GameObjectProperty *addProperty(const char *name);
   GameObjectProperty *addProperty(GameObjectProperty *property);
   GameObject *addFloat(const char *name, float v);
@@ -196,26 +242,52 @@ public:
   GameObject *clone();
   Matrix getRenderTransform() const;
   Matrix getObjectTransform() const;
-  unsigned int fileBindingId;
-
   GameObject *loadSkyBox(const char *fileName);
   GameObject *loadMesh(const char *fileName);
   GameObject *loadBillBoard(const char *fileName);
   GameObject *setCamera(const Camera *camera);
 
   Array<BakedVertex> *getBakedTriangles();
-
-  Camera camera;
-  bool isCamera[CAMERA_COUNT];
-  bool billBoardRotateZ;
-  float billBoardRotation;
-  float billBoardScale;
-  float billBoardAspect;
-  int billBoardTX0;
-  int billBoardTY0;
-  int billBoardTX1;
-  int billBoardTY1;
 };
+
+#define S_GAMEOBJECT(__name__,__o__)\
+  S_OBJECT_OPEN(__name__);\
+  S_UINT("layers",(__o__)->layers);\
+  S_UINT("type",(__o__)->type);\
+  S_VECTOR("translation",(__o__)->translation);\
+  S_VECTOR("scaling",(__o__)->scaling);\
+  S_QUATERNION("rotation",(__o__)->rotation);\
+  S_VECTOR("anchor",(__o__)->anchor);\
+  S_UINT("color",(__o__)->color);\
+  S_NAME("name",(__o__)->name);\
+  S_BOOL("selected",(__o__)->selected);\
+  S_BOOL("selectionOn",(__o__)->sectionOn);\
+  S_BOOL("showLinks",(__o__)->showLinks);\
+  S_BOOL("sectionVisible",(__o__)->sectionVisible);\
+  S_BOOL("visible1",(__o__)->visible1);\
+  S_BOOL("visible2",(__o__)->visible2);\
+  S_BOOL("hasDrawProblem",(__o__)->hasDrawProblem);\
+  S_BOOL("useGrid", (__o__)->useGrid);\
+  S_INT("gridId", (__o__)->gridId);\
+  S_UINT("uniqueId", (__o__)->uniqueId);\
+  S_VECTOR("boundingBoxMin",(__o__)->boundingBoxMin);\
+  S_VECTOR("boundingBoxMax",(__o__)->boundingBoxMax);\
+  S_BOOL("outlinerShouldFocusThis",(__o__)->outlinerShouldFocusThis);\
+  S_MATRIX("parentTransform",(__o__)->parentTransform);\
+  S_UINT("fileBindingId",(__o__)->fileBindingId);\
+  S_BOOL("billBoardRotateZ",(__o__)->billBoardRotateZ);\
+  S_FLOAT("billBoardRotation",(__o__)->billBoardRotation);\
+  S_FLOAT("billBoardScale",(__o__)->billBoardScale);\
+  S_FLOAT("billBoardAspect",(__o__)->billBoardAspect);\
+  S_INT("billBoardTX0",(__o__)->billBoardTX0);\
+  S_INT("billBoardTY0",(__o__)->billBoardTY0);\
+  S_INT("billBoardTX1",(__o__)->billBoardTX1);\
+  S_INT("billBoardTY1",(__o__)->billBoardTY1);\
+  S_CARRAY("isCamera",(__o__)->isCamera,S_BOOL(NULL,(__o__)->isCamera[i]),CAMERA_COUNT);\
+  S_ARRAY("properties",(__o__)->properties,S_GAMEOBJECTPROPERTY(NULL,&(__o__)->properties[i]));\
+  S_ARRAY("uniqueLinkIds",(__o__)->uniqueLinkIds,S_UINT(NULL,(__o__)->uniqueLinkIds[i]));\
+  S_CAMERA("camera",&(__o__)->camera);\
+  S_OBJECT_CLOSE();
 
 extern HashMap<unsigned int, const char*> iconNameForGameObjectType;
 extern Array<GameObject*> gameObjects;

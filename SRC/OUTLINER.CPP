@@ -220,6 +220,7 @@ void drawOutliner() {
   dialogViewBindings(false);
   dialogMessage(false,NULL);
   dialogGridSettings(false);
+  dialogOverwrite(false);
   unsigned int outlinerLayersBefore = outlinerLayers;
   outlinerLayers = layerSelection(outlinerLayers,"OUTLLAY");
   if (outlinerLayers != outlinerLayersBefore) renderingUpdated = true;
