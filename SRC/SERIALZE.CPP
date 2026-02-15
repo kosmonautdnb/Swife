@@ -500,6 +500,7 @@ void loadScene(const char *path, const char *fileName) {
   if (in == NULL) return;
   serializeAll(in,false);
   fclose(in);
+  renderingUpdated = true;
 }
 
 void saveScene(const char *path, const char *fileName) {

@@ -128,6 +128,10 @@ void dialogAddObject(bool openIt, unsigned int type) {
     sprintf(title, "Add %s", gameObjectTypeNames[type]);
   } 
   DIALOGSTART(title)
+  int pos = 0;
+  for (int i = 0; i < gameObjects.size(); i++) {
+    if (gameObjects[i]->selected) {pos = i; break;}
+  }
   ImGui::PushItemWidth(7*NAMEMAX);
   ImGui::Text("Name"); ImGui::SameLine(); DIALOGKEYSHERE(); ImGui::InputText("##DIALOGADDGAMEOBJECTNAME", name, NAMEMAX);
   if (t == GAMEOBJECT_MESH || t == GAMEOBJECT_BILLBOARD) {
@@ -136,9 +140,10 @@ void dialogAddObject(bool openIt, unsigned int type) {
       o->setName(name);
       o->setType(t);
       o->selected = true;
+      o->outlinerShouldFocusThis = true;
       o->layers = outlinerLayers;
       for (int i = 0; i < gameObjects.size(); i++) gameObjects[i]->selected = false;
-      gameObjects.insert(o,0);
+      gameObjects.insert(o,pos);
       unsigned int k = DIALOG_NONE;
       switch(t) {
         case GAMEOBJECT_MESH: {k = DIALOG_LOADMESH;} break;
@@ -155,9 +160,10 @@ void dialogAddObject(bool openIt, unsigned int type) {
     o->setName(name);
     o->setType(t);
     o->selected = true;
+    o->outlinerShouldFocusThis = true;
     o->layers = outlinerLayers;
     for (int i = 0; i < gameObjects.size(); i++) gameObjects[i]->selected = false;
-    gameObjects.insert(o,0);
+    gameObjects.insert(o,pos);
     if (t == GAMEOBJECT_CAMERA) o->setCamera(&cameras[currentCamera]);
     renderingUpdated = true;
     ImGui::CloseCurrentPopup();
