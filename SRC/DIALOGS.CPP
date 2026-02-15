@@ -350,6 +350,7 @@ void dialogControls(bool openIt) {
     "Use Q to move down.\n"
     "Use CURSOR keys to rotate camera.\n"
     "Use O and P to rotate view 90 degrees.\n"
+    "Use shift and escape to quit.\n"
     "Mouse:\n"
     "Right mouse button and mouse to rotate view.\n"
     "Right mouse button and shift and mouse to roll.\n"
@@ -360,6 +361,25 @@ void dialogControls(bool openIt) {
     "Left Mouse and ctrl remove from selection\n"
   );
   if (ImGui::Button("Close##DIALOGCONTROLSCLOSE")) {
+    ImGui::CloseCurrentPopup();
+  }
+  DIALOGEND()
+}
+
+void dialogTroubleShooting(bool openIt) {
+  DIALOGSTART("Troubleshooting")
+  ImGui::Text(
+    "Files:\n"
+    "If you want to share your files\n"
+    "you need to have placed them directly from begin\n"
+    "in the DATA folder. And that means all files you use.\n"
+    "Like e.g. skybox textures in DATA/CUBEMAPS/ etc..\n"
+    "\n"
+    "If you don't want to share your files at any time you\n"
+    "can place them anywhere on your drive.\n"
+    "If files are !not! in the DATA folder they are used as !global! files.\n"
+  );
+  if (ImGui::Button("Close##DIALOGTROUBLESHOOTING")) {
     ImGui::CloseCurrentPopup();
   }
   DIALOGEND()
@@ -581,19 +601,19 @@ void dialogObjectTextures(bool openIt) {
   DIALOGEND()
 }
 
-#define LONGFILENAME(__str__) (longFileNames ? longFileName(__str__) : __str__)
-#define SHORTFILENAME(__str__) (longFileNames ? shortFileName(__str__) : __str__)
+#define LONGFILENAME(__str__) (longFileNames ? longFileName(__str__) : unixFileName(__str__))
+#define SHORTFILENAME(__str__) (longFileNames ? shortFileName(__str__) : unixFileName(__str__))
 char longFileNameBuffer[MAX_LFN_PATH];
 
 String longFileName(const String &a) {
-  if (a[0]>='A'&&a[0]<='B') return a;
-  if (!doslfnLongPath(longFileNameBuffer,dosFileName(a).c_str())) return a;
+  if (a[0]>='A'&&a[0]<='B') return unixFileName(a);
+  if (!doslfnLongPath(longFileNameBuffer,dosFileName(a).c_str())) return unixFileName(a);
   return unixFileName(String(longFileNameBuffer));
 }
 
 String shortFileName(const String &a) {
-  if (a[0]>='A'&&a[0]<='B') return a;
-  if (!doslfnShortPath(longFileNameBuffer,dosFileName(a).c_str())) return a;
+  if (a[0]>='A'&&a[0]<='B') return unixFileName(a);
+  if (!doslfnShortPath(longFileNameBuffer,dosFileName(a).c_str())) return unixFileName(a);
   return unixFileName(String(longFileNameBuffer));
 }
 
@@ -639,7 +659,7 @@ void callLoadSaveFunc() {
 void dialogOverwrite(bool openIt) {
   if (openIt) {
     String shortPath = shortFileName(loadSaveShortPath+loadSaveLongFileName);
-    FILE *in = fopen(shortPath.c_str(),"rb");
+    FILE *in = fopen(dosFileName(shortPath).c_str(),"rb");
     if (in == NULL) {
       callLoadSaveFunc();
       return;  // don't open dialog

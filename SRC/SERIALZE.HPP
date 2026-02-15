@@ -80,7 +80,7 @@ public:
 #define S_FILEBINDING(__name__,__o__)\
   S_OBJECT_OPEN(__name__);\
   S_UINT("type", (__o__)->type);\
-  S_STRING("fileName",(__o__)->fileName);\
+  S_FILENAME("fileName",(__o__)->fileName);\
   S_UINT("uniqueId",(__o__)->uniqueId);\
   S_VECTOR("boundingBoxMin",(__o__)->boundingBoxMin);\
   S_VECTOR("boundingBoxMax",(__o__)->boundingBoxMax);\

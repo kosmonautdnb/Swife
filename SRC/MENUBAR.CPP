@@ -138,6 +138,8 @@ void drawMenuBar() {
     if (ImGui::BeginMenu("Help")) {
       if (ImGui::MenuItem("About")) {on = true; dialogAbout(true);}
       if (ImGui::MenuItem("Controls")) {on = true; dialogControls(true);}
+      ImGui::Separator();
+      if (ImGui::MenuItem("Troubleshooting")) {on = true; dialogTroubleShooting(true);}
       ImGui::EndMenu();
     }
 

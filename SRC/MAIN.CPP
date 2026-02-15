@@ -128,8 +128,8 @@ void defaultInit() {
 
 int main(int argc, const char *argv[]) {
 
-  //appFolder = getPath(argv[0]);
-  appFolder = getCWD();
+  appFolder = unixFileName(getPath(argv[0]));
+  //appFolder = getCWD();
 
   initLogging();
   logp("SWIFE - STARTUP");

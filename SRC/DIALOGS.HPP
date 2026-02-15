@@ -36,6 +36,7 @@ void dialogAddObject(bool openIt, unsigned int type);
 void dialogAddProperty(bool openIt, class GameObject *object);
 void dialogAbout(bool openIt);
 void dialogControls(bool openIt);
+void dialogTroubleShooting(bool openIt);
 void dialogSelectByProperty(bool openIt);
 void dialogSelectByLayer(bool openIt);
 void dialogSelectInvisible(bool openIt);

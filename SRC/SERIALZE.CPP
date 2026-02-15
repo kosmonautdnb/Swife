@@ -63,7 +63,8 @@ enum JSONTYPE {
   JSONTYPE_VECTOR = 12,
   JSONTYPE_QUATERNION = 13,
   JSONTYPE_FLOAT4 = 14,
-  JSONTYPE_MATRIX = 15
+  JSONTYPE_MATRIX = 15,
+  JSONTYPE_FILENAME = 16
 };
 
 JSON_Value * json_parse_string(const char *string);
@@ -89,6 +90,8 @@ JSON_Value * json_parse_string(const char *string);
 #define S_QUATERNION(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_QUATERNION, __name__, &(__v__), jsonIsSaving,arrayIndex)
 #define S_FLOAT4(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_FLOAT4, __name__, &(__v__), jsonIsSaving,arrayIndex)
 #define S_MATRIX(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_MATRIX, __name__, &(__v__), jsonIsSaving,arrayIndex)
+#define S_FILENAME(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_FILENAME, __name__, &(__v__), jsonIsSaving,arrayIndex)
+
 int arraySize = 0; 
 #define S_ARRAY(__name__,__array__,__elementFunc__) {\
   int k = arrayIndex;\
@@ -123,6 +126,40 @@ int arraySize = 0;
 
 char tempBuffer[256];
 
+String toLocalFileName(const String &str) {
+  String ret = unixFileName(str);
+  if (ret.startsWith(appFolder)) ret = String("./") + ret.substr(appFolder.length());
+  return ret;
+}
+
+String fromLocalFileName(const String &str) {
+  String ret = unixFileName(str);
+  if (ret.startsWith("./")) ret = appFolder + ret.substr(2);
+  return ret;
+}
+
+#define _D(__double__) doubleToString(__double__).c_str()
+#define _F(__float__) floatToString(__float__).c_str()
+String doubleToString(double v) {
+  String ret = String::fromDouble(v);
+  int pointPos = ret.find(".");
+  if (pointPos>=0) {
+    if (pointPos == ret.length()-1) {
+      ret.resize(ret.length()-1);
+    } else {
+      for (int i = ret.length()-1; i >= 0; i--) {
+        if (ret[i]=='0'||ret[i]=='.') {ret.resize(i);continue;}
+        break;
+      }
+    }
+    if (ret.empty()) ret = "0";
+  }
+  return ret;
+}
+String floatToString(float v) {
+  return doubleToString(v);
+}
+
 void jsonSerialize(void *json, void **jsonPos, int type, const char *name, void *data, bool save, int arrayIndex) {
   if (save) {
     Array<char> *w = (Array<char>*)json;
@@ -142,10 +179,11 @@ void jsonSerialize(void *json, void **jsonPos, int type, const char *name, void 
       case JSONTYPE_ARRAY_CLOSE: {newPos = json_arrClose( oldPos,&len );} break;
       case JSONTYPE_OBJECT_OPEN: {newPos = json_objOpen( oldPos, name, &len );} break;
       case JSONTYPE_OBJECT_CLOSE: {newPos = json_objClose( oldPos,&len );} break;
-      case JSONTYPE_VECTOR: {Vector *v = (Vector*)data; sprintf(tempBuffer,"%f,%f,%f,%f", v->x, v->y, v->z, v->w); newPos = json_str( oldPos, name, tempBuffer, &len );} break;
-      case JSONTYPE_QUATERNION: {Quaternion *v = (Quaternion*)data; sprintf(tempBuffer,"%f,%f,%f,%f", v->x, v->y, v->z, v->w); newPos = json_str( oldPos, name, tempBuffer, &len );} break;
-      case JSONTYPE_FLOAT4: {float *v = (float*)data; sprintf(tempBuffer,"%f,%f,%f,%f", v[0], v[1], v[2], v[3]); newPos = json_str( oldPos, name, tempBuffer, &len );} break;
-      case JSONTYPE_MATRIX: {double *v = ((Matrix*)data)->m; sprintf(tempBuffer,"%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f", v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8], v[9], v[10], v[11], v[12], v[13], v[14], v[15]); newPos = json_str( oldPos, name, tempBuffer, &len );} break;
+      case JSONTYPE_VECTOR: {Vector *v = (Vector*)data; sprintf(tempBuffer,"%s,%s,%s,%s", _D(v->x), _D(v->y), _D(v->z), _D(v->w)); newPos = json_str( oldPos, name, tempBuffer, &len );} break;
+      case JSONTYPE_QUATERNION: {Quaternion *v = (Quaternion*)data; sprintf(tempBuffer,"%s,%s,%s,%s", _D(v->x), _D(v->y), _D(v->z), _D(v->w)); newPos = json_str( oldPos, name, tempBuffer, &len );} break;
+      case JSONTYPE_FLOAT4: {float *v = (float*)data; sprintf(tempBuffer,"%s,%s,%s,%s", _F(v[0]), _F(v[1]), _F(v[2]), _F(v[3])); newPos = json_str( oldPos, name, tempBuffer, &len );} break;
+      case JSONTYPE_MATRIX: {double *v = ((Matrix*)data)->m; sprintf(tempBuffer,"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s", _D(v[0]), _D(v[1]), _D(v[2]), _D(v[3]), _D(v[4]), _D(v[5]), _D(v[6]), _D(v[7]), _D(v[8]), _D(v[9]), _D(v[10]), _D(v[11]), _D(v[12]), _D(v[13]), _D(v[14]), _D(v[15])); newPos = json_str( oldPos, name, tempBuffer, &len );} break;
+      case JSONTYPE_FILENAME: {String str = toLocalFileName(*(String*)data); newPos = json_str( oldPos, name, str.c_str(), &len );} break;
     }
     int posInString = (int)(newPos - &(*w)[0]);
     if (posInString > w->size()-JSONPORTIONLENGTH) {
@@ -179,6 +217,7 @@ void jsonSerialize(void *json, void **jsonPos, int type, const char *name, void 
       case JSONTYPE_QUATERNION: {Quaternion *v = (Quaternion*)data; String t = (const char *)json_value_get_string(val); sscanf(t.c_str(),"%lf,%lf,%lf,%lf", &v->x, &v->y, &v->z, &v->w);} break;
       case JSONTYPE_FLOAT4: {float *v = (float*)data; String t = (const char *)json_value_get_string(val); sscanf(t.c_str(),"%f,%f,%f,%f", &v[0], &v[1], &v[2], &v[3]);} break;
       case JSONTYPE_MATRIX: {double *v = ((Matrix*)data)->m; String t = (const char *)json_value_get_string(val); sscanf(t.c_str(),"%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf", &v[0], &v[1], &v[2], &v[3], &v[4], &v[5], &v[6], &v[7], &v[8], &v[9], &v[10], &v[11], &v[12], &v[13], &v[14], &v[15]);} break;
+      case JSONTYPE_FILENAME: {*(String*)data = fromLocalFileName((const char *)json_value_get_string(val));} break;
     }
   }
 }
@@ -283,7 +322,7 @@ unsigned int OBJloadTexture(const String &fileName, const String &type) {
   unsigned int texture = 0;
   if (type != "map_Kd") return texture;
   String name = shortFileName(fileName);
-  RGBAImage image = RGBAImage::fromFile(name.c_str());
+  RGBAImage image = RGBAImage::fromFile(dosFileName(name).c_str());
   if (image.data == NULL) return texture;
   correctTextureSize(&image);
   glGenTextures(1, &texture);
@@ -313,7 +352,7 @@ unsigned int vectorToColor(const Vector &v) {
 bool loadMeshForBinding(const String &fileName, FileBinding *binding) {
   String a = toLower(fileName);
   if (a.endsWith(".obj")) { // WAVEFRONT OBJECT IMPORT
-    SMPL_File *obj = loadObj(fileName.c_str(), true);
+    SMPL_File *obj = loadObj(dosFileName(fileName).c_str(), true);
     if (obj == NULL) return false;
     allGenTexturesHere.clear();
     obj->loadTextures(OBJloadTexture);
@@ -373,7 +412,7 @@ bool FileBinding::reload() {
   free();
   renderingUpdated = true;
   switch(type) {
-  case FILETYPE_SKYBOX: {RGBAImage s = RGBAImage::fromFile(fileName.c_str());
+  case FILETYPE_SKYBOX: {RGBAImage s = RGBAImage::fromFile(dosFileName(fileName).c_str());
       if (s.data == NULL) {dialogMessage(true,(String("Couldn't load file:<")+fileName+">").c_str()); return false;}
       textureIds.resize(6); 
       skyBoxFromHorizontalCrossImage(&textureIds[0], &s);
@@ -383,7 +422,7 @@ bool FileBinding::reload() {
   case FILETYPE_MESH: return loadMeshForBinding(fileName,this);
   case FILETYPE_BILLBOARD: {
       billBoardIsTexture = false;
-      RGBAImage s = RGBAImage::fromFile(fileName.c_str());
+      RGBAImage s = RGBAImage::fromFile(dosFileName(fileName).c_str());
       if (s.data != NULL) {
         billBoardOriginalWidth = s.width;
         billBoardOriginalHeight = s.height;
@@ -461,7 +500,7 @@ void freeBindings() {
 
 void loadScene(const char *path, const char *fileName) {
   String fullName = String(path) + fileName;
-  FILE *in = fopen(shortFileName(fullName).c_str(),"rb");
+  FILE *in = fopen(dosFileName(shortFileName(fullName)).c_str(),"rb");
   if (in == NULL) return;
   serializeAll(in,false);
   fclose(in);
@@ -472,7 +511,7 @@ void saveScene(const char *path, const char *fileName) {
   String tempName = String(path)+"TMP.TMP";
   dosRemoveFile(tempName.c_str());
   String fullName = String(path) + fileName2;
-  FILE *out = fopen(tempName.c_str(),"w");
+  FILE *out = fopen(dosFileName(tempName).c_str(),"w");
   if (out == NULL) return;
   serializeAll(out, true);
   fclose(out);
@@ -497,7 +536,7 @@ void loadSkyBox(const char *path, const char *fileName) {
   int j = getObjectIdByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
-  loadSkyBoxForObject(o,(shortFileName(String(path)+String(fileName))).c_str());
+  loadSkyBoxForObject(o,shortFileName(String(path)+String(fileName)).c_str());
 }
 
 void loadMeshForObject(class GameObject *o, const char *fileName) {
@@ -513,7 +552,7 @@ void loadMesh(const char *path, const char *fileName) {
   int j = getObjectIdByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
-  loadMeshForObject(o,(shortFileName(String(path)+String(fileName))).c_str());
+  loadMeshForObject(o,shortFileName(String(path)+String(fileName)).c_str());
 }
 
 void loadBillBoardForObject(class GameObject *o, const char *fileName) {
@@ -538,5 +577,5 @@ void loadBillBoard(const char *path, const char *fileName) {
   int j = getObjectIdByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
-  loadBillBoardForObject(o,(shortFileName(String(path)+String(fileName))).c_str());
+  loadBillBoardForObject(o,shortFileName(String(path)+String(fileName)).c_str());
 }
