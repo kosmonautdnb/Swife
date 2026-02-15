@@ -154,8 +154,36 @@ bool isInViewport(GameObject *o) {
   return allOut == 0;
 }
 
+void combineForNoRotation(class Matrix *modelViewMatrix, const class Matrix *modelViewMatrixToGetRotationFrom,bool maxScale) {
+  double scaleX = length(modelViewMatrix->getColumn(0));
+  double scaleY = length(modelViewMatrix->getColumn(1));
+  double scaleZ = length(modelViewMatrix->getColumn(2));
+  double scale = scaleX; if (scaleY > scale) scale = scaleY; if (scaleZ > scale) scale = scaleZ;
+  if (maxScale) scaleX=scaleY=scaleZ=scale;
+  Matrix ret = *modelViewMatrix;
+  ret.setColumn3(0,modelViewMatrixToGetRotationFrom->getColumn(0)*scaleX);
+  ret.setColumn3(1,modelViewMatrixToGetRotationFrom->getColumn(1)*scaleY);
+  ret.setColumn3(2,modelViewMatrixToGetRotationFrom->getColumn(2)*scaleZ);
+  *modelViewMatrix = ret;
+}
+
+void addHitTestMoveGizmo2(const Matrix &cameraMatrix, GameObject *o, const Vector &minB2, const Vector &maxB2) {
+  if (moveToolWorldSpace) {
+    glPushMatrix();
+    Matrix objectMatrix; glGetDoublev(GL_MODELVIEW_MATRIX, objectMatrix.m);
+    combineForNoRotation(&objectMatrix,&cameraMatrix,false);
+    glLoadMatrixd(objectMatrix.m);
+    addHitTestMoveGizmo(o,minB2,maxB2);
+    glPopMatrix();
+  } else {
+    addHitTestMoveGizmo(o,minB2,maxB2);
+  }
+}
+
 void paintTrigger(class GameObject *o, bool showModificators) {
   if (!isInViewport(o)) return;
+
+  Matrix cameraMatrix; glGetDoublev(GL_MODELVIEW_MATRIX, cameraMatrix.m);
 
   glPushMatrix();
 
@@ -241,9 +269,9 @@ void paintTrigger(class GameObject *o, bool showModificators) {
   if (showModificators) {
     Vector minB2 = minB - o->anchor;
     Vector maxB2 = maxB - o->anchor;
-    addHitTestMoveGizmo(o,minB2,maxB2);
     addHitTestScaleGizmo(o,minB2,maxB2);
     addHitTestRotateGizmo(o,minB2,maxB2);
+    addHitTestMoveGizmo2(cameraMatrix,o,minB2,maxB2);
   }
 
   glPopMatrix();
@@ -344,6 +372,8 @@ void paintMesh(class GameObject *o, bool showModificators) {
   if (!isInViewport(o)) return;
   if (justDrawBoundingBoxes) {paintTrigger(o,showModificators); return;}
 
+  Matrix cameraMatrix; glGetDoublev(GL_MODELVIEW_MATRIX, cameraMatrix.m);
+
   glPushMatrix();
 
   Matrix m = o->getRenderTransform();
@@ -379,24 +409,12 @@ void paintMesh(class GameObject *o, bool showModificators) {
   if (showModificators) {
     Vector minB2 = minB - o->anchor;
     Vector maxB2 = maxB - o->anchor;
-    addHitTestMoveGizmo(o,minB2,maxB2);
     addHitTestScaleGizmo(o,minB2,maxB2);
     addHitTestRotateGizmo(o,minB2,maxB2);
+    addHitTestMoveGizmo2(cameraMatrix,o,minB2,maxB2);
   }
 
   glPopMatrix();
-}
-
-void combineForNoRotation(class Matrix *modelViewMatrix, const class Matrix *modelViewMatrixToGetRotationFrom) {
-  double scaleX = length(modelViewMatrix->getColumn(0));
-  double scaleY = length(modelViewMatrix->getColumn(1));
-  double scaleZ = length(modelViewMatrix->getColumn(2));
-  double scale = scaleX; if (scaleY > scale) scale = scaleY; if (scaleZ > scale) scale = scaleZ;
-  Matrix ret = *modelViewMatrix;
-  ret.setColumn3(0,modelViewMatrixToGetRotationFrom->getColumn(0)*scale);
-  ret.setColumn3(1,modelViewMatrixToGetRotationFrom->getColumn(1)*scale);
-  ret.setColumn3(2,modelViewMatrixToGetRotationFrom->getColumn(2)*scale);
-  *modelViewMatrix = ret;
 }
 
 void paintBillBoard(class GameObject *o, bool showModificators) {
@@ -471,7 +489,7 @@ void paintBillBoard(class GameObject *o, bool showModificators) {
     Vector minB2 = minB - o->anchor;
     Vector maxB2 = maxB - o->anchor;
     Matrix objectMatrix; glGetDoublev(GL_MODELVIEW_MATRIX, objectMatrix.m);
-    combineForNoRotation(&objectMatrix,&cameraMatrix);
+    combineForNoRotation(&objectMatrix,&cameraMatrix,true);
     glLoadMatrixd(objectMatrix.m);
     addHitTestMoveGizmo(o,minB2,maxB2);
   }

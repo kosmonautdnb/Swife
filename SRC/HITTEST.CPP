@@ -38,6 +38,7 @@ Matrix hitTestInverseModelView;
 bool startTool = false;
 int activatedTool = HITTESTTOOL_NONE;
 GameObject *activatedToolObjectBase = NULL;
+bool moveToolWorldSpace = false;
 
 void prepareMouseHitTest(int mouseX, int mouseY) {
   doHitTest = false;

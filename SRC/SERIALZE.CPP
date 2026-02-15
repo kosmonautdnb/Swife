@@ -41,6 +41,7 @@
 #include "TOOLBAR.HPP"
 #include "VIEWPORT.HPP"
 #include "PAINT.HPP"
+#include "HITTEST.HPP"
 
 int version = 100;
 
@@ -206,7 +207,7 @@ void serializeAll(FILE *file, bool save) {
   S_INT("defaultRenderTargetWidth",defaultRenderTargetWidth);
   S_INT("defaultRenderTargetHeight",defaultRenderTargetHeight);
 
-  // GAMEOBJECT.HPP // some missing
+  // GAMEOBJECT.HPP
   S_ARRAY_OPEN("grids");
   for (int i1 = 0; i1 < MAXGRIDS; i1++) {
     S_GRID(NULL,&grids[i1]);
@@ -218,6 +219,9 @@ void serializeAll(FILE *file, bool save) {
     S_GAMEOBJECT(NULL,gameObjects[i2]);
   }
   S_ARRAY_CLOSE();
+
+  // HITTEST.HPP
+  S_BOOL("moveToolWorldSpace",moveToolWorldSpace);
 
   // OUTLINER.HPP
   S_UINT("outlinerLayers",outlinerLayers);
@@ -237,7 +241,7 @@ void serializeAll(FILE *file, bool save) {
   }
   S_ARRAY_CLOSE();
 
-  // SERIALIZE.HPP // some missing
+  // SERIALIZE.HPP
   S_UINT("bindingUniqueId",bindingUniqueId);
 
   S_ARRAY_OPEN("bindings");

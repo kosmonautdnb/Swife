@@ -69,6 +69,7 @@ extern Vector mouseHitStart, mouseHitEnd;
 extern bool doHitTest;
 extern bool startTool;
 extern int activatedTool;
+extern bool moveToolWorldSpace;
 extern class GameObject *activatedToolObjectBase;
 
 void prepareMouseHitTest(int mouseX, int mouseY);

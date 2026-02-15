@@ -39,6 +39,6 @@ void paintBillBoard(class GameObject *o, bool showModificators);
 
 void paintBillBoardContents();
 
-void combineForNoRotation(class Matrix *modelViewMatrix, const class Matrix *modelViewMatrixToGetRotationFrom);
+void combineForNoRotation(class Matrix *modelViewMatrix, const class Matrix *modelViewMatrixToGetRotationFrom, bool maxScale);
 
 #endif //__PAINT_HPP__

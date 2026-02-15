@@ -458,16 +458,16 @@ bool mouseNotInRenderView() {
   return ret;
 }
 
-void screenSpacePlane(GameObject *o, Vector *d2d, Vector *d3d, double x, double y, double z) {
+void screenSpacePlane(GameObject *o, Vector *d2d, Vector *d3d, double x, double y, double z, bool worldSpace) {
 
   Matrix projection; glGetDoublev(GL_PROJECTION_MATRIX, projection.m);
   Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m);
 
   Matrix m = o->getRenderTransform();
 
-  if (o->type == GAMEOBJECT_BILLBOARD) {
+  if (o->type == GAMEOBJECT_BILLBOARD || worldSpace) {
     Matrix k; k.identity();
-    combineForNoRotation(&m, &k);
+    combineForNoRotation(&m, &k, true);
   }
 
   Vector translation = m.getColumn(3);
@@ -524,22 +524,25 @@ void handleTool() {
     case HITTESTTOOL_ROTATE_MINUS_Y: 
     case HITTESTTOOL_ROTATE_PLUS_Z: 
     case HITTESTTOOL_ROTATE_MINUS_Z: 
-      {screenSpacePlane(activatedToolObjectBase,&d2d,&d3d,fabs(rot.x),fabs(rot.y),fabs(rot.z));} break;
+      {screenSpacePlane(activatedToolObjectBase,&d2d,&d3d,fabs(rot.x),fabs(rot.y),fabs(rot.z),false);} break;
     case HITTESTTOOL_SCALE_PLUS_X: 
     case HITTESTTOOL_SCALE_MINUS_X: 
+      {screenSpacePlane(activatedToolObjectBase,&d2d,&d3d,1,0,0,false);} break;
     case HITTESTTOOL_MOVE_PLUS_X: 
     case HITTESTTOOL_MOVE_MINUS_X: 
-      {screenSpacePlane(activatedToolObjectBase,&d2d,&d3d,1,0,0);} break;
+      {screenSpacePlane(activatedToolObjectBase,&d2d,&d3d,1,0,0,moveToolWorldSpace);} break;
     case HITTESTTOOL_SCALE_PLUS_Y: 
     case HITTESTTOOL_SCALE_MINUS_Y: 
+      {screenSpacePlane(activatedToolObjectBase,&d2d,&d3d,0,1,0,false);} break;
     case HITTESTTOOL_MOVE_PLUS_Y: 
     case HITTESTTOOL_MOVE_MINUS_Y: 
-      {screenSpacePlane(activatedToolObjectBase,&d2d,&d3d,0,1,0);} break;
+      {screenSpacePlane(activatedToolObjectBase,&d2d,&d3d,0,1,0,moveToolWorldSpace);} break;
     case HITTESTTOOL_SCALE_PLUS_Z: 
     case HITTESTTOOL_SCALE_MINUS_Z: 
+      {screenSpacePlane(activatedToolObjectBase,&d2d,&d3d,0,0,1,false);} break;
     case HITTESTTOOL_MOVE_PLUS_Z: 
     case HITTESTTOOL_MOVE_MINUS_Z: 
-      {screenSpacePlane(activatedToolObjectBase,&d2d,&d3d,0,0,1);} break;
+      {screenSpacePlane(activatedToolObjectBase,&d2d,&d3d,0,0,1,moveToolWorldSpace);} break;
   }
   scale *= length(d3d);
 

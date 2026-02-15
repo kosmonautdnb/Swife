@@ -30,6 +30,7 @@
 #include "GAMEOBJ.HPP"
 #include "VIEWPORT.HPP"
 #include "RENDER.HPP"
+#include "HITTEST.HPP"
 #include "SVG.HPP"
 
 int menuBar_height = 17;
@@ -83,6 +84,8 @@ void drawMenuBar() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Edit")) {
+      bool selected = false;
+      selected = moveToolWorldSpace; if (ImGui::MenuItem("Movetool worldspace","",&selected)) {on = true; moveToolWorldSpace = !moveToolWorldSpace; renderingUpdated = true;}
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("View")) {
@@ -115,20 +118,16 @@ void drawMenuBar() {
       ImGui::Separator();
       if (ImGui::MenuItem("Add link")) {on = true; dialogAddObject(true,GAMEOBJECT_LINK);}
       if (ImGui::MenuItem("Add section")) {on = true; dialogAddObject(true,GAMEOBJECT_SECTION);}
-      if (one) {
-        ImGui::Separator();
-        if (ImGui::MenuItem("Duplicate")) {on = true; duplicate();}
-        if (ImGui::MenuItem("Delete")) {on = true; dialogDeleteGameObjects(true);}
-      }
+      ImGui::Separator();
+      if (ImGui::MenuItem("Duplicate",NULL,false,one)) {on = true; duplicate();}
+      if (ImGui::MenuItem("Delete",NULL,false,one)) {on = true; dialogDeleteGameObjects(true);}
       ImGui::Separator();
       if (ImGui::MenuItem("Select by property")) {on = true; dialogSelectByProperty(true);}
       if (ImGui::MenuItem("Select by layer")) {on = true; dialogSelectByLayer(true);}
       if (ImGui::MenuItem("Select all invisible")) {on = true; dialogSelectInvisible(true);}
-      if (one) {
-        ImGui::Separator();
-        if (ImGui::MenuItem("View object textures")) {on = true; dialogObjectTextures(true);}
-        if (ImGui::MenuItem("Center selection to view")) {on = true; centerSelection();}
-      }
+      ImGui::Separator();
+      if (ImGui::MenuItem("View object textures",NULL,false,one)) {on = true; dialogObjectTextures(true);}
+      if (ImGui::MenuItem("Center selection to view",NULL,false,one)) {on = true; centerSelection();}
       ImGui::Separator();
       if (ImGui::MenuItem("View bindings")) {on = true;  dialogViewBindings(true);}
       if (ImGui::MenuItem("Grid settings")) {on = true;  dialogGridSettings(true);}
