@@ -974,3 +974,76 @@ void dialogGridSettings(bool openIt) {
   }
   DIALOGEND()
 }
+
+void dialogCompactAndMove(bool openIt) {
+  static int relocateTo = 0;
+  int count = 0;
+  int pos = -1;
+  for(int i = 0; i < gameObjects.size(); i++) {
+    if (gameObjects[i]->selected) {
+      if (pos == -1) pos = i;
+      count++;
+    }
+  }
+  if (openIt) {
+    relocateTo = pos;
+  }
+  DIALOGSTART("Compact and move")
+  if (count > 0) {
+    ImGui::Text("Selected %d objects at position %d",count,pos);
+    ImGui::BeginChild("DIALOGCOMPACTANDMOVECHILD1",ImVec2(main_window_xres/2,main_window_yres/4));
+    for(int i1 = 0; i1 < gameObjects.size(); i1++) {
+      if (gameObjects[i1]->selected) {
+        ImGui::Text("%d\"%s\"",i1,gameObjects[i1]->name);
+      }
+    }
+    ImGui::EndChild();
+    ImGui::Text("Count of all objects %d",gameObjects.size());
+    ImGui::BeginChild("DIALOGCOMPACTANDMOVECHILD2",ImVec2(main_window_xres/2,main_window_yres/4));
+    for(int i2 = 0; i2 < gameObjects.size(); i2++) {
+      ImGui::Text("%d\"%s\"",i2,gameObjects[i2]->name);
+    }
+    ImGui::EndChild();
+    ImGui::Text("Relocate to position:"); ImGui::SameLine();
+    ImGui::PushItemWidth(64);
+    ImGui::InputInt("##DIALOGCOMPACTANDMOVERELOCATEPOS",&relocateTo,1,1);
+    ImGui::PopItemWidth();
+  } else {
+    ImGui::Text("No objects selected!");
+  }
+
+  if (count>0) {
+    if (relocateTo>=0 && relocateTo<=gameObjects.size()) {
+      if (ImGui::Button("Relocate##DIALOGCOMPACTANDMOVERELOCATE")) {
+        Array<GameObject*> collected;
+        int relocatePos2 = relocateTo;
+        for (int i1 = 0; i1 < gameObjects.size(); i1++) {
+          GameObject *o = gameObjects[i1];
+          if (o->selected) {
+            if (i1 < relocatePos2) relocatePos2--;
+            if (collected.empty()) o->outlinerShouldFocusThis = true;
+            collected.push_back(o);
+            gameObjects.erase(i1,1);
+            i1--;
+          }
+        }
+        if (relocatePos2 < 0) relocatePos2 = 0;
+        if (relocatePos2 > gameObjects.size()) relocatePos2 = gameObjects.size();
+        for (int i2 = collected.size()-1; i2 >= 0; i2--) {
+          gameObjects.insert(collected[i2],relocatePos2);
+        }
+        renderingUpdated = true;
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::SameLine();
+    } else {
+      ImGui::Text("Range error, only %d objects in outliner.",gameObjects.size());
+    }
+  }
+
+  if (ImGui::Button("Close##DIALOGCOMPACTANDMOVECLOSE")) {
+    ImGui::CloseCurrentPopup();
+  }
+
+  DIALOGEND()
+}

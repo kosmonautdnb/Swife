@@ -77,9 +77,9 @@ void objectSelect(unsigned int i) {
 
   bool selected = gameObjects[i]->selected;
   if (t == GAMEOBJECT_SECTION) { 
-    ImGui::Checkbox((String("##OBJECTSELECTSECTION")+String::fromInt(i)).c_str(),&gameObjects[i]->sectionOn);
+    if (ImGui::Checkbox((String("##OBJECTSELECTSECTION")+String::fromInt(i)).c_str(),&gameObjects[i]->sectionOn)) {renderingUpdated = true;}
     ImGui::SameLine();
-    ImGui::Checkbox((String("##OBJECTSELECTSECTIONVISIBLE")+String::fromInt(i)).c_str(),&gameObjects[i]->sectionVisible);
+    if (ImGui::Checkbox((String("##OBJECTSELECTSECTIONVISIBLE")+String::fromInt(i)).c_str(),&gameObjects[i]->sectionVisible)) {renderingUpdated = true;}
     ImGui::SameLine();
     sectionOn = gameObjects[i]->sectionOn;
     sectionVisible = gameObjects[i]->sectionVisible;
@@ -221,6 +221,7 @@ void drawOutliner() {
   dialogMessage(false,NULL);
   dialogGridSettings(false);
   dialogOverwrite(false);
+  dialogCompactAndMove(false);
   unsigned int outlinerLayersBefore = outlinerLayers;
   outlinerLayers = layerSelection(outlinerLayers,"OUTLLAY");
   if (outlinerLayers != outlinerLayersBefore) renderingUpdated = true;

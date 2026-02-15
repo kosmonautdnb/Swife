@@ -84,8 +84,10 @@ void drawMenuBar() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Edit")) {
+      if (ImGui::MenuItem("Compact and relocate",NULL,false,one)) {on = true; dialogCompactAndMove(true);}
+      ImGui::Separator();
       bool selected = false;
-      selected = moveToolWorldSpace; if (ImGui::MenuItem("Movetool worldspace","",&selected)) {on = true; moveToolWorldSpace = !moveToolWorldSpace; renderingUpdated = true;}
+      selected = moveToolWorldSpace; if (ImGui::MenuItem("Movetool is in worldspace","",&selected)) {on = true; moveToolWorldSpace = !moveToolWorldSpace; renderingUpdated = true;}
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("View")) {

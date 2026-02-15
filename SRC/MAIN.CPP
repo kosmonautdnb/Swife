@@ -95,7 +95,9 @@ void perFrame() {
 void renderLoop() {
   while(!quit) {
     ImGuiNewFrame();
-    if (currentKey == GL_VK_ESCAPE) quit = true;
+    GLboolean shift,ctrl,alt;
+    glSpecialKeys(&shift,&ctrl,&alt);
+    if (currentKey == GL_VK_ESCAPE && shift) dialogQuit(true);
     perFrame();
     updateCamera();
     drawToolBar();
