@@ -63,7 +63,7 @@ bool sectionSelecting;
 bool sectionSelectingType;
 
 void objectSelect(unsigned int i) {
-  const int t = gameObjects[i]->type;
+  const unsigned int t = gameObjects[i]->type;
   bool v = gameObjects[i]->visible1 && gameObjects[i]->visible2;
   if (!sectionOn && t != GAMEOBJECT_SECTION) return;
 
@@ -77,9 +77,9 @@ void objectSelect(unsigned int i) {
 
   bool selected = gameObjects[i]->selected;
   if (t == GAMEOBJECT_SECTION) { 
-    if (ImGui::Checkbox((String("##OBJECTSELECTSECTION")+String::fromInt(i)).c_str(),&gameObjects[i]->sectionOn)) {renderingUpdated = true;}
+    if (ImGui::Checkbox((const char*)(String("##OBJECTSELECTSECTION")+String::fromInt(i)).c_str(),&gameObjects[i]->sectionOn)) {renderingUpdated = true;}
     ImGui::SameLine();
-    if (ImGui::Checkbox((String("##OBJECTSELECTSECTIONVISIBLE")+String::fromInt(i)).c_str(),&gameObjects[i]->sectionVisible)) {renderingUpdated = true;}
+    if (ImGui::Checkbox((const char*)(String("##OBJECTSELECTSECTIONVISIBLE")+String::fromInt(i)).c_str(),&gameObjects[i]->sectionVisible)) {renderingUpdated = true;}
     ImGui::SameLine();
     sectionOn = gameObjects[i]->sectionOn;
     sectionVisible = gameObjects[i]->sectionVisible;
@@ -98,12 +98,12 @@ void objectSelect(unsigned int i) {
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered,ImVec4(0.8,0.8,0.8,1));
 
   if (gameObjects[i]->type == GAMEOBJECT_LINK) {
-    ImGui::Checkbox((String("##OBJECTSELECTLINK")+String::fromInt(i)).c_str(),&gameObjects[i]->showLinks);
+    ImGui::Checkbox((const char*)(String("##OBJECTSELECTLINK")+String::fromInt(i)).c_str(),&gameObjects[i]->showLinks);
     ImGui::SameLine();
   }
 
   bool empty = strlen(gameObjects[i]->name) == 0;
-  if (ImGui::Button((String(empty ? NONAME : gameObjects[i]->name)+String("##OBJECTSELECT")+String::fromInt(i)).c_str())) {
+  if (ImGui::Button((const char*)(String(empty ? NONAME : gameObjects[i]->name)+String("##OBJECTSELECT")+String::fromInt(i)).c_str())) {
     GLboolean shift,ctrl,alt;
     glSpecialKeys(&shift,&ctrl,&alt);
     if (!shift) {

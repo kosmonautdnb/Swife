@@ -198,7 +198,7 @@ void jsonSerialize(void *json, void **jsonPos, int type, const char *name, void 
     }
     switch(type) {
       case JSONTYPE_NULL: {} break;
-      case JSONTYPE_BOOL: {*((bool*)data) = json_value_get_boolean(val);} break;
+      case JSONTYPE_BOOL: {*((bool*)data) = json_value_get_boolean(val)?true:false;} break;
       case JSONTYPE_INT: {*((int*)data) = (int)json_value_get_number(val);} break;
       case JSONTYPE_UINT: {*((unsigned int*)data) = (unsigned int)json_value_get_number(val);} break;
       case JSONTYPE_FLOAT: {*((float*)data) = (float)json_value_get_number(val);} break;
@@ -362,8 +362,8 @@ bool loadMeshForBinding(const String &fileName, FileBinding *binding) {
         SMPL_Face *fo = &obj->faces[f];
         unsigned int _m = fo->m;
         SMPL_Material *mat = NULL;
-        if (obj->materialNames.has(_m)) {
-          const String &materialName = obj->materialNames[_m];
+        if (obj->materialNames.has((int32_t)_m)) {
+          const String &materialName = obj->materialNames[(int32_t)_m];
           mat = &obj->materials[materialName];
         }
         for (int t = 0; t < 3; t++) {
@@ -409,12 +409,12 @@ bool FileBinding::reload() {
   renderingUpdated = true;
   switch(type) {
   case FILETYPE_SKYBOX: {RGBAImage s = RGBAImage::fromFile(dosFileName(fileName).c_str());
-      if (s.data == NULL) {dialogMessage(true,(String("Couldn't load file:<")+fileName+">").c_str()); return false;}
+      if (s.data == NULL) {dialogMessage(true,(const char*)(String("Couldn't load file:<")+fileName+">").c_str()); return false;}
       textureIds.resize(6); 
       skyBoxFromHorizontalCrossImage(&textureIds[0], &s);
       s.free();
       return true;
-    } break;
+    }// break;
   case FILETYPE_MESH: return loadMeshForBinding(fileName,this);
   case FILETYPE_BILLBOARD: {
       billBoardIsTexture = false;
@@ -434,9 +434,9 @@ bool FileBinding::reload() {
         createSpriteObjectFrameBuffer(spriteObject,billBoardOriginalWidth,billBoardOriginalHeight);
         return true;
       }
-      dialogMessage(true,(String("Couldn't load file:<")+fileName+">").c_str()); 
+      dialogMessage(true,(const char*)(String("Couldn't load file:<")+fileName+">").c_str()); 
       return false;
-    } break;
+    } //break;
   }
   return false;
 }

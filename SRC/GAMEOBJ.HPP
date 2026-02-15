@@ -91,13 +91,12 @@ public:
   case GAMEOBJECTPROPERTY_BOOL: {S_BOOL("goBool",(__o__)->goBool);} break;\
   case GAMEOBJECTPROPERTY_INT: {S_INT("goInt",(__o__)->goInt);} break;\
   case GAMEOBJECTPROPERTY_FLOAT: {S_FLOAT("goFloat",(__o__)->goFloat);} break;\
-  case GAMEOBJECTPROPERTY_FLOAT4: {S_FLOAT4("goFloat4",(__o__)->goFloat4);} break;\
+  case GAMEOBJECTPROPERTY_FLOAT4: {S_FLOAT4("goFloat4",(__o__)->goFloat4[0]);} break;\
   case GAMEOBJECTPROPERTY_TEXT: {S_NAME("goText",(__o__)->goText);} break;\
   case GAMEOBJECTPROPERTY_COLOR: {S_UINT("goColor",(__o__)->goColor);} break;\
   case GAMEOBJECTPROPERTY_LINKS: {S_ARRAY("goLinks",(__o__)->goLinks,S_UINT(NULL,(__o__)->goLinks[i]));} break;\
   }\
   S_OBJECT_CLOSE();
-
 
 extern unsigned int currentUniqueGameObjectId;
 
@@ -194,7 +193,6 @@ public:
     billBoardTX1 = 0;
     billBoardTY1 = 0;
   }
-  ~GameObject();
 
   unsigned int layers;
   unsigned int type;
@@ -287,8 +285,8 @@ public:
   S_INT("billBoardTX1",(__o__)->billBoardTX1);\
   S_INT("billBoardTY1",(__o__)->billBoardTY1);\
   S_CARRAY("isCamera",(__o__)->isCamera,S_BOOL(NULL,(__o__)->isCamera[i]),CAMERA_COUNT);\
-  S_ARRAY("properties",(__o__)->properties,S_GAMEOBJECTPROPERTY(NULL,&(__o__)->properties[i]));\
   S_ARRAY("uniqueLinkIds",(__o__)->uniqueLinkIds,S_UINT(NULL,(__o__)->uniqueLinkIds[i]));\
+  S_ARRAY("properties",(__o__)->properties,S_GAMEOBJECTPROPERTY(NULL,&((__o__)->properties[i])));\
   S_CAMERA("camera",&(__o__)->camera);\
   S_OBJECT_CLOSE();
 

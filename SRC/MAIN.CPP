@@ -48,7 +48,7 @@ bool initVideo() {
   if (!glVesa(main_window_xres,main_window_yres,16)) {
     main_window_xres = 320;
     main_window_yres = 200;
-    return glVGA();
+    return glVGA()?true:false;
   }
   glClearColor(0,0,0,1);
   glClearDepth(1.f);
@@ -127,6 +127,7 @@ void defaultInit() {
 #include "STL/IMAGE.HPP"
 
 int main(int argc, const char *argv[]) {
+  UNUSED(argc);
 
   appFolder = unixFileName(getPath(argv[0]));
   //appFolder = getCWD();

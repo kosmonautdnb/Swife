@@ -46,9 +46,6 @@ void GameObjectProperty::clearValue() {
 
 unsigned int currentUniqueGameObjectId = 1;
 
-GameObject::~GameObject() {
-}
-
 GameObjectProperty *GameObject::addProperty(const char *name) {
   properties.push_back(GameObjectProperty());
   properties.back().setName(name);

@@ -37,11 +37,11 @@ ImVec4 color_button_on_bg = ImVec4(0.0,0.0,0.0,1);
 ImVec4 color_button_off_text = ImVec4(0,0,0,1);
 ImVec4 color_button_on_text = ImVec4(1,1,1,1);
 
-char *appName = "SWIFE";
+const char *appName = "SWIFE";
 uint32_t main_window_xres = 800;
 uint32_t main_window_yres = 600;
 double aspectRatio = 16.0/9.0;
-char *logFileName = "SWIFE.LOG";
+const char *logFileName = "SWIFE.LOG";
 
 String appFolder;
 

@@ -195,20 +195,20 @@ void showSkyBoxProperties(GameObject *object) {
 void showTransform(GameObject *object, const char *id) {
   ImGui::Text("Transform");
   Vector anchor = object->anchor;
-  if (vectorInput("A.",&anchor,(String(id)+String("ANCHOR")).c_str())) {renderingUpdated = true;}
+  if (vectorInput("A.",&anchor,(const char*)(String(id)+String("ANCHOR")).c_str())) {renderingUpdated = true;}
   object->anchor = anchor;
   if (propsButton(("Center anchor"+String(id)+"USEGRID").c_str(),strlen("Center anchor")+4)) {object->anchor = (object->boundingBoxMin+object->boundingBoxMax)*0.5; renderingUpdated = true;}
   ImGui::Separator();
   Vector translation = object->translation;
   Vector scaling = object->scaling;
   Quaternion rotation = object->rotation;
-  if (vectorInput("P.",&translation,(String(id)+String("TRANSLATION")).c_str())) {renderingUpdated = true;}
-  if (vectorInput("S.",&scaling,(String(id)+String("SCALING")).c_str())) {renderingUpdated = true;}
-  if (quaternionInput("R.",&rotation,(String(id)+String("ROTATION")).c_str())) {renderingUpdated = true;}
+  if (vectorInput("P.",&translation,(const char*)(String(id)+String("TRANSLATION")).c_str())) {renderingUpdated = true;}
+  if (vectorInput("S.",&scaling,(const char*)(String(id)+String("SCALING")).c_str())) {renderingUpdated = true;}
+  if (quaternionInput("R.",&rotation,(const char*)(String(id)+String("ROTATION")).c_str())) {renderingUpdated = true;}
   object->translation = translation;  
   object->scaling = scaling;  
   object->rotation = rotation;
-  colorItem("C.",(String(id)+String("COLOR")).c_str(),&object->color, true);
+  colorItem("C.",(const char*)(String(id)+String("COLOR")).c_str(),&object->color, true);
   if (propsButton(("Quantize"+String(id)+"BAKEGRID").c_str(),strlen("Grid off")+14)) {applyGrid(&grids[object->gridId],&object->translation,&object->scaling,&object->rotation); object->useGrid = false; renderingUpdated = true;}
   ImGui::SameLine();
   if (propsButton(((object->useGrid?"Grid off":"Grid on")+String(id)+"USEGRID").c_str(),strlen("Grid off")+4)) {object->useGrid = !object->useGrid; renderingUpdated = true;}
@@ -361,7 +361,7 @@ void showBillboardProperties(GameObject *object) {
   colorItem("C.","##BILLBOARDPROPCOLOR",&object->color, true);
   if (propsButton("Quantize##BILLBOARDPROPBAKEGRID",strlen("Grid off")+14)) {applyGrid(&grids[object->gridId],&object->translation,&object->scaling,&object->rotation); object->useGrid = false; renderingUpdated = true;}
   ImGui::SameLine();
-  if (propsButton((String(object->useGrid?"Grid off":"Grid on")+"##BILLBOARDPROPUSEGRID").c_str(),strlen("Grid off")+4)) {object->useGrid = !object->useGrid; renderingUpdated = true;}
+  if (propsButton((const char*)(String(object->useGrid?"Grid off":"Grid on")+"##BILLBOARDPROPUSEGRID").c_str(),strlen("Grid off")+4)) {object->useGrid = !object->useGrid; renderingUpdated = true;}
   ImGui::Separator();
   if (isTexture) {
     ImGui::Text("Texture X0"); ImGui::SameLine(); if (ImGui::InputInt("##BILLBOARDPROPTX0",&object->billBoardTX0,0,0)) {renderingUpdated = true;}
@@ -484,14 +484,14 @@ void drawProperties() {
     for(int i2 = 0; i2 < gameObjects.size(); i2++) {
       if (gameObjects[i2]->selected && gameObjects[i2]->type != GAMEOBJECT_SECTION) {
         if (count>1) ImGui::Text("%d\"%s\"",i2,gameObjects[i2]->name);
-        if (filter.empty()||(String("visible").findFirst(filter)>=0)) if (ImGui::Checkbox((String("Visible##PROPERTIESGAMEOBJECTVISIBLE")+String::fromInt(i2)).c_str(),&gameObjects[i2]->visible2)) {renderingUpdated = true;}
+        if (filter.empty()||(String("visible").findFirst(filter)>=0)) if (ImGui::Checkbox((const char*)(String("Visible##PROPERTIESGAMEOBJECTVISIBLE")+String::fromInt(i2)).c_str(),&gameObjects[i2]->visible2)) {renderingUpdated = true;}
         for (int j = 0; j < gameObjects[i2]->properties.size(); j++) {
           if (!(filter.empty()||(toLower(String(gameObjects[i2]->properties[j].name)).findFirst(filter)>=0))) continue;
           if (editProperty(&gameObjects[i2]->properties[j], i2 + j * 32768)) {
             gameObjects[i2]->properties.erase(j,1); j--;
           }
         }
-        if (filter.empty() && propsButton((String("Add property##")+String::fromInt(i2)).c_str(),strlen("Add property")+6)) {
+        if (filter.empty() && propsButton((const char*)(String("Add property##")+String::fromInt(i2)).c_str(),strlen("Add property")+6)) {
           dialogAddProperty(true, gameObjects[i2]);
         }
         ImGui::Separator();

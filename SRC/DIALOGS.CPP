@@ -574,7 +574,7 @@ void dialogColor(bool openIt, unsigned int *color) {
 void colorItem(const char *name, const char *id, unsigned int *color, bool colorPicker) {
   ImVec4 cl = ImVec4(((*color)&255)/255.0,((*color>>8)&255)/255.0,((*color>>16)&255)/255.0,((*color>>24)&255)/255.0);
   if (colorPicker) {
-    ImGui::PushID((String(id)+String("imageButton_")).c_str());
+    ImGui::PushID((const char*)(String(id)+String("imageButton_")).c_str());
     ImGui::PushStyleColor(ImGuiCol_Button,cl.w==1?ImVec4(1-cl.x,1-cl.y,1-cl.z,1):ImVec4(0,0,0,1));
     bool a = ImGui::ImageButton((ImTextureID)0, ImVec2(11,11), ImVec2(0,0), ImVec2(1,1), -1, cl,cl);
     ImGui::PopStyleColor();
@@ -586,7 +586,7 @@ void colorItem(const char *name, const char *id, unsigned int *color, bool color
   ImGui::SameLine();
   static char colorText[11];
   sprintf(colorText,"%08x",*color);
-  for (int i = 0; i < strlen(colorText); i++) if (colorText[i]>='a'&&colorText[i]<='f') colorText[i]=(colorText[i]-'a')+'A';
+  for (int i = 0; i < strlen(colorText); i++) if (colorText[i]>='a'&&colorText[i]<='f') colorText[i]=(char)((colorText[i]-'a')+'A');
   ImGui::PushItemWidth(7*8);
   if (ImGui::InputText(id,colorText,9)) {
     unsigned int value = 0;
@@ -617,7 +617,7 @@ void dialogObjectTextures(bool openIt) {
         for (int j = 0; j < binding->textureIds.size(); j++) {
           if ((j % 3)!=0) ImGui::SameLine();
           unsigned int textureId = binding->textureIds[j];
-          textureButton((String("DIALOGOBJECTTEXTURESCHILDIMAGE")+String::fromInt(i)+"_"+String::fromInt(j)).c_str(),textureId,buttonSize,buttonSize*aspect2,true);
+          textureButton((const char*)(String("DIALOGOBJECTTEXTURESCHILDIMAGE")+String::fromInt(i)+"_"+String::fromInt(j)).c_str(),textureId,buttonSize,buttonSize*aspect2,true);
         }
       }
     }
@@ -737,7 +737,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
     needsRescanFiles = true;
     driveLetters.clear();
     for (int i = 'A'; i <= 'Z'; i++) {
-      if (dosHasDrive(i)) driveLetters.push_back(i);
+      if (dosHasDrive(i)) driveLetters.push_back((char)i);
     }
     for (int j = 0; j < DIALOG_COUNT; j++) {
       fileNames[j] = ""; // little bug
@@ -896,7 +896,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   ImGui::InputText("##DIALOGLOADSAVEFILENAME",&fileNames[mode][0],NAMEMAXHERE);
   ImGui::PopItemWidth();
   ImGui::Separator();
-  if (ImGui::Button((String(proceedButton[mode])+String("##DIALOGLOADSAVEPROCEED")).c_str())) {
+  if (ImGui::Button((const char*)(String(proceedButton[mode])+String("##DIALOGLOADSAVEPROCEED")).c_str())) {
     result = true;
     ImGui::CloseCurrentPopup();
   }
@@ -946,7 +946,7 @@ void dialogViewBindings(bool openIt) {
   int h = main_window_yres/2;
   ImGui::BeginChild("DIALOGVIEWBINDINGSCHILD",ImVec2(w,h));
   for (int i = 0; i < bindings.size(); i++) {
-    ImGui::Checkbox((String("##DIALOGVIEWBINDINGSTREE")+String::fromInt(i)).c_str(), &checked[i]);
+    ImGui::Checkbox((const char*)(String("##DIALOGVIEWBINDINGSTREE")+String::fromInt(i)).c_str(), &checked[i]);
     ImGui::SameLine(); ImGui::TextWrapped("%s ID:%d FileName:%s",fileTypeNames[bindings[i]->type],bindings[i]->uniqueId,bindings[i]->fileName.last(30).c_str());
     if (checked[i]) {
       for (int j = 0; j < gameObjects.size(); j++) {

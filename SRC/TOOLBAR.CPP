@@ -57,7 +57,7 @@ public:
   bool isSingle() {
     return (svgId[1] == NULL) && (svgId[0] != NULL);
   }
-  bool paint(char *id) {
+  bool paint(const char *id) {
     if (svgId[0]==NULL) {
       drawSeparator(0,0,23);
       return false;
@@ -122,7 +122,7 @@ void drawToolBar() {
   ImGui::SameLine();
   for (int i = 0; i < toolBarButtons.size(); i++) {
     if (i != 0) ImGui::SameLine();
-    if (toolBarButtons[i].paint((String("##DRAWTOOLBARBUTTONID")+String::fromInt(i)).c_str())) {
+    if (toolBarButtons[i].paint((const char*)(String("##DRAWTOOLBARBUTTONID")+String::fromInt(i)).c_str())) {
       if (toolBarButtons[i].isSingle()) {
         for (int j = 0; j < toolBarButtons.size(); j++) if (toolBarButtons[j].isSingle()) toolBarButtons[j].selected = false;
         toolBarButtons[i].selected = !toolBarButtons[i].selected;

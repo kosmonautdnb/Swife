@@ -36,6 +36,7 @@
 #define FILENAMEMAX 512
 #define NONAME "<no name>"
 #define ERRORCOLOR ImVec4(1,0,0,1)
+#define UNUSED(__p__) (void)(__p__)
 
 extern bool fullScreen;
 extern double fps;
@@ -49,14 +50,14 @@ extern struct ImVec4 color_button_off_bg;
 extern struct ImVec4 color_button_on_bg;
 extern struct ImVec4 color_button_off_text;
 extern struct ImVec4 color_button_on_text;
-extern char *appName;
+extern const char *appName;
 
 extern String appFolder;
 
 extern uint32_t main_window_xres;
 extern uint32_t main_window_yres;
 extern double aspectRatio;
-extern char *logFileName;
+extern const char *logFileName;
 
 extern int maxTextureWidth;
 extern int maxTextureHeight;

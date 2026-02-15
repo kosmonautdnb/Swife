@@ -94,6 +94,7 @@ void initPaint() {
 }
 
 void drawSkyboxQuad(unsigned int color, unsigned int texture, float size, float quadRot, const Vector &camPos, const Quaternion &rotation, const Quaternion &rotation2, const Vector &pos) {
+  UNUSED(quadRot);
   Matrix m = normalize(rotation).rotationMatrix();
   Matrix m2 = normalize(rotation2).rotationMatrix();
   glDisable(GL_DEPTH_TEST);

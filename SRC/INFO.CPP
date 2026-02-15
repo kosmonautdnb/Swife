@@ -68,8 +68,9 @@ int getAdditionalMemoryFreeBytes() {
   regs.x.edi = FP_OFF( &MemInfo );
   int386x( 0x31, &regs, &regs, &sregs );
   return MemInfo.LargestBlockAvail;
-#endif
+#else
   return -1;
+#endif
 }
 
 void drawInfo() {
