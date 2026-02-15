@@ -34,7 +34,7 @@ HashMap<unsigned int, const char*> iconNameForGameObjectType;
 Grid grids[MAXGRIDS];
 
 const char *gameObjectTypeNames[GAMEOBJECT_COUNT] = {"undefined", "mesh", "camera", "skybox", "path", "billboard","section","trigger","link"};
-const char *propertyTypeNames[GAMEOBJECTPROPERTY_COUNT] = {"undefined", "bool", "int", "float", "float4", "text", "color"};
+const char *propertyTypeNames[GAMEOBJECTPROPERTY_COUNT] = {"undefined", "bool", "int", "float", "float4", "text", "color","links"};
 
 void GameObjectProperty::setName(const char *name) {
   sprintf(this->name,"%s",name);

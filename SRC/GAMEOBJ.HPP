@@ -56,7 +56,8 @@ enum GAMEOBJECTPROPERTY {
   GAMEOBJECTPROPERTY_FLOAT4 = 4,
   GAMEOBJECTPROPERTY_TEXT = 5,
   GAMEOBJECTPROPERTY_COLOR = 6,
-  GAMEOBJECTPROPERTY_COUNT = 7
+  GAMEOBJECTPROPERTY_LINKS = 7,
+  GAMEOBJECTPROPERTY_COUNT = 8
 };
 extern const char *propertyTypeNames[GAMEOBJECTPROPERTY_COUNT];
 
@@ -77,6 +78,7 @@ public:
     bool goBool;
     unsigned int goColor;
   };
+  Array<unsigned int> goLinks;
   void setName(const char *name);
   void clearValue();
 };
@@ -92,6 +94,7 @@ public:
   case GAMEOBJECTPROPERTY_FLOAT4: {S_FLOAT4("goFloat4",(__o__)->goFloat4);} break;\
   case GAMEOBJECTPROPERTY_TEXT: {S_NAME("goText",(__o__)->goText);} break;\
   case GAMEOBJECTPROPERTY_COLOR: {S_UINT("goColor",(__o__)->goColor);} break;\
+  case GAMEOBJECTPROPERTY_LINKS: {S_ARRAY("goLinks",(__o__)->goLinks,S_UINT(NULL,(__o__)->goLinks[i]));} break;\
   }\
   S_OBJECT_CLOSE();
 

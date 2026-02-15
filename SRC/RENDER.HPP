@@ -84,6 +84,7 @@ extern int drawProblems;
 extern bool lightOn;
 extern bool texturedOn;
 extern bool twoSidedOn;
+extern bool showLinks;
 
 void disableRenderMouseClicks();
 

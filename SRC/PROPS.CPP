@@ -117,6 +117,31 @@ bool editProperty(GameObjectProperty *p, int i) {
   } break;
   case GAMEOBJECTPROPERTY_TEXT: {ImGui::InputText(buffer,p->goText,NAMEMAX);} break;
   case GAMEOBJECTPROPERTY_COLOR: {colorItem("",buffer,&p->goColor, true);} break;
+  case GAMEOBJECTPROPERTY_LINKS: {
+      ImGui::Text("Linking to:");
+      for (int i2 = 0; i2 < p->goLinks.size(); i2++) {
+        bool found = false;
+        for (int j = 0; j < gameObjects.size(); j++) {
+          if (gameObjects[j]->uniqueId == p->goLinks[i2]) {
+            ImGui::Text(" %d\"%s\"",j,gameObjects[j]->name);
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          ImGui::Text(" <deleted>");
+          ImGui::SameLine();
+          sprintf(buffer,"##PROPERTYEDIT%d_x2%d",i,i2);
+          ImGui::PushID(buffer);
+          SVG *svg = &svgs["delete"];
+          if (ImGui::ImageButton((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h))) {
+            p->goLinks.erase(i2,1);
+            i2--;
+          }
+          ImGui::PopID();
+        }
+      }
+    } break;
   }
   ImGui::SameLine();
   SVG *svg = &svgs["delete"];

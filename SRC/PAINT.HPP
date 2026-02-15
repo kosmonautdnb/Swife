@@ -36,6 +36,7 @@ void paintTrigger(class GameObject *o, bool showModificators);
 void paintMesh(class GameObject *o, bool showModificators);
 void paintCamera(class GameObject *o);
 void paintBillBoard(class GameObject *o, bool showModificators);
+void paintLink(class GameObject *o1,class GameObject *o2);
 
 void paintBillBoardContents();
 

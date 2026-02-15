@@ -543,3 +543,13 @@ void paintBillBoardContents() {
     }
   }
 }
+
+void paintLink(class GameObject *o1, class GameObject *o2) {
+  Vector v1 = o1->getRenderTransform()*((o1->boundingBoxMin+o1->boundingBoxMax)*0.5);
+  Vector v2 = o2->getRenderTransform()*((o2->boundingBoxMin+o2->boundingBoxMax)*0.5);
+  glBegin(GL_LINES);
+  glColor4f(0,1,0,1);
+  glVertex3dv(&v1.x);
+  glVertex3dv(&v2.x);
+  glEnd();
+}

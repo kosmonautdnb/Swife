@@ -204,10 +204,32 @@ void dialogAddProperty(bool openIt, class GameObject *object) {
   } break;
   case GAMEOBJECTPROPERTY_TEXT: {ImGui::InputText("##DIALOGADDPROPERTYTEXT", p.goText, NAMEMAX);} break;
   case GAMEOBJECTPROPERTY_COLOR: {colorItem("","##DIALOGADDPROPERTYCOLOR", &p.goColor, true);} break;
+  case GAMEOBJECTPROPERTY_LINKS: {
+    ImGui::Text(""); // SameLine before
+    p.goLinks.clear();
+    for (int j = 0; j < gameObjects.size(); j++) {
+      if (gameObjects[j]==o) {ImGui::Text("Adding links to object: %d\"%s\"",j,o->name); break;}
+    }
+    ImGui::BeginChild("DIALOGADDPROPERTYLINKSCHILD",ImVec2(main_window_xres/3,main_window_yres/6));
+    int count = 0;
+    for(int i = 0; i < gameObjects.size(); i++) {
+      if (gameObjects[i]->selected && gameObjects[i] != o) {
+        ImGui::Text("%d\"%s\"",i,gameObjects[i]->name);
+        p.goLinks.push_back(gameObjects[i]->uniqueId);
+        count++;
+      }
+    }
+    ImGui::EndChild();
+    if (count == 0) {
+      ImGui::Text("No other objects selected! No links will be generated.");
+    } else {
+      ImGui::Text("Links to %d objects will be generated.",count);
+    }
+  }
   }
   ImGui::PopItemWidth();
   if (ImGui::Button("Add##DIALOGADDPROPERTYADD")) {
-    if (o != NULL) {o->addProperty(&p); o = NULL;}
+    if (o != NULL) {o->addProperty(&p); o = NULL; renderingUpdated = true;}
     ImGui::CloseCurrentPopup();
   }
   ImGui::SameLine();

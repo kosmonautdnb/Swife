@@ -111,6 +111,7 @@ void drawMenuBar() {
       selected = texturedOn; if (ImGui::MenuItem("Textures","",&selected)) {texturedOn = !texturedOn; renderingUpdated = true;}
       selected = twoSidedOn; if (ImGui::MenuItem("Two sided","",&selected)) {twoSidedOn = !twoSidedOn; renderingUpdated = true;}
       ImGui::Separator();
+      selected = showLinks; if (ImGui::MenuItem("Show links (properties)","",&selected)) {showLinks = !showLinks; renderingUpdated = true;}
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Object")) {

@@ -369,6 +369,38 @@ void drawGameObjects() {
   }
 }
 
+void drawGameObjectLinks(GameObject *o) {
+  for (int i = 0; i < o->properties.size(); i++) {
+    if (o->properties[i].type != GAMEOBJECTPROPERTY_LINKS) 
+      continue;
+    for (int j = 0; j < o->properties[i].goLinks.size(); j++) {
+      GameObject *o2 = NULL;
+      for (int k = 0; k < gameObjects.size(); k++) {
+        if (gameObjects[k]->uniqueId == o->properties[i].goLinks[j]) {o2 = gameObjects[k]; break;}
+      }
+      if (o2 != NULL) {
+        if (o->selected) {
+          glStencilFunc(GL_ALWAYS,0x01,0xffffffff);
+          glStencilOp(GL_REPLACE,GL_REPLACE,GL_REPLACE);
+          glEnable(GL_STENCIL_TEST);
+        }
+        paintLink(o,o2);
+        glDisable(GL_STENCIL_TEST);
+      }
+    }
+  }
+}
+
+void drawLinks() {
+  if (!showLinks) return;
+  for (int i = 0; i < gameObjects.size(); i++) {
+    GameObject *o = gameObjects[i];
+    if (!(o->visible1 && o->visible2)) continue;
+    if (!((o->layers==0)||(outlinerLayers==0)||(o->layers & outlinerLayers))) continue;
+    drawGameObjectLinks(o);
+  }
+}
+
 void drawSelecting(bool tiny) {
   glStencilFunc(GL_EQUAL,0x01,0xffffffff);
   glStencilOp(GL_KEEP,GL_KEEP,GL_KEEP);
@@ -612,6 +644,7 @@ void handleTool() {
 bool lightOn = true;
 bool texturedOn = true;
 bool twoSidedOn = false;
+bool showLinks = true;
 
 void lightSetup(bool on) {
   if (!on) {
@@ -700,6 +733,7 @@ void drawScene() {
 
     glDrawnTrianglesFrame = 0;
     lightSetup(lightOn);
+    drawLinks();
     drawGameObjects();
     lightSetup(false);
     renderedTriangles = glDrawnTrianglesFrame;
