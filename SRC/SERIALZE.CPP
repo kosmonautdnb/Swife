@@ -91,17 +91,17 @@ JSON_Value * json_parse_string(const char *string);
 #define S_MATRIX(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_MATRIX, __name__, &(__v__), jsonIsSaving,arrayIndex)
 int arraySize = 0; 
 #define S_ARRAY(__name__,__array__,__elementFunc__) {\
+  int k = arrayIndex;\
   S_ARRAY_OPEN(__name__);\
   if (!save) {\
     (__array__).clear(); (__array__).resize(arraySize);\
   }\
-  int k = arrayIndex;\
   for (int i = 0; i < (__array__).size(); i++) {\
     arrayIndex = i;\
     __elementFunc__;\
   }\
-  arrayIndex = k;\
   S_ARRAY_CLOSE();\
+  arrayIndex = k;\
 }
 #define S_ARRAY_POINTER_RESIZE(__array__,__type__,__count__) {\
   if (!save) {\
@@ -111,14 +111,14 @@ int arraySize = 0;
   }\
 }
 #define S_CARRAY(__name__,__array__,__elementFunc__,__count__) {\
-  S_ARRAY_OPEN(__name__);\
   int k = arrayIndex;\
+  S_ARRAY_OPEN(__name__);\
   for (int i = 0; i < (__count__); i++) {\
     arrayIndex = i;\
     __elementFunc__;\
   }\
-  arrayIndex = k;\
   S_ARRAY_CLOSE();\
+  arrayIndex = k;\
 }
 
 char tempBuffer[256];
@@ -210,12 +210,14 @@ void serializeAll(FILE *file, bool save) {
   // GAMEOBJECT.HPP
   S_ARRAY_OPEN("grids");
   for (int i1 = 0; i1 < MAXGRIDS; i1++) {
+    arrayIndex = i1;
     S_GRID(NULL,&grids[i1]);
   }
   S_ARRAY_CLOSE();
   S_ARRAY_OPEN("gameObjects");
   S_ARRAY_POINTER_RESIZE(gameObjects,GameObject,arraySize);
   for (int i2 = 0; i2 < gameObjects.size(); i2++) {
+    arrayIndex = i2;
     S_GAMEOBJECT(NULL,gameObjects[i2]);
   }
   S_ARRAY_CLOSE();
@@ -237,6 +239,7 @@ void serializeAll(FILE *file, bool save) {
   S_BOOL("twoSidedOn",twoSidedOn);
   S_ARRAY_OPEN("cameras");
   for (int i3 = 0; i3 < CAMERA_COUNT; i3++) {
+    arrayIndex = i3;
     S_CAMERA(NULL,&cameras[i3]);
   }
   S_ARRAY_CLOSE();
@@ -247,6 +250,7 @@ void serializeAll(FILE *file, bool save) {
   S_ARRAY_OPEN("bindings");
   S_ARRAY_POINTER_RESIZE(bindings,FileBinding,arraySize);
   for (int i4 = 0; i4 < bindings.size(); i4++) {
+    arrayIndex = i4;
     S_FILEBINDING(NULL,bindings[i4]);
     if (!save) bindings[i4]->reload();
   }
