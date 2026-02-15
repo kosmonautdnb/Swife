@@ -75,8 +75,9 @@ void drawMenuBar() {
     ImGui::SameLine();*/
 
     if (ImGui::BeginMenu("File")) {
-      if (ImGui::MenuItem("Load scene")) {on = true;  dialogLoadSave(true,DIALOG_LOADSCENE);}
-      if (ImGui::MenuItem("Save scene")) {on = true;  dialogLoadSave(true,DIALOG_SAVESCENE);}
+      on = true;
+      if (ImGui::MenuItem("Load scene")) {dialogLoadSave(true,DIALOG_LOADSCENE);}
+      if (ImGui::MenuItem("Save scene")) {dialogLoadSave(true,DIALOG_SAVESCENE);}
       ImGui::Separator();
       if (ImGui::MenuItem("Quit")) {
         dialogQuit(true);
@@ -84,62 +85,66 @@ void drawMenuBar() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Edit")) {
-      if (ImGui::MenuItem("Compact and relocate",NULL,false,one)) {on = true; dialogCompactAndMove(true);}
+      on = true;
+      if (ImGui::MenuItem("Compact and relocate",NULL,false,one)) {dialogCompactAndMove(true);}
       ImGui::Separator();
       bool selected = false;
-      selected = moveToolWorldSpace; if (ImGui::MenuItem("Movetool is in worldspace","",&selected)) {on = true; moveToolWorldSpace = !moveToolWorldSpace; renderingUpdated = true;}
+      selected = moveToolWorldSpace; if (ImGui::MenuItem("Movetool is in worldspace","",&selected)) {moveToolWorldSpace = !moveToolWorldSpace; renderingUpdated = true;}
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("View")) {
-      if (ImGui::MenuItem("Perspective")) {on = true; Camera *c = &cameras[currentCamera]; c->ortho = false; renderingUpdated = true;}
-      if (ImGui::MenuItem("Ortho left")) {on = true; setOrthoLookTo(1,0,0);}
-      if (ImGui::MenuItem("Ortho right")) {on = true; setOrthoLookTo(-1,0,0);}
-      if (ImGui::MenuItem("Ortho top")) {on = true; setOrthoLookTo(0,-1,0);}
-      if (ImGui::MenuItem("Ortho bottom")) {on = true; setOrthoLookTo(0,1,0);}
-      if (ImGui::MenuItem("Ortho front")) {on = true; setOrthoLookTo(0,0,-1);}
-      if (ImGui::MenuItem("Ortho back")) {on = true; setOrthoLookTo(0,0,1);}
+      on = true;
+      if (ImGui::MenuItem("Perspective")) {Camera *c = &cameras[currentCamera]; c->ortho = false; renderingUpdated = true;}
+      if (ImGui::MenuItem("Ortho left")) {setOrthoLookTo(1,0,0);}
+      if (ImGui::MenuItem("Ortho right")) {setOrthoLookTo(-1,0,0);}
+      if (ImGui::MenuItem("Ortho top")) {setOrthoLookTo(0,-1,0);}
+      if (ImGui::MenuItem("Ortho bottom")) {setOrthoLookTo(0,1,0);}
+      if (ImGui::MenuItem("Ortho front")) {setOrthoLookTo(0,0,-1);}
+      if (ImGui::MenuItem("Ortho back")) {setOrthoLookTo(0,0,1);}
       ImGui::Separator();
       bool selected = false;
-      selected = currentCamera == CAMERA_USER; if (ImGui::MenuItem("User camera","",&selected)) {on = true; currentCamera = CAMERA_USER; renderingUpdated = true;}
-      selected = currentCamera == CAMERA_CAMERA1; if (ImGui::MenuItem("Camera 1","",&selected)) {on = true; currentCamera = CAMERA_CAMERA1; renderingUpdated = true;}
-      selected = currentCamera == CAMERA_CAMERA2; if (ImGui::MenuItem("Camera 2","",&selected)) {on = true; currentCamera = CAMERA_CAMERA2; renderingUpdated = true;}
+      selected = currentCamera == CAMERA_USER; if (ImGui::MenuItem("User camera","",&selected)) {currentCamera = CAMERA_USER; renderingUpdated = true;}
+      selected = currentCamera == CAMERA_CAMERA1; if (ImGui::MenuItem("Camera 1","",&selected)) {currentCamera = CAMERA_CAMERA1; renderingUpdated = true;}
+      selected = currentCamera == CAMERA_CAMERA2; if (ImGui::MenuItem("Camera 2","",&selected)) {currentCamera = CAMERA_CAMERA2; renderingUpdated = true;}
       ImGui::Separator();
-      selected = lightOn; if (ImGui::MenuItem("Lighting","",&selected)) {on = true; lightOn = !lightOn; renderingUpdated = true;}
-      selected = texturedOn; if (ImGui::MenuItem("Textures","",&selected)) {on = true; texturedOn = !texturedOn; renderingUpdated = true;}
-      selected = twoSidedOn; if (ImGui::MenuItem("Two sided","",&selected)) {on = true; twoSidedOn = !twoSidedOn; renderingUpdated = true;}
+      selected = lightOn; if (ImGui::MenuItem("Lighting","",&selected)) {lightOn = !lightOn; renderingUpdated = true;}
+      selected = texturedOn; if (ImGui::MenuItem("Textures","",&selected)) {texturedOn = !texturedOn; renderingUpdated = true;}
+      selected = twoSidedOn; if (ImGui::MenuItem("Two sided","",&selected)) {twoSidedOn = !twoSidedOn; renderingUpdated = true;}
       ImGui::Separator();
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Object")) {
-      if (ImGui::MenuItem("Add mesh")) {on = true; dialogAddObject(true,GAMEOBJECT_MESH);}
-      if (ImGui::MenuItem("Add camera")) {on = true; dialogAddObject(true,GAMEOBJECT_CAMERA);}
-      if (ImGui::MenuItem("Add skybox")) {on = true; dialogAddObject(true,GAMEOBJECT_SKYBOX);}
-      if (ImGui::MenuItem("Add billboard")) {on = true; dialogAddObject(true,GAMEOBJECT_BILLBOARD);}
-      if (ImGui::MenuItem("Add trigger")) {on = true; dialogAddObject(true,GAMEOBJECT_TRIGGER);}
-      //if (ImGui::MenuItem("Add path")) {on = true; dialogAddObject(true,GAMEOBJECT_PATH);}
+      on = true;
+      if (ImGui::MenuItem("Add mesh")) {dialogAddObject(true,GAMEOBJECT_MESH);}
+      if (ImGui::MenuItem("Add camera")) {dialogAddObject(true,GAMEOBJECT_CAMERA);}
+      if (ImGui::MenuItem("Add skybox")) {dialogAddObject(true,GAMEOBJECT_SKYBOX);}
+      if (ImGui::MenuItem("Add billboard")) {dialogAddObject(true,GAMEOBJECT_BILLBOARD);}
+      if (ImGui::MenuItem("Add trigger")) {dialogAddObject(true,GAMEOBJECT_TRIGGER);}
+      //if (ImGui::MenuItem("Add path")) {dialogAddObject(true,GAMEOBJECT_PATH);}
       ImGui::Separator();
-      if (ImGui::MenuItem("Add link")) {on = true; dialogAddObject(true,GAMEOBJECT_LINK);}
-      if (ImGui::MenuItem("Add section")) {on = true; dialogAddObject(true,GAMEOBJECT_SECTION);}
+      if (ImGui::MenuItem("Add link")) {dialogAddObject(true,GAMEOBJECT_LINK);}
+      if (ImGui::MenuItem("Add section")) {dialogAddObject(true,GAMEOBJECT_SECTION);}
       ImGui::Separator();
-      if (ImGui::MenuItem("Duplicate",NULL,false,one)) {on = true; duplicate();}
-      if (ImGui::MenuItem("Delete",NULL,false,one)) {on = true; dialogDeleteGameObjects(true);}
+      if (ImGui::MenuItem("Duplicate",NULL,false,one)) {duplicate();}
+      if (ImGui::MenuItem("Delete",NULL,false,one)) {dialogDeleteGameObjects(true);}
       ImGui::Separator();
-      if (ImGui::MenuItem("Select by property")) {on = true; dialogSelectByProperty(true);}
-      if (ImGui::MenuItem("Select by layer")) {on = true; dialogSelectByLayer(true);}
-      if (ImGui::MenuItem("Select all invisible")) {on = true; dialogSelectInvisible(true);}
+      if (ImGui::MenuItem("Select by property")) {dialogSelectByProperty(true);}
+      if (ImGui::MenuItem("Select by layer")) {dialogSelectByLayer(true);}
+      if (ImGui::MenuItem("Select all invisible")) {dialogSelectInvisible(true);}
       ImGui::Separator();
-      if (ImGui::MenuItem("View object textures",NULL,false,one)) {on = true; dialogObjectTextures(true);}
-      if (ImGui::MenuItem("Center selection to view",NULL,false,one)) {on = true; centerSelection();}
+      if (ImGui::MenuItem("View object textures",NULL,false,one)) {dialogObjectTextures(true);}
+      if (ImGui::MenuItem("Center selection to view",NULL,false,one)) {centerSelection();}
       ImGui::Separator();
-      if (ImGui::MenuItem("View bindings")) {on = true;  dialogViewBindings(true);}
-      if (ImGui::MenuItem("Grid settings")) {on = true;  dialogGridSettings(true);}
+      if (ImGui::MenuItem("View bindings")) {dialogViewBindings(true);}
+      if (ImGui::MenuItem("Grid settings")) {dialogGridSettings(true);}
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Help")) {
-      if (ImGui::MenuItem("About")) {on = true; dialogAbout(true);}
-      if (ImGui::MenuItem("Controls")) {on = true; dialogControls(true);}
+      on = true;
+      if (ImGui::MenuItem("About")) {dialogAbout(true);}
+      if (ImGui::MenuItem("Controls")) {dialogControls(true);}
       ImGui::Separator();
-      if (ImGui::MenuItem("Troubleshooting")) {on = true; dialogTroubleShooting(true);}
+      if (ImGui::MenuItem("Troubleshooting")) {dialogTroubleShooting(true);}
       ImGui::EndMenu();
     }
 
