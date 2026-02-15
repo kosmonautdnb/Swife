@@ -144,13 +144,9 @@ String doubleToString(double v) {
   String ret = String::fromDouble(v);
   int pointPos = ret.find(".");
   if (pointPos>=0) {
-    if (pointPos == ret.length()-1) {
-      ret.resize(ret.length()-1);
-    } else {
-      for (int i = ret.length()-1; i >= 0; i--) {
-        if (ret[i]=='0'||ret[i]=='.') {ret.resize(i);continue;}
-        break;
-      }
+    for (int i = ret.length()-1; i >= pointPos; i--) {
+      if (ret[i]=='0'||ret[i]=='.') {ret.resize(i);continue;}
+      break;
     }
     if (ret.empty()) ret = "0";
   }
