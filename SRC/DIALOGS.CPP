@@ -778,7 +778,9 @@ void dialogLoadSave(bool openIt, int dialogMode) {
     sortFileNames(files, sortByColumn, sortingOrder[sortByColumn]);
     path2 = LONGFILENAME(paths[mode]);
   }
+#if !defined(__DJGPP__)
   ImGui::Text("Long filenames"); ImGui::SameLine(); if(ImGui::Checkbox("##DIALOGLOADSAVELONGFILENAMES", &longFileNames)) needsRescanFiles = true;
+#endif
   ImGui::SameLine();
   for (int i = 0; i < driveLetters.size(); i++) {
     if (i != 0) ImGui::SameLine();
@@ -793,6 +795,11 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   ImGui::Separator();
   SVG *svg = &svgs["search"];ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h));ImGui::SameLine();ImGui::InputText("##DIALOGLOADSAVEFILTER",filter,NAMEMAX);
   ImGui::Separator();
+  if (ImGui::Button("Home##DIALOGLOADSAVEHOME")) {
+    paths[mode] = appFolder;
+    needsRescanFiles=true;
+  }
+  ImGui::SameLine();
   ImGui::TextWrapped("%s",path2.c_str());
   ImGui::Separator();
   if (paths[mode].length() > 3 && ImGui::Button("..##DIALOGLOADSAVEPATHBACK")) {

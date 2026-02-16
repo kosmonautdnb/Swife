@@ -254,7 +254,7 @@ void drawOutliner() {
     int l = gameObjects[i]->layers;
     if ((l==0)||(outlinerLayers==0)||(l & outlinerLayers)) {
       bool empty = strlen(gameObjects[i]->name) == 0;
-      char *n = empty ? NONAME : gameObjects[i]->name;
+      const char *n = empty ? NONAME : gameObjects[i]->name;
       if (gameObjects[i]->type == GAMEOBJECT_SECTION || filter.empty() || (toLower(n).findFirst(filter)>=0)) {
         if (sectionOn || gameObjects[i]->type == GAMEOBJECT_SECTION) visibles++;
         if (markAllWithSelecty && sectionOn) gameObjects[i]->selected = selecty;

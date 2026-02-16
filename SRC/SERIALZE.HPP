@@ -36,7 +36,7 @@ enum FILETYPE {
   FILETYPE_BILLBOARD = 3,
   FILETYPE_COUNT = 4
 };
-extern char *fileTypeNames[FILETYPE_COUNT];
+extern const char *fileTypeNames[FILETYPE_COUNT];
 
 extern unsigned int bindingUniqueId;
 

@@ -27,14 +27,14 @@
 HashMap<String, SVG> svgs;
 
 #define NANOSVG_IMPLEMENTATION
-#include "SRC\STL\NANOSVG.HPP"
+#include "STL\NANOSVG.HPP"
 #define NANOSVGRAST_IMPLEMENTATION
-#include "SRC\STL\NSVGRAST.HPP"
+#include "STL\NSVGRAST.HPP"
 
 #define ICONSCALE (16.0/11.0)
 #define ICONSCALEX (20.0/11.0)
-#define ADDICON(__a__,__b__) addSVG(__a__,"DATA/ICONS/"##__b__,11*ICONSCALE,11*ICONSCALE,1*ICONSCALE)
-#define ADDICONX(__a__,__b__) addSVG(__a__,"DATA/ICONS/"##__b__,11*ICONSCALEX,11*ICONSCALEX,1*ICONSCALEX)
+#define ADDICON(__a__,__b__) addSVG(__a__,"DATA/ICONS/" __b__,11*ICONSCALE,11*ICONSCALE,1*ICONSCALE)
+#define ADDICONX(__a__,__b__) addSVG(__a__,"DATA/ICONS/" __b__,11*ICONSCALEX,11*ICONSCALEX,1*ICONSCALEX)
 
 SVG *SVG::free() {
   if (rgba != NULL) {::free(rgba); rgba = NULL;}

@@ -33,7 +33,7 @@
 
 Array<Hit> hits;
 Vector mouseHitStart, mouseHitEnd;
-extern bool doHitTest = false;
+bool doHitTest = false;
 Matrix hitTestInverseModelView;
 bool startTool = false;
 int activatedTool = HITTESTTOOL_NONE;

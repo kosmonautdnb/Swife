@@ -45,7 +45,7 @@
 
 int version = 100;
 
-char *fileTypeNames[FILETYPE_COUNT] = {"none","skybox","mesh","billboard"};
+const char *fileTypeNames[FILETYPE_COUNT] = {"none","skybox","mesh","billboard"};
 
 enum JSONTYPE {
   JSONTYPE_NULL = 0,
@@ -88,7 +88,7 @@ JSON_Value * json_parse_string(const char *string);
 #define S_OBJECT_CLOSE()  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_OBJECT_CLOSE, NULL, NULL, jsonIsSaving,arrayIndex)
 #define S_VECTOR(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_VECTOR, __name__, &(__v__), jsonIsSaving,arrayIndex)
 #define S_QUATERNION(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_QUATERNION, __name__, &(__v__), jsonIsSaving,arrayIndex)
-#define S_FLOAT4(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_FLOAT4, __name__, &(__v__), jsonIsSaving,arrayIndex)
+#define S_FLOAT4(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_FLOAT4, __name__, &(__v__[0]), jsonIsSaving,arrayIndex)
 #define S_MATRIX(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_MATRIX, __name__, &(__v__), jsonIsSaving,arrayIndex)
 #define S_FILENAME(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_FILENAME, __name__, &(__v__), jsonIsSaving,arrayIndex)
 
@@ -161,7 +161,7 @@ void jsonSerialize(void *json, void **jsonPos, int type, const char *name, void 
     Array<char> *w = (Array<char>*)json;
     char *oldPos = *(char**)jsonPos;
     char *newPos = oldPos;
-    unsigned int len = &(*w)[w->size()] - oldPos;
+    size_t len = &(*w)[w->size()] - oldPos;
     switch(type) {
       case JSONTYPE_NULL: {newPos = json_null( oldPos, name, &len );} break;
       case JSONTYPE_BOOL: {newPos = json_bool( oldPos, name, *((bool*)data), &len );} break;
@@ -231,7 +231,8 @@ void serializeAll(FILE *file, bool save) {
   if (error) {return;}
 
   // ID/Header
-  S_STRING("id", String("SWIFE SCENE FILE"));
+  String idString = String("SWIFE SCENE FILE");
+  S_STRING("id", idString);
   S_INT("version", version);
 
   // CONFIG.HPP

@@ -91,7 +91,7 @@ public:
   case GAMEOBJECTPROPERTY_BOOL: {S_BOOL("goBool",(__o__)->goBool);} break;\
   case GAMEOBJECTPROPERTY_INT: {S_INT("goInt",(__o__)->goInt);} break;\
   case GAMEOBJECTPROPERTY_FLOAT: {S_FLOAT("goFloat",(__o__)->goFloat);} break;\
-  case GAMEOBJECTPROPERTY_FLOAT4: {S_FLOAT4("goFloat4",(__o__)->goFloat4[0]);} break;\
+  case GAMEOBJECTPROPERTY_FLOAT4: {S_FLOAT4("goFloat4",(__o__)->goFloat4);} break;\
   case GAMEOBJECTPROPERTY_TEXT: {S_NAME("goText",(__o__)->goText);} break;\
   case GAMEOBJECTPROPERTY_COLOR: {S_UINT("goColor",(__o__)->goColor);} break;\
   case GAMEOBJECTPROPERTY_LINKS: {S_ARRAY("goLinks",(__o__)->goLinks,S_UINT(NULL,(__o__)->goLinks[i]));} break;\
