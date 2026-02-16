@@ -389,18 +389,18 @@ void showBillboardProperties(GameObject *object) {
     }
     if (binding->billBoardIsTexture && binding->textureIds.size()==1) {
       ImGui::Text(" Binding ID:%d",binding->uniqueId);
-      bool rescaledWidth = glGetTextureWidth(binding->textureIds[0]) != binding->billBoardOriginalWidth;
-      bool rescaledHeight = glGetTextureHeight(binding->textureIds[0]) != binding->billBoardOriginalHeight;
+      bool rescaledWidth = glGetTextureWidth(binding->textureIds[0]) != binding->originalWidth;
+      bool rescaledHeight = glGetTextureHeight(binding->textureIds[0]) != binding->originalHeight;
       if (rescaledWidth || rescaledHeight) ImGui::Text("Texture rescaled");
-      ImGui::Text("Original width:%d",binding->billBoardOriginalWidth);
-      ImGui::Text("Original height:%d",binding->billBoardOriginalHeight);
+      ImGui::Text("Original width:%d",binding->originalWidth);
+      ImGui::Text("Original height:%d",binding->originalHeight);
     }
     if (!binding->triangles.empty()) {
       ImGui::Text(" Binding ID:%d",binding->uniqueId);
       ImGui::Text("Triangles:%d",binding->triangles.size());
       ImGui::Text("Textures:%d",binding->textureIds.size());
-      ImGui::Text("Rtt width:%d",binding->billBoardOriginalWidth);
-      ImGui::Text("Rtt height:%d",binding->billBoardOriginalHeight);
+      ImGui::Text("Rtt width:%d",binding->originalWidth);
+      ImGui::Text("Rtt height:%d",binding->originalHeight);
     }
     ImGui::Text("%s",binding->fileName.last(19).c_str());
   }
@@ -426,6 +426,92 @@ void showPointProperties(GameObject *object) {
   colorItem("C.","##POINTROPCOLOR",&object->color, true);
   ImGui::Separator();
 }
+
+void showTextureGridProperties(GameObject *object) {
+  FileBinding *binding = getBindingById(object->fileBindingId);
+  showTransform(object,"##TEXTUREGRIDPROP");
+  ImGui::Text("Binding");
+  if (binding != NULL) {
+    ImGui::SameLine(); if (propsButton("Reload##TEXTUREGRIDPROPRELOAD",strlen("Reload")+4)) {
+      binding->reload();
+    }
+    if (binding->textureIds.size()==1) {
+      ImGui::Text(" Binding ID:%d",binding->uniqueId);
+      bool rescaledWidth = glGetTextureWidth(binding->textureIds[0]) != binding->originalWidth;
+      bool rescaledHeight = glGetTextureHeight(binding->textureIds[0]) != binding->originalHeight;
+      if (rescaledWidth || rescaledHeight) ImGui::Text("Texture rescaled");
+      ImGui::Text("Original width:%d",binding->originalWidth);
+      ImGui::Text("Original height:%d",binding->originalHeight);
+      ImGui::Text("");
+      ImGui::Text("Map");
+      ImGui::Text(" Count X:%d Y:%d",binding->textureGridWidth,binding->textureGridHeight);
+      static int resizeX = 0; static int resizeY = 0;
+      static int offsetX = 0; static int offsetY = 0;
+      ImGui::Text("  Resize to X"); ImGui::SameLine(); if (ImGui::InputInt("##TEXTUREGRIDPROPRELOADRESIZEX",&resizeX,0,0));
+      ImGui::Text("  Resize to Y"); ImGui::SameLine(); if (ImGui::InputInt("##TEXTUREGRIDPROPRELOADRESIZEY",&resizeY,0,0));
+      ImGui::Text("  With offset X"); ImGui::SameLine(); if (ImGui::InputInt("##TEXTUREGRIDPROPRELOADOFFSETX",&offsetX,0,0));
+      ImGui::Text("  With offset Y"); ImGui::SameLine(); if (ImGui::InputInt("##TEXTUREGRIDPROPRELOADOFFSETY",&offsetY,0,0));
+      if (resizeX < 0) resizeX = 0; if (resizeX > 1024) resizeX = 1024;
+      if (resizeY < 0) resizeY = 0; if (resizeY > 1024) resizeY = 1024;
+      if (propsButton("Resize map##TEXTUREGRIDPROPRESIZEMAP",strlen("Resize map")+4)) {binding->resizeTextureGrid(offsetX,offsetY,resizeX,resizeY); renderingUpdated = true;}
+      ImGui::Text("");
+      ImGui::Text("Texture atlas");
+      ImGui::PushItemWidth(40);
+      ImGui::Text(" Tile width"); ImGui::SameLine(); if (ImGui::InputInt("##TEXTUREGRIDPROPRELOADTILEWIDTH",&binding->textureAtlasTileWidth,0,0)) {renderingUpdated = true;}
+      ImGui::Text(" Tile height"); ImGui::SameLine(); if (ImGui::InputInt("##TEXTUREGRIDPROPRELOADTILEHEIGHT",&binding->textureAtlasTileHeight,0,0)) {renderingUpdated = true;}
+      ImGui::Text(" Tiles in X"); ImGui::SameLine(); if (ImGui::InputInt("##TEXTUREGRIDPROPRELOADTILESX",&binding->textureAtlasTileCountX,0,0)) {renderingUpdated = true;}
+      ImGui::Text(" Tiles in Y"); ImGui::SameLine(); if (ImGui::InputInt("##TEXTUREGRIDPROPRELOADTILESY",&binding->textureAtlasTileCountY,0,0)) {renderingUpdated = true;}
+      if (binding->textureAtlasTileCountX < 0) binding->textureAtlasTileCountX = 0;
+      if (binding->textureAtlasTileCountY < 0) binding->textureAtlasTileCountY = 0;
+      if (binding->textureAtlasTileWidth < 0) binding->textureAtlasTileWidth = 0;
+      if (binding->textureAtlasTileHeight < 0) binding->textureAtlasTileHeight = 0;
+      ImGui::PopItemWidth();
+    }
+    ImGui::Text("%s",binding->fileName.last(19).c_str());
+  }
+  if (propsButton("Load##TEXTUREGRIDPROPLOAD",strlen("Load")+4)) {
+    dialogLoadSaveSetFileNameAndPath = binding == NULL ? "" : binding->fileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADTEXTUREGRID);
+  }
+  ImGui::Separator();
+  if (binding != NULL && binding->textureIds.size()==1) {
+    if (binding->selected<0)
+      ImGui::Text("None selected");
+    else
+      ImGui::Text("Selected Tile %d",binding->selected);
+    ImGui::Separator();
+    int tileCount = binding->textureAtlasTileCountX*binding->textureAtlasTileCountY;
+    if (tileCount > 4096) tileCount = 4096;
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(1,1));
+    static double t = 0; t += timeDelta;
+    for (int i = 0; i < tileCount; i++)  {
+      if ((i % 8)!=0) ImGui::SameLine();
+      float r,g,b,a;
+      r = 1;
+      g = 1;
+      b = 1;
+      a = 1;
+      if (binding->selected == i) {
+        g *= sin(t*10)*0.5+0.5;
+        b *= sin(t*10)*0.5+0.5;
+      }
+      float tx0=0,ty0=0,tx1=0,ty1=0;
+      if (binding->textureAtlasTileCountX>0&&binding->originalWidth>0&&binding->originalHeight>0) {
+        int tx = i % binding->textureAtlasTileCountX;
+        int ty = i / binding->textureAtlasTileCountX;
+        tx0 = (float)tx * binding->textureAtlasTileWidth / binding->originalWidth;
+        ty0 = (float)ty * binding->textureAtlasTileHeight / binding->originalHeight;
+        tx1 = (float)(tx+1) * binding->textureAtlasTileWidth / binding->originalWidth;
+        ty1 = (float)(ty+1) * binding->textureAtlasTileHeight / binding->originalHeight;
+      }
+      if (textureAtlasButton((String("##TEXTUREGRIDPROPBTN")+String::fromInt(i)).c_str(),binding->textureIds[0],16,16*aspectRatio*main_window_yres/main_window_xres,tx0,ty0,tx1,ty1,r,g,b,a)) {
+        binding->selected = i;
+      }
+    }
+    ImGui::PopStyleVar();
+    ImGui::Separator();
+  }
+}
+
 
 void drawProperties() {
   int count = 0;
@@ -491,6 +577,7 @@ void drawProperties() {
       case GAMEOBJECT_CAMERA: {showCameraProperties(first);} break;
       case GAMEOBJECT_BILLBOARD: {showBillboardProperties(first);} break;
       case GAMEOBJECT_POINT: {showPointProperties(first);} break;
+      case GAMEOBJECT_TEXTUREGRID: {showTextureGridProperties(first);} break;
       default:
         showMeshProperties(first);
       }

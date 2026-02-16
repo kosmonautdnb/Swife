@@ -45,7 +45,8 @@ enum GAMEOBJECTTYPE {
   GAMEOBJECT_TRIGGER = 7,
   GAMEOBJECT_LINK = 8,
   GAMEOBJECT_POINT = 9,
-  GAMEOBJECT_COUNT = 10
+  GAMEOBJECT_TEXTUREGRID = 10,
+  GAMEOBJECT_COUNT = 11
 };
 extern const char *gameObjectTypeNames[GAMEOBJECT_COUNT];
 
@@ -249,6 +250,7 @@ public:
   GameObject *loadSkyBox(const char *fileName);
   GameObject *loadMesh(const char *fileName);
   GameObject *loadBillBoard(const char *fileName);
+  GameObject *loadTextureGrid(const char *fileName);
   GameObject *setCamera(const Camera *camera);
 
   Array<BakedVertex> *getBakedTriangles();

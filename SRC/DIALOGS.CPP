@@ -41,11 +41,11 @@ typedef void (*LOADSAVEFUNC)(const char *shortPath, const char *longFileName);
 const char *images = ".png,.jpg,.tga,.bmp,.psd,.gif,.pic,.pnm,.hdr";
 const char *meshes = ".obj";
 const char *imagesAndMeshes = ".png,.jpg,.tga,.bmp,.psd,.gif,.pic,.pnm,.hdr,.obj";
-const char *dialogCaption[DIALOG_COUNT] = {"NO MODE","Load a scene","Save a scene","Load a skybox","Load a mesh","Load a billboard"};
-const char *proceedButton[DIALOG_COUNT] = {"<button>", "Load", "Save","Load","Load","Load"};
-const char *dialogFileTypes[DIALOG_COUNT] = {"",".sfs",".sfs",images,meshes,imagesAndMeshes};
-const char *dialogDefaultExtension[DIALOG_COUNT] = {"",".SFS",".SFS","","",""};
- LOADSAVEFUNC funcs[DIALOG_COUNT] = {NULL, loadScene, saveScene, loadSkyBox, loadMesh, loadBillBoard};
+const char *dialogCaption[DIALOG_COUNT] = {"NO MODE","Load a scene","Save a scene","Load a skybox","Load a mesh","Load a billboard","Load a texturegrid"};
+const char *proceedButton[DIALOG_COUNT] = {"<button>", "Load", "Save","Load","Load","Load","Load"};
+const char *dialogFileTypes[DIALOG_COUNT] = {"",".sfs",".sfs",images,meshes,imagesAndMeshes,images};
+const char *dialogDefaultExtension[DIALOG_COUNT] = {"",".SFS",".SFS","","","",""};
+LOADSAVEFUNC funcs[DIALOG_COUNT] = {NULL, loadScene, saveScene, loadSkyBox, loadMesh, loadBillBoard,loadTextureGrid};
 
 
 #define DIALOGSTART(__name__) static int keyboardFocusNew = 0; static bool openItNextTime = false;  if (openIt) {openItNextTime = true; keyboardFocusNew = 2; return;}  if (openItNextTime) {openItNextTime = false; ImGui::OpenPopup(__name__); } ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0,0,0,1)); ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(1,1,1,1); if (ImGui::BeginPopupModal(__name__,NULL,ImGuiWindowFlags_AlwaysAutoResize)) { ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(0,0,0,1); ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.4,0.4,0.4,1));disableRenderMouseClicks();
@@ -134,7 +134,7 @@ void dialogAddObject(bool openIt, unsigned int type) {
   }
   ImGui::PushItemWidth(7*NAMEMAX);
   ImGui::Text("Name"); ImGui::SameLine(); DIALOGKEYSHERE(); ImGui::InputText("##DIALOGADDGAMEOBJECTNAME", name, NAMEMAX);
-  if (t == GAMEOBJECT_MESH || t == GAMEOBJECT_BILLBOARD) {
+  if (t == GAMEOBJECT_MESH || t == GAMEOBJECT_BILLBOARD || t == GAMEOBJECT_TEXTUREGRID) {
     if (ImGui::Button("Load##DIALOGADDGAMEOBJECTLOAD")) {
       GameObject *o = new GameObject();
       o->setName(name);
@@ -148,6 +148,7 @@ void dialogAddObject(bool openIt, unsigned int type) {
       switch(t) {
         case GAMEOBJECT_MESH: {k = DIALOG_LOADMESH;} break;
         case GAMEOBJECT_BILLBOARD: {k = DIALOG_LOADBILLBOARD;} break;
+        case GAMEOBJECT_TEXTUREGRID: {k = DIALOG_LOADTEXTUREGRID;} break;
       }
       dialogLoadSaveSetFileNameAndPath = ""; dialogLoadSaveGameObjectUniqueId = o->uniqueId; dialogLoadSave(true, k);
       renderingUpdated = true;
@@ -355,6 +356,7 @@ void dialogAbout(bool openIt) {
     "Stefan Mader of Puls4r\n"
     "------------------------------------\n"
   );
+  ImGui::Separator();
   if (ImGui::Button("Close##DIALOGABOUTCLOSE")) {
     ImGui::CloseCurrentPopup();
   }
@@ -388,6 +390,7 @@ void dialogControls(bool openIt) {
     "Left Mouse and shift add to selection\n"
     "Left Mouse and ctrl remove from selection\n"
   );
+  ImGui::Separator();
   if (ImGui::Button("Close##DIALOGCONTROLSCLOSE")) {
     ImGui::CloseCurrentPopup();
   }
@@ -398,15 +401,21 @@ void dialogTroubleShooting(bool openIt) {
   DIALOGSTART("Troubleshooting")
   ImGui::Text(
     "Files:\n"
-    "If you want to share your files\n"
-    "you need to have placed them directly from begin\n"
-    "in the DATA folder. And that means all files you use.\n"
-    "Like e.g. skybox textures in DATA/CUBEMAPS/ etc..\n"
-    "\n"
-    "If you don't want to share your files at any time you\n"
-    "can place them anywhere on your drive.\n"
+    "If you want to share your files, you need to have placed them\n"
+    "directly from begin in the DATA folder. And that means\n"
+    "all the files you use. Like e.g. skybox textures in DATA/CUBEMAPS/ etc..\n"
+    "If you don't want to share your files (at any time) you can place them\n"
+    "anywhere on your drive.\n"
     "If files are !not! in the DATA folder they are used as !global! files.\n"
+    "\n"
+    "All layers off, means the same as all layers on (0,1,2,3,4,5,6,7).\n"
+    "\n"
+    "For long filenames you need something like DOSLFN.COM installed.\n"
+    "\n"
+    "If you have memory problems, try to install SBEMU v1.0.0-beta5.\n"
+    "It's packaged DPMI host provides enough memory. And you get sound.\n"
   );
+  ImGui::Separator();
   if (ImGui::Button("Close##DIALOGTROUBLESHOOTING")) {
     ImGui::CloseCurrentPopup();
   }

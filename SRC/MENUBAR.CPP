@@ -124,6 +124,7 @@ void drawMenuBar() {
       if (ImGui::MenuItem("Add billboard")) {dialogAddObject(true,GAMEOBJECT_BILLBOARD);}
       if (ImGui::MenuItem("Add trigger")) {dialogAddObject(true,GAMEOBJECT_TRIGGER);}
       if (ImGui::MenuItem("Add point")) {dialogAddObject(true,GAMEOBJECT_POINT);}
+      if (ImGui::MenuItem("Add texture grid")) {dialogAddObject(true,GAMEOBJECT_TEXTUREGRID);}
       //if (ImGui::MenuItem("Add path")) {dialogAddObject(true,GAMEOBJECT_PATH);}
       ImGui::Separator();
       if (ImGui::MenuItem("Add link")) {dialogAddObject(true,GAMEOBJECT_LINK);}

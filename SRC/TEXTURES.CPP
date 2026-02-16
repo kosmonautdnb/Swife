@@ -68,6 +68,21 @@ bool textureButton(const char *id, unsigned int textureId, int w, int h, bool de
   return ret;
 }
 
+bool textureAtlasButton(const char *id, unsigned int textureId, int w, int h, float tx0, float ty0, float tx1, float ty1, float r, float g, float b, float a) {
+  ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0,0,0,1));
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive,ImVec4(0,0,0,1));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,ImVec4(0,0,0,1));
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0,0));
+  ImGui::PushID(id);
+  bool ret = ImGui::ImageButton((ImTextureID)textureId,ImVec2(w,h),ImVec2(tx0,ty0),ImVec2(tx1,ty1),-1,ImVec4(1-r,1-g,1-b,1),ImVec4(r,g,b,a));
+  ImGui::PopID();
+  ImGui::PopStyleVar();
+  ImGui::PopStyleColor();
+  ImGui::PopStyleColor();
+  ImGui::PopStyleColor();
+  return ret;
+}
+
 unsigned int textureFromImageArea(const class RGBAImage *i, int x0, int y0, int x1, int y1) {
   unsigned int t = 0;
   int w = x1 - x0;

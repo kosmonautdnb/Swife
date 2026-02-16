@@ -43,9 +43,9 @@
 #include "PAINT.HPP"
 #include "HITTEST.HPP"
 
-int version = 100;
+int version = 101;
 
-const char *fileTypeNames[FILETYPE_COUNT] = {"none","skybox","mesh","billboard"};
+const char *fileTypeNames[FILETYPE_COUNT] = {"none","skybox","mesh","billboard","texturegrid"};
 
 enum JSONTYPE {
   JSONTYPE_NULL = 0,
@@ -421,22 +421,31 @@ bool FileBinding::reload() {
       billBoardIsTexture = false;
       RGBAImage s = RGBAImage::fromFile(dosFileName(fileName).c_str());
       if (s.data != NULL) {
-        billBoardOriginalWidth = s.width;
-        billBoardOriginalHeight = s.height;
+        originalWidth = s.width;
+        originalHeight = s.height;
         textureIds.push_back(textureFromImage(&s));
         s.free();
         billBoardIsTexture = true;
         return true;
       }
       if (loadMeshForBinding(fileName, this)) {
-        billBoardOriginalWidth = defaultRenderTargetWidth;
-        billBoardOriginalHeight = defaultRenderTargetHeight;
+        originalWidth = defaultRenderTargetWidth;
+        originalHeight = defaultRenderTargetHeight;
         spriteObject = new SpriteObject();
-        createSpriteObjectFrameBuffer(spriteObject,billBoardOriginalWidth,billBoardOriginalHeight);
+        createSpriteObjectFrameBuffer(spriteObject,originalWidth,originalHeight);
         return true;
       }
       dialogMessage(true,(const char*)(String("Couldn't load file:<")+fileName+">").c_str()); 
       return false;
+    } //break;
+    case FILETYPE_TEXTUREGRID: {
+      RGBAImage s = RGBAImage::fromFile(dosFileName(fileName).c_str());
+      if (s.data == NULL) {dialogMessage(true,(const char*)(String("Couldn't load file:<")+fileName+">").c_str()); return false;}
+      textureIds.push_back(textureFromImage(&s));
+      originalWidth = s.width;
+      originalHeight = s.height;
+      s.free();
+      return true;
     } //break;
   }
   return false;
@@ -449,6 +458,27 @@ void FileBinding::free() {
   textureIds.clear();
   triangles.clear();
   if (spriteObject != 0) {freeSpriteObject(spriteObject); delete spriteObject; spriteObject = NULL;}
+}
+
+void FileBinding::resizeTextureGrid(int ofsX, int ofsY, int newX, int newY) {
+  Array<unsigned int> zwo; zwo.resize(newX*newY);
+  for (int y = 0; y < newY; y++) {
+    for (int x = 0; x < newX; x++) {
+      int sx = x+ofsX;
+      int sy = y+ofsY;
+      unsigned int c = 0;
+      if (sx>=0&&sx<textureGridWidth&&sy>=0&&sy<textureGridHeight) {
+        int k = sx + sy*textureGridWidth;
+        if (k<uintContent.size()) {
+          c = uintContent[k];
+        }
+      }
+      zwo[x+y*newX] = c;
+    }
+  }
+  uintContent = zwo;
+  textureGridWidth = newX;
+  textureGridHeight = newY;
 }
 
 unsigned int bindingUniqueId = 1;
@@ -563,10 +593,10 @@ void loadBillBoardForObject(class GameObject *o, const char *fileName) {
   if (binding->billBoardIsTexture) {
     o->billBoardTX0 = 0;
     o->billBoardTY0 = 0;
-    o->billBoardTX1 = binding->billBoardOriginalWidth;
-    o->billBoardTY1 = binding->billBoardOriginalHeight;
-    if (binding->billBoardOriginalWidth != 0 && binding->billBoardOriginalHeight != 0) {
-      o->billBoardAspect = (double)binding->billBoardOriginalWidth/binding->billBoardOriginalHeight;
+    o->billBoardTX1 = binding->originalWidth;
+    o->billBoardTY1 = binding->originalHeight;
+    if (binding->originalWidth != 0 && binding->originalHeight != 0) {
+      o->billBoardAspect = (double)binding->originalWidth/binding->originalHeight;
     }
   }
 }
@@ -576,4 +606,20 @@ void loadBillBoard(const char *path, const char *fileName) {
   if (j<0) return;
   GameObject *o = gameObjects[j];
   loadBillBoardForObject(o,shortFileName(String(path)+String(fileName)).c_str());
+}
+
+void loadTextureGridForObject(class GameObject *o, const char *fileName) {
+  FileBinding *binding = getBindingByFileName(fileName, FILETYPE_TEXTUREGRID);
+  if (binding == NULL) {
+    binding = newBinding();
+    binding->load(fileName, FILETYPE_TEXTUREGRID);
+  }
+  o->fileBindingId = binding->uniqueId;
+}
+
+void loadTextureGrid(const char *path, const char *fileName) {
+  int j = getObjectIdByUniqueId(dialogLoadSaveGameObjectUniqueId);
+  if (j<0) return;
+  GameObject *o = gameObjects[j];
+  loadTextureGridForObject(o,shortFileName(String(path)+String(fileName)).c_str());
 }

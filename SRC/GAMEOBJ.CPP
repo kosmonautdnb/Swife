@@ -33,7 +33,7 @@
 HashMap<unsigned int, const char*> iconNameForGameObjectType;
 Grid grids[MAXGRIDS];
 
-const char *gameObjectTypeNames[GAMEOBJECT_COUNT] = {"undefined", "mesh", "camera", "skybox", "path", "billboard","section","trigger","link","point"};
+const char *gameObjectTypeNames[GAMEOBJECT_COUNT] = {"undefined", "mesh", "camera", "skybox", "path", "billboard","section","trigger","link","point","texturegrid"};
 const char *propertyTypeNames[GAMEOBJECTPROPERTY_COUNT] = {"undefined", "bool", "int", "float", "float4", "text", "color","links"};
 
 void GameObjectProperty::setName(const char *name) {
@@ -112,6 +112,7 @@ void initGameObjects() {
   iconNameForGameObjectType[GAMEOBJECT_TRIGGER] = "trigger";
   iconNameForGameObjectType[GAMEOBJECT_LINK] = "link";
   iconNameForGameObjectType[GAMEOBJECT_POINT] = "point";
+  iconNameForGameObjectType[GAMEOBJECT_TEXTUREGRID] = "texturegrid";
 }
 
 GameObject *GameObject::setName(const char *name) {
@@ -144,6 +145,11 @@ GameObject *GameObject::loadMesh(const char *fileName) {
 
 GameObject *GameObject::loadBillBoard(const char *fileName) {
   loadBillBoardForObject(this,fileName);
+  return this;
+}
+
+GameObject *GameObject::loadTextureGrid(const char *fileName) {
+  loadTextureGridForObject(this,fileName);
   return this;
 }
 

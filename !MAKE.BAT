@@ -13,6 +13,6 @@ _BUILD\FLTMECHK.exe !MAK R:\main.exe
 if not ERRORLEVEL 255 call _BUILD\MAKEMK.BAT
 SET DJGPPCOMPILE=0
 call wmake.exe /f R:\makefile /e /s /k
-if %DJGPPCOMPILE%==0 v R:\logs.log
+if %DJGPPCOMPILE%==0 vcode.exe R:\logs.log
 SET DJGPPCOMPILE=0
 set INCLUDE=%INCLUDEBEFORE%

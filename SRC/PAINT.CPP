@@ -427,8 +427,8 @@ void paintBillBoard(class GameObject *o, bool showModificators) {
   unsigned int textureId = gridTexture;
   if (binding != NULL) {
     if (binding->billBoardIsTexture) {
-      double w = binding->billBoardOriginalWidth;
-      double h = binding->billBoardOriginalHeight;
+      double w = binding->originalWidth;
+      double h = binding->originalHeight;
       if (w == 0) w = 1;
       if (h == 0) h = 1;
       tx0 = o->billBoardTX0/w;
