@@ -24,19 +24,11 @@ void log_setBiosCursor(int x, int y) {
 
 static char temp_buffer1[4096]; // not thread safe (done this way due to WatcomC)
 static char temp_buffer2[4096]; // not thread safe (done this way due to WatcomC)
-static FILE *f_logging = NULL;
 
 #define TOBUFFER(__buffer__) va_list ap;\
     va_start(ap, fmt);\
     vsprintf(__buffer__, fmt, ap);\
     va_end(ap);
-
-void closeLogging() {
-  if (f_logging != NULL) {
-    fclose(f_logging);
-    f_logging = NULL;
-  }
-}
 
 #define GETLOGID ("["+currentTimeString()+"]").c_str()
 void logIt(const char *str, bool printIt) {
@@ -44,21 +36,18 @@ void logIt(const char *str, bool printIt) {
     log_setBiosCursor(0,0);
     printf(str);
   }
-  if (f_logging != NULL) {fprintf(f_logging,"%s %s",GETLOGID,str); fflush(f_logging);}
+  FILE *out = fopen(logFileName,"a");
+  if (out != NULL) {
+    fprintf(out,"%s %s",GETLOGID,str);
+    fclose(out);
+  }
 }
 
 void initLogging() {
-  closeLogging();
 
-  f_logging = fopen(logFileName,"wb"); // create new
-  if (f_logging != NULL) fclose(f_logging);
+  FILE *out = fopen(logFileName,"wb"); // create new
+  if (out != NULL) fclose(out);
 
-  f_logging = fopen(logFileName,"a"); // append
-  if (f_logging != NULL) {
-    static bool first = true;
-    if (first) atexit(closeLogging);
-    first = false;
-  }
   logIt("\n",false);
   logIt(">>>Started new log\n",false);
   logIt("---------------------------\n",false);

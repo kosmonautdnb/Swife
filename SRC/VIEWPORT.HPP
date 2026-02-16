@@ -24,11 +24,26 @@
 #ifndef __VIEWPORT_HPP__
 #define __VIEWPORT_HPP__
 
+#include "STL/ARRAY.HPP"
+#include "STL/STRING.HPP"
+
+class Overlay {
+public:
+  float x,y;
+  String text;
+  unsigned int color;
+};
+
 extern bool toolOn;
+extern bool showOverlays;
+extern Array<Overlay> overlays;
 
 void setOrthoLookTo(double x, double y, double z);
 void centerSelection();
 void duplicate();
 void drawViewport();
+
+void clearOverlays();
+void addTextOverlay(double renderX,double renderY, unsigned int col, const char *text);
 
 #endif // __VIEWPORT_HPP__

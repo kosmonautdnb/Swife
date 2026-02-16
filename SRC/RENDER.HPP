@@ -85,6 +85,7 @@ extern bool lightOn;
 extern bool texturedOn;
 extern bool twoSidedOn;
 extern bool showLinks;
+extern bool showGrids;
 
 void disableRenderMouseClicks();
 

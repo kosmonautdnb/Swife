@@ -22,6 +22,7 @@
   SOFTWARE.
 */
 #include "GL.H"
+#include "IMGUI.H"
 #include "PAINT.HPP"
 #include "GAMEOBJ.HPP"
 #include "CONFIG.HPP"
@@ -31,6 +32,7 @@
 #include "STL/MATRIX.HPP"
 #include "HITTEST.HPP"
 #include "SERIALZE.HPP"
+#include "VIEWPORT.HPP"
 #include "STL/SPRTEOBJ.HPP"
 #include <math.h>
 
@@ -66,6 +68,7 @@ void initGizmos() {
 }
 
 void draw3DGrid() {
+  if (!showGrids) return;
   Grid *grid = &grids[0];
   if (!grid->displayGridOn) return;
   glEnable(GL_TEXTURE_2D);
@@ -300,59 +303,56 @@ void paintCamera(class GameObject *o) {
   glScalef(siz.x,siz.y,siz.z);
   glGetDoublev(GL_MODELVIEW_MATRIX,m.m);
   Vector scal(length(m.getColumn(0)),length(m.getColumn(1)),length(m.getColumn(2)));
-  for (int i = 0; i < 2; i++) {
-    unsigned int col = o->color;
-    if (i == 1) col = ((col>>1)&0x007f7f7f)|(col & 0xff000000);
-    glFrontFace(i & 1 ? GL_CW : GL_CCW);
-    glBegin(GL_QUADS);
-    glColor4f((col & 255)/255.f,((col>>8) & 255)/255.f,((col>>16) & 255)/255.f,((col>>24) & 255)/255.f);
-    glNormal3f(0,0,1);
-    float tx,ty;
-    float ta = 1;
-    tx = ta * scal.x;
-    ty = ta * scal.y;
-    glTexCoord2f(0,ty); glVertex3f(-1,-1,+1);
-    glTexCoord2f(tx,ty);  glVertex3f(+1,-1,+1);
-    glTexCoord2f(tx,0);  glVertex3f(+1,+1,+1);
-    glTexCoord2f(0,0);  glVertex3f(-1,+1,+1);
-    glNormal3f(0,1,0);
-    tx = ta * scal.z;
-    ty = ta * scal.x;
-    glTexCoord2f(tx,ty);  glVertex3f(-1,+1,+1);
-    glTexCoord2f(tx,0);  glVertex3f(+1,+1,+1);
-    glTexCoord2f(0,0);  glVertex3f(+1,+1,-1);
-    glTexCoord2f(0,ty);  glVertex3f(-1,+1,-1);
-    glNormal3f(1,0,0);
-    tx = ta * scal.z;
-    ty = ta * scal.y;
-    glTexCoord2f(tx,ty);   glVertex3f(+1,-1,-1);
-    glTexCoord2f(tx,0);    glVertex3f(+1,+1,-1);
-    glTexCoord2f(0,0);   glVertex3f(+1,+1,+1);
-    glTexCoord2f(0,ty);  glVertex3f(+1,-1,+1);
-    glNormal3f(0,0,-1);
-    tx = ta * scal.x;
-    ty = ta * scal.y;
-    glTexCoord2f(tx,0);    glVertex3f(-1,+1,-1);
-    glTexCoord2f(0,0);   glVertex3f(+1,+1,-1);
-    glTexCoord2f(0,ty);  glVertex3f(+1,-1,-1);
-    glTexCoord2f(tx,ty);   glVertex3f(-1,-1,-1);
-    glNormal3f(0,-1,0);
-    tx = ta * scal.z;
-    ty = ta * scal.x;
-    glTexCoord2f(0,0);  glVertex3f(-1,-1,-1);
-    glTexCoord2f(0,ty);  glVertex3f(+1,-1,-1);
-    glTexCoord2f(tx,ty);  glVertex3f(+1,-1,+1);
-    glTexCoord2f(tx,0);  glVertex3f(-1,-1,+1);
-    glNormal3f(-1,0,0);
-    tx = ta * scal.z;
-    ty = ta * scal.y;
-    glTexCoord2f(tx,ty);   glVertex3f(-1,-1,+1);
-    glTexCoord2f(tx,0);   glVertex3f(-1,+1,+1);
-    glTexCoord2f(0,0);  glVertex3f(-1,+1,-1);
-    glTexCoord2f(0,ty);  glVertex3f(-1,-1,-1);
-    glEnd();
-    glFrontFace(GL_CCW);
-  }
+
+  unsigned int col = o->color;
+  glBegin(GL_QUADS);
+  glColor4f((col & 255)/255.f,((col>>8) & 255)/255.f,((col>>16) & 255)/255.f,((col>>24) & 255)/255.f);
+  glNormal3f(0,0,1);
+  float tx,ty;
+  float ta = 1;
+  tx = ta * scal.x;
+  ty = ta * scal.y;
+  glTexCoord2f(0,ty); glVertex3f(-1,-1,+1);
+  glTexCoord2f(tx,ty);  glVertex3f(+1,-1,+1);
+  glTexCoord2f(tx,0);  glVertex3f(+1,+1,+1);
+  glTexCoord2f(0,0);  glVertex3f(-1,+1,+1);
+  glNormal3f(0,1,0);
+  tx = ta * scal.z;
+  ty = ta * scal.x;
+  glTexCoord2f(tx,ty);  glVertex3f(-1,+1,+1);
+  glTexCoord2f(tx,0);  glVertex3f(+1,+1,+1);
+  glTexCoord2f(0,0);  glVertex3f(+1,+1,-1);
+  glTexCoord2f(0,ty);  glVertex3f(-1,+1,-1);
+  glNormal3f(1,0,0);
+  tx = ta * scal.z;
+  ty = ta * scal.y;
+  glTexCoord2f(tx,ty);   glVertex3f(+1,-1,-1);
+  glTexCoord2f(tx,0);    glVertex3f(+1,+1,-1);
+  glTexCoord2f(0,0);   glVertex3f(+1,+1,+1);
+  glTexCoord2f(0,ty);  glVertex3f(+1,-1,+1);
+  glNormal3f(0,0,-1);
+  tx = ta * scal.x;
+  ty = ta * scal.y;
+  glTexCoord2f(tx,0);    glVertex3f(-1,+1,-1);
+  glTexCoord2f(0,0);   glVertex3f(+1,+1,-1);
+  glTexCoord2f(0,ty);  glVertex3f(+1,-1,-1);
+  glTexCoord2f(tx,ty);   glVertex3f(-1,-1,-1);
+  glNormal3f(0,-1,0);
+  tx = ta * scal.z;
+  ty = ta * scal.x;
+  glTexCoord2f(0,0);  glVertex3f(-1,-1,-1);
+  glTexCoord2f(0,ty);  glVertex3f(+1,-1,-1);
+  glTexCoord2f(tx,ty);  glVertex3f(+1,-1,+1);
+  glTexCoord2f(tx,0);  glVertex3f(-1,-1,+1);
+  glNormal3f(-1,0,0);
+  tx = ta * scal.z;
+  ty = ta * scal.y;
+  glTexCoord2f(tx,ty);   glVertex3f(-1,-1,+1);
+  glTexCoord2f(tx,0);   glVertex3f(-1,+1,+1);
+  glTexCoord2f(0,0);  glVertex3f(-1,+1,-1);
+  glTexCoord2f(0,ty);  glVertex3f(-1,-1,-1);
+  glEnd();
+
   glPopMatrix();
 
   glDisable(GL_ALPHA_TEST);
@@ -548,9 +548,87 @@ void paintBillBoardContents() {
 void paintLink(class GameObject *o1, class GameObject *o2) {
   Vector v1 = o1->getRenderTransform()*((o1->boundingBoxMin+o1->boundingBoxMax)*0.5);
   Vector v2 = o2->getRenderTransform()*((o2->boundingBoxMin+o2->boundingBoxMax)*0.5);
+  bool lightingWasOn = glIsEnabled(GL_LIGHTING); glDisable(GL_LIGHTING);
   glBegin(GL_LINES);
   glColor4f(0,1,0,1);
   glVertex3dv(&v1.x);
   glVertex3dv(&v2.x);
   glEnd();
+  if (lightingWasOn) glEnable(GL_LIGHTING); else glDisable(GL_LIGHTING);
+}
+
+void paintPoint(class GameObject *o, bool showModificators) {
+
+  if (!isInViewport(o)) return;
+
+  Matrix cameraMatrix; glGetDoublev(GL_MODELVIEW_MATRIX, cameraMatrix.m);
+  Matrix projectionMatrix; glGetDoublev(GL_PROJECTION_MATRIX, projectionMatrix.m);
+
+  glPushMatrix();
+  Matrix m = o->getRenderTransform();
+  glMultMatrixd(m.m);
+  Vector minB = o->boundingBoxMin;
+  Vector maxB = o->boundingBoxMax;
+  Vector center = (minB+maxB)*0.5;
+  Vector siz = (maxB-minB)*0.5;
+  glTranslatef(center.x,center.y,center.z);
+  glScalef(siz.x,siz.y,siz.z);
+
+  bool lightingWasOn = glIsEnabled(GL_LIGHTING); glDisable(GL_LIGHTING);
+
+  glBegin(GL_QUADS);
+  unsigned int col = o->color;
+  glColor4f((col & 255)/255.f,((col>>8) & 255)/255.f,((col>>16) & 255)/255.f,((col>>24) & 255)/255.f);
+  glNormal3f(0,0,1);
+  glVertex3f(-1,-1,+1);
+  glVertex3f(+1,-1,+1);
+  glVertex3f(+1,+1,+1);
+  glVertex3f(-1,+1,+1);
+  glNormal3f(0,1,0);
+  glVertex3f(-1,+1,+1);
+  glVertex3f(+1,+1,+1);
+  glVertex3f(+1,+1,-1);
+  glVertex3f(-1,+1,-1);
+  glNormal3f(1,0,0);
+  glVertex3f(+1,-1,-1);
+  glVertex3f(+1,+1,-1);
+  glVertex3f(+1,+1,+1);
+  glVertex3f(+1,-1,+1);
+  glNormal3f(0,0,-1);
+  glVertex3f(-1,+1,-1);
+  glVertex3f(+1,+1,-1);
+  glVertex3f(+1,-1,-1);
+  glVertex3f(-1,-1,-1);
+  glNormal3f(0,-1,0);
+  glVertex3f(-1,-1,-1);
+  glVertex3f(+1,-1,-1);
+  glVertex3f(+1,-1,+1);
+  glVertex3f(-1,-1,+1);
+  glNormal3f(-1,0,0);
+  glVertex3f(-1,-1,+1);
+  glVertex3f(-1,+1,+1);
+  glVertex3f(-1,+1,-1);
+  glVertex3f(-1,-1,-1);
+  glEnd();
+
+  if (lightingWasOn) glEnable(GL_LIGHTING); else glDisable(GL_LIGHTING);
+
+  addHitTestCube(o,0,minB,maxB);
+
+  glTranslatef(o->anchor.x,o->anchor.y,o->anchor.z);
+
+  if (showModificators) {
+    Vector minB2 = minB - o->anchor;
+    Vector maxB2 = maxB - o->anchor;
+    Matrix objectMatrix; glGetDoublev(GL_MODELVIEW_MATRIX, objectMatrix.m);
+    combineForNoRotation(&objectMatrix,&cameraMatrix,true);
+    glLoadMatrixd(objectMatrix.m);
+    addHitTestMoveGizmo(o,minB2,maxB2);
+  }
+
+  glPopMatrix();
+
+  Vector pos = projectionMatrix * cameraMatrix * m * center;
+  if (pos.w != 0) {pos /= pos.w; pos.w = 1;}
+  addTextOverlay(pos.x,pos.y,col,o->caption);
 }

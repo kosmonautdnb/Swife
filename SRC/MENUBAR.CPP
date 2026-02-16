@@ -112,6 +112,8 @@ void drawMenuBar() {
       selected = twoSidedOn; if (ImGui::MenuItem("Two sided","",&selected)) {twoSidedOn = !twoSidedOn; renderingUpdated = true;}
       ImGui::Separator();
       selected = showLinks; if (ImGui::MenuItem("Show links (properties)","",&selected)) {showLinks = !showLinks; renderingUpdated = true;}
+      selected = showGrids; if (ImGui::MenuItem("Show grids","",&selected)) {showGrids = !showGrids; renderingUpdated = true;}
+      selected = showOverlays; if (ImGui::MenuItem("Show overlays","",&selected)) {showOverlays = !showOverlays; renderingUpdated = true;}
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Object")) {
@@ -121,6 +123,7 @@ void drawMenuBar() {
       if (ImGui::MenuItem("Add skybox")) {dialogAddObject(true,GAMEOBJECT_SKYBOX);}
       if (ImGui::MenuItem("Add billboard")) {dialogAddObject(true,GAMEOBJECT_BILLBOARD);}
       if (ImGui::MenuItem("Add trigger")) {dialogAddObject(true,GAMEOBJECT_TRIGGER);}
+      if (ImGui::MenuItem("Add point")) {dialogAddObject(true,GAMEOBJECT_POINT);}
       //if (ImGui::MenuItem("Add path")) {dialogAddObject(true,GAMEOBJECT_PATH);}
       ImGui::Separator();
       if (ImGui::MenuItem("Add link")) {dialogAddObject(true,GAMEOBJECT_LINK);}

@@ -40,6 +40,8 @@
 
 bool viewportOn = false;
 bool toolOn = false;
+bool showOverlays = true;
+Array<Overlay> overlays;
 
 float minScale = 0.0001;
 float move_x = 0, move_y = 0, move_z = 0; bool move_negate = false;
@@ -54,6 +56,45 @@ void viewportLine(float cx, float cy, float lx, float ly, unsigned int color, co
   cx -= 4;
   cy -= 6;
   ImGui::GetWindowDrawList()->AddText(ImGui::GetWindowFont(),ImGui::GetWindowFontSize(),ImVec2(cx+lx,cy+ly),color,text);
+}
+
+void clearOverlays() {
+  overlays.clear();
+}
+
+void getRenderWindowPosAndSize(ImVec2 *pos, ImVec2 *size) {
+  int x0 = (outliner_width);
+  int x1 = (main_window_xres-properties_width);
+  int y0 = (menuBar_height + toolBar_height);
+  int y1 = (main_window_yres-timeLine_height);
+  pos->x = x0;
+  pos->y = y0;
+  size->x = x1-x0;
+  size->y = y1-y0;
+}
+
+void addTextOverlay(double renderX,double renderY, unsigned int col, const char *text) {
+  ImVec2 windowPos,windowSize;getRenderWindowPosAndSize(&windowPos, &windowSize);
+  Overlay p;
+  p.x = (renderX * 0.5 + 0.5)*windowSize.x + windowPos.x;
+  p.y = (-renderY * 0.5 + 0.5)*windowSize.y + windowPos.y;
+  p.text = text;
+  p.color = col;
+  overlays.push_back(p);
+}
+
+void paintOverlays() {
+  if (!showOverlays) return;
+  for (int i = 0; i < overlays.size(); i++) {
+    Overlay *o = &overlays[i];
+    ImVec2 k = ImVec2(o->x,o->y);
+    k.x -= 2;
+    k.y -= 5;
+    ImGui::GetWindowDrawList()->AddText(ImGui::GetWindowFont(),ImGui::GetWindowFontSize(),k,0xff000000,o->text.c_str());
+    k.x -= 1;
+    k.y -= 1;
+    ImGui::GetWindowDrawList()->AddText(ImGui::GetWindowFont(),ImGui::GetWindowFontSize(),k,o->color,o->text.c_str());
+  }
 }
 
 void drawCameraRotationGizmo() {
@@ -292,6 +333,7 @@ void drawViewport() {
   ImGui::PopStyleColor();
   ImGui::PopStyleColor();
   if (ImGui::IsAnyItemHovered()) if (ImGui::IsMouseDown(0)) {disableRenderMouseClicks();}
+  paintOverlays();
   ImGui::End();
 
   ImGui::PopStyleColor();

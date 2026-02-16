@@ -117,6 +117,7 @@ void loadBaseSVGs() {
   ADDICON("billboard","PLUS.SVG");
   ADDICON("trigger","SELECT.SVG");
   ADDICON("link","PLUS.SVG");
+  ADDICON("point","MOVE.SVG");
   ADDICON("appicon","3D.SVG");
 
   colorIcon("appicon",0x00ffffff);

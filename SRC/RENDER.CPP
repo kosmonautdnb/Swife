@@ -34,6 +34,7 @@
 #include "GAMEOBJ.HPP"
 #include "PAINT.HPP"
 #include "HITTEST.HPP"
+#include "VIEWPORT.HPP"
 #include "STL/KEYMTRIX.HPP"
 #include "STL/ARRAY.HPP"
 #include "STL/SET.HPP"
@@ -284,6 +285,7 @@ void paintSimpleGameObject(GameObject *o, bool showModificators) {
   case GAMEOBJECT_PATH: {} break;
   case GAMEOBJECT_BILLBOARD: {paintBillBoard(o,showModificators);} break;
   case GAMEOBJECT_TRIGGER: {paintTrigger(o,showModificators);} break;
+  case GAMEOBJECT_POINT: {paintPoint(o,showModificators);} break;
   }
 }
 
@@ -497,7 +499,7 @@ void screenSpacePlane(GameObject *o, Vector *d2d, Vector *d3d, double x, double 
 
   Matrix m = o->getRenderTransform();
 
-  if (o->type == GAMEOBJECT_BILLBOARD || worldSpace) {
+  if (o->type == GAMEOBJECT_BILLBOARD || o->type == GAMEOBJECT_POINT || worldSpace) {
     Matrix k; k.identity();
     combineForNoRotation(&m, &k, true);
   }
@@ -645,6 +647,7 @@ bool lightOn = true;
 bool texturedOn = true;
 bool twoSidedOn = false;
 bool showLinks = true;
+bool showGrids = true;
 
 void lightSetup(bool on) {
   if (!on) {
@@ -712,7 +715,7 @@ void drawScene() {
     lightSetup(lightOn);
     paintBillBoardContents();
     lightSetup(false);
-    
+   
     enableFrameBuffer(tiny);
 
     cameras[currentCamera].applyToGL(); // needed after enableFrameBuffer(tiny) because of aspect ratio
@@ -733,13 +736,13 @@ void drawScene() {
 
     glDrawnTrianglesFrame = 0;
     lightSetup(lightOn);
+    clearOverlays();
     drawLinks();
     drawGameObjects();
     lightSetup(false);
     renderedTriangles = glDrawnTrianglesFrame;
 
     drawSelecting(tiny);
-
 
     if (hitTestOn) handleHitTest();
 

@@ -33,7 +33,7 @@
 HashMap<unsigned int, const char*> iconNameForGameObjectType;
 Grid grids[MAXGRIDS];
 
-const char *gameObjectTypeNames[GAMEOBJECT_COUNT] = {"undefined", "mesh", "camera", "skybox", "path", "billboard","section","trigger","link"};
+const char *gameObjectTypeNames[GAMEOBJECT_COUNT] = {"undefined", "mesh", "camera", "skybox", "path", "billboard","section","trigger","link","point"};
 const char *propertyTypeNames[GAMEOBJECTPROPERTY_COUNT] = {"undefined", "bool", "int", "float", "float4", "text", "color","links"};
 
 void GameObjectProperty::setName(const char *name) {
@@ -111,6 +111,7 @@ void initGameObjects() {
   iconNameForGameObjectType[GAMEOBJECT_BILLBOARD] = "billboard";
   iconNameForGameObjectType[GAMEOBJECT_TRIGGER] = "trigger";
   iconNameForGameObjectType[GAMEOBJECT_LINK] = "link";
+  iconNameForGameObjectType[GAMEOBJECT_POINT] = "point";
 }
 
 GameObject *GameObject::setName(const char *name) {
@@ -126,7 +127,7 @@ GameObject *GameObject::setType(unsigned int type) {
 GameObject *GameObject::clone() {
   GameObject *o2 = new GameObject();
   unsigned int a = o2->uniqueId;
-  memcpy(o2,this,sizeof(GameObject));
+  *o2 = *this;
   o2->uniqueId = a;
   return o2;
 }
@@ -193,9 +194,26 @@ Matrix toBillBoardTransform(const GameObject *o, const Matrix &m) {
   return ret;
 }
 
+Matrix toPointTransform(const GameObject *o, const Matrix &m) {
+  Matrix ret; 
+  Matrix projection,modelView; getCameraMatrices(&projection,&modelView);
+  Vector projectedPoint = projection*modelView*m.getColumn(3); if (projectedPoint.w != 0) {projectedPoint /= projectedPoint.w; projectedPoint.w=1;}
+  Vector projectedPointX1 = projectedPoint + Vector(1.0/main_window_xres,0,0);
+  Vector pointX1 = inverse(modelView)*inverse(projection)*projectedPointX1; if (pointX1.w != 0) {pointX1 /= pointX1.w; pointX1.w=1;}
+  Vector l = pointX1 - m.getColumn(3);
+  const double pointBaseSize = 10.0;
+  double s = length(l) * pointBaseSize * o->scaling.x;
+  Matrix t; t.identity(); t.translate(m.getColumn(3));
+  Matrix scale; scale.identity(); scale.scale3(Vector(s,s,s));
+  ret = t * scale;
+
+  return ret;
+}
+
 Matrix GameObject::getRenderTransform() const {
   Matrix ret = parentTransform * getObjectTransform();
   if (type == GAMEOBJECT_BILLBOARD) ret = toBillBoardTransform(this, ret);
+  if (type == GAMEOBJECT_POINT) ret = toPointTransform(this, ret);
   return ret;
 }
 

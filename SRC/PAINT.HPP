@@ -37,6 +37,7 @@ void paintMesh(class GameObject *o, bool showModificators);
 void paintCamera(class GameObject *o);
 void paintBillBoard(class GameObject *o, bool showModificators);
 void paintLink(class GameObject *o1,class GameObject *o2);
+void paintPoint(class GameObject *o, bool showModificators);
 
 void paintBillBoardContents();
 

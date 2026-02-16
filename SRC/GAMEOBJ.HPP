@@ -44,7 +44,8 @@ enum GAMEOBJECTTYPE {
   GAMEOBJECT_SECTION = 6,
   GAMEOBJECT_TRIGGER = 7,
   GAMEOBJECT_LINK = 8,
-  GAMEOBJECT_COUNT = 9
+  GAMEOBJECT_POINT = 9,
+  GAMEOBJECT_COUNT = 10
 };
 extern const char *gameObjectTypeNames[GAMEOBJECT_COUNT];
 
@@ -164,6 +165,7 @@ public:
     layers = 1;
     type = GAMEOBJECT_UNDEFINED;
     sprintf(name,NONAME);
+    sprintf(caption,"<>");
     selected = false;
     anchor.set(0,0,0);
     translation.set(0,0,0);
@@ -202,6 +204,7 @@ public:
   Vector anchor;
   unsigned int color;
   char name[NAMEMAX];
+  char caption[NAMEMAX];
   bool selected;
   bool sectionOn;
   bool showLinks;
@@ -261,6 +264,7 @@ public:
   S_VECTOR("anchor",(__o__)->anchor);\
   S_UINT("color",(__o__)->color);\
   S_NAME("name",(__o__)->name);\
+  S_NAME("caption",(__o__)->caption);\
   S_BOOL("selected",(__o__)->selected);\
   S_BOOL("selectionOn",(__o__)->sectionOn);\
   S_BOOL("showLinks",(__o__)->showLinks);\

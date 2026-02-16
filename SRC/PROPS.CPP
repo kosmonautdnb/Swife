@@ -410,6 +410,23 @@ void showBillboardProperties(GameObject *object) {
   ImGui::Separator();
 }
 
+void showPointProperties(GameObject *object) {
+  ImGui::Text("Point");
+  ImGui::Separator();
+  ImGui::Text("Text");ImGui::SameLine();if (ImGui::InputText("##POINTPROPCAPTION",object->caption,NAMEMAX)) {renderingUpdated = true;}
+  ImGui::Separator();
+  Vector translation = object->translation;
+  if (vectorInput("P.",&translation,"##POINTROPTRANSLATION")) {renderingUpdated = true;}
+  object->translation = translation;
+  ImGui::PushItemWidth(9*7);
+  float k=0;
+  ImGui::Text("Size"); ImGui::SameLine(); k = object->scaling.x; if (ImGui::InputFloat("##POINTPROPSCALE",&k)) {renderingUpdated = true;}
+  object->scaling.x = object->scaling.y = object->scaling.z = k;
+  ImGui::PopItemWidth();
+  colorItem("C.","##POINTROPCOLOR",&object->color, true);
+  ImGui::Separator();
+}
+
 void drawProperties() {
   int count = 0;
   int count2 = 0;
@@ -473,6 +490,7 @@ void drawProperties() {
       case GAMEOBJECT_TRIGGER: {showTriggerProperties(first);} break;
       case GAMEOBJECT_CAMERA: {showCameraProperties(first);} break;
       case GAMEOBJECT_BILLBOARD: {showBillboardProperties(first);} break;
+      case GAMEOBJECT_POINT: {showPointProperties(first);} break;
       default:
         showMeshProperties(first);
       }

@@ -461,7 +461,8 @@ void getHsl(const Vector &rgb, float *hv, float *sv, float *lv) {
   *lv = (float)l;
 }
 
-void updateColorWheel(float h, int mx, int my, double *hv, double *sv, double *lv) {
+bool updateColorWheel(float h, int mx, int my, float *hv, float *sv, float *lv) {
+  bool ret = false;
   const double a = -h * 2 * PI;
   const double wheelPixels = 16.0;
   unsigned int *rgba = glGetTexturePointer(colorWheelTexture);
@@ -479,7 +480,7 @@ void updateColorWheel(float h, int mx, int my, double *hv, double *sv, double *l
         int gi = c2.y * 255.0;
         int bi = c2.z * 255.0;
         c = ri|(gi<<8)|(bi<<16)|0xff000000;
-        if ((hv != NULL) && ((int)mx==x) && ((int)my==y)) *hv = h;
+        if ((hv != NULL) && ((int)mx==x) && ((int)my==y)) {*hv = h; ret = true;}
       }
       double fx2 = (-sin(a)*fx+cos(a)*fy)*s;
       double fy2 = (cos(a)*fx+sin(a)*fy)*s;
@@ -493,13 +494,14 @@ void updateColorWheel(float h, int mx, int my, double *hv, double *sv, double *l
           int gi = c2.y * 255.0;
           int bi = c2.z * 255.0;
           c = ri|(gi<<8)|(bi<<16)|0xff000000;
-          if ((sv != NULL) && ((int)mx==x) && ((int)my==y)) *sv = 1.0-hx;
-          if ((lv != NULL) && ((int)mx==x) && ((int)my==y)) *lv = hy-0.5+0.5;
+          if ((sv != NULL) && ((int)mx==x) && ((int)my==y)) {*sv = (float)(1.0-hx); ret = true;}
+          if ((lv != NULL) && ((int)mx==x) && ((int)my==y)) {*lv = (float)(hy-0.5+0.5); ret = true;}
         }
       }
       rgba[x+y*colorWheelX] = c;
     }
   }
+  return ret;
 }
 
 void dialogColor(bool openIt, unsigned int *color) {
@@ -515,7 +517,7 @@ void dialogColor(bool openIt, unsigned int *color) {
   k = c.z * 255.0; if (ImGui::SliderFloat("Blue##DIALOGCOLORCOLORBLUE",&k,0,255)) {c.z = k/255.0;}
   float h,s,l; 
   getHsl(c,&h,&s,&l);
-  k = h*360.0;  if (ImGui::SliderFloat("Hue##DIALOGCOLORCOLORHUE",&k,0,360)) {double w = c.w; h = k/360.0; c = hsl(h,s,l); c.w = w; updateColorWheel(h,0,0,NULL,NULL,NULL);}
+  k = h*360.0;  if (ImGui::SliderFloat("Hue##DIALOGCOLORCOLORHUE",&k,0,360)) {double w = c.w; h = k/360.0; updateColorWheel(h,0,0,&h,&s,&l); c = hsl(h,s,l); c.w = w; getHsl(c,&h,&s,&l); updateColorWheel(h,0,0,NULL,NULL,NULL);}
   k = s;  if (ImGui::SliderFloat("Saturation##DIALOGCOLORCOLORSAT",&k,0,1)) {double w = c.w; s = k; c = hsl(h,s,l); c.w = w;}
   k = l;  if (ImGui::SliderFloat("Lightness##DIALOGCOLORCOLORLIT",&k,0,1)) {double w = c.w; l = k; c = hsl(h,s,l); c.w = w;}
   ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0,0,0,0));
@@ -523,15 +525,10 @@ void dialogColor(bool openIt, unsigned int *color) {
   ImGui::PushStyleColor(ImGuiCol_ButtonActive,ImVec4(0,0,0,0));
   ImVec2 cursorHere = ImGui::GetCursorScreenPos();
   if (ImGui::ImageButton((ImTextureID)colorWheelTexture,ImVec2(colorWheelX,colorWheelY))) {
-    double hv = -1;
-    double hs = -1;
-    double hl = -1;
     int mx = ImGui::GetMousePos().x-cursorHere.x;
     int my = ImGui::GetMousePos().y-cursorHere.y;
-    updateColorWheel(h,mx,my,&hv,&hs,&hl);  
-    if (hv >= 0) {double w = c.w; h = hv; c = hsl(h,s,l); c.w = w; updateColorWheel(h,0,0,NULL,NULL,NULL); }
-    if (hs >= 0) {double w = c.w; s = hs; c = hsl(h,s,l); c.w = w;}
-    if (hl >= 0) {double w = c.w; l = hl; c = hsl(h,s,l); c.w = w;}
+    bool update = updateColorWheel(h,mx,my,&h,&s,&l);
+    if (update) {double w = c.w; c = hsl(h,s,l); c.w = w; getHsl(c,&h,&s,&l); updateColorWheel(h,0,0,NULL,NULL,NULL); }
   }
   ImGui::PopStyleColor();
   ImGui::PopStyleColor();
