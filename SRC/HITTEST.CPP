@@ -412,3 +412,17 @@ void addHitTestRotateGizmo(class GameObject *o, const Vector &minB, const Vector
   hitTestLine(o,HITTESTTOOL_ROTATE_MINUS_Y,yp3-yp2*k+zp2*k2,yp3-yp2*k-zp2*k2,0xff00ff00);
   hitTestLine(o,HITTESTTOOL_ROTATE_MINUS_Z,zp3-zp2*k+xp2*k2,zp3-zp2*k-xp2*k2,0xffff0000);
 }
+
+bool triangleHitTest(const Vector &p0, const Vector &p1, const Vector &p2, Vector &collisionPoint) {
+  Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m);
+  Matrix m2 = hitTestInverseModelView*modelView;
+  Vector t0 = m2*p0;
+  Vector t1 = m2*p1;
+  Vector t2 = m2*p2;
+  if (hitTestTrianglesCollided(mouseHitStart,mouseHitEnd, t0, t1, t2)) {
+    if (hitTestTrianglesCollisionPoint(mouseHitStart,mouseHitEnd, t0, t1, t2, collisionPoint)) {
+      return true;
+    }
+  }
+  return false;
+}

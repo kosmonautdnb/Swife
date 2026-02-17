@@ -47,7 +47,8 @@ enum TOOLID {
   HITTESTTOOL_ROTATE_PLUS_Z = 15,
   HITTESTTOOL_ROTATE_MINUS_X = 16,
   HITTESTTOOL_ROTATE_MINUS_Y = 17,
-  HITTESTTOOL_ROTATE_MINUS_Z = 18
+  HITTESTTOOL_ROTATE_MINUS_Z = 18,
+  HITTESTTOOL_TEXTUREGRIDPAINT = 19
 };
 
 class Hit {
@@ -57,9 +58,11 @@ public:
     toolId = 0;
     depth = 0;
     point.set(0,0,0);
+    index = -1;
   }
   class GameObject *object;
   int toolId;
+  int index;
   double depth;
   Vector point; 
 };
@@ -86,5 +89,7 @@ void hitTestLine(class GameObject *o, int toolId, const Vector &p0, const Vector
 void addHitTestMoveGizmo(class GameObject *o, const Vector &minB, const Vector &maxB);
 void addHitTestScaleGizmo(class GameObject *o, const Vector &minB, const Vector &maxB);
 void addHitTestRotateGizmo(class GameObject *o, const Vector &minB, const Vector &maxB);
+
+bool triangleHitTest(const Vector &p0, const Vector &p1, const Vector &p2, Vector &collisionPoint);
 
 #endif //__HITTEST_HPP__

@@ -33,6 +33,7 @@
 #include "HITTEST.HPP"
 #include "SERIALZE.HPP"
 #include "VIEWPORT.HPP"
+#include "TOOLBAR.HPP"
 #include "STL/SPRTEOBJ.HPP"
 #include <math.h>
 
@@ -123,7 +124,7 @@ void drawSkyboxQuad(unsigned int color, unsigned int texture, float size, float 
 }
 
 void paintSkyBox(class GameObject *o) {
-  FileBinding *binding = getBindingById(o->fileBindingId);
+  FileBinding *binding = getBindingById(o->fileBindingId); if (binding == NULL) return;
   if (binding->textureIds.size() != 6) return;
   Camera *c = &cameras[currentCamera];
   float size = fabs(c->farPlane)*0.5; // bigger than 1 because of ortho
@@ -371,7 +372,8 @@ void paintMesh(class GameObject *o, bool showModificators) {
     return;
   }
   if (!isInViewport(o)) return;
-  if (justDrawBoundingBoxes) {paintTrigger(o,showModificators); return;}
+  FileBinding *b = getBindingById(o->fileBindingId);
+  if (b == NULL || justDrawBoundingBoxes) {paintTrigger(o,showModificators); return;}
 
   Matrix cameraMatrix; glGetDoublev(GL_MODELVIEW_MATRIX, cameraMatrix.m);
 
@@ -384,6 +386,7 @@ void paintMesh(class GameObject *o, bool showModificators) {
   glMultMatrixd(m.m);
   if (texturedOn) glEnable(GL_TEXTURE_2D); else glDisable(GL_TEXTURE_2D);
   if (twoSidedOn) glDisable(GL_CULL_FACE); else glEnable(GL_CULL_FACE);
+  if (b->forceTwoSided) glDisable(GL_CULL_FACE);
 
   glEnable(GL_ALPHA_TEST);
   glAlphaFunc(GL_GREATER,0);
@@ -518,6 +521,7 @@ void paintBillBoardContents() {
       
         if (texturedOn) glEnable(GL_TEXTURE_2D); else glDisable(GL_TEXTURE_2D);
         if (twoSidedOn) glDisable(GL_CULL_FACE); else glEnable(GL_CULL_FACE);
+        if (b->forceTwoSided) glDisable(GL_CULL_FACE);
       
         glEnable(GL_ALPHA_TEST);
         glAlphaFunc(GL_GREATER,0);
@@ -631,4 +635,131 @@ void paintPoint(class GameObject *o, bool showModificators) {
   Vector pos = projectionMatrix * cameraMatrix * m * center;
   if (pos.w != 0) {pos /= pos.w; pos.w = 1;}
   addTextOverlay(pos.x,pos.y,col,o->caption);
+}
+
+Vector textureGridVertex(FileBinding *b, int x, int y, int xa, int ya) {
+  int i = b->uintContent[x+y*b->textureGridWidth];
+  int tx = i & 0x3fff; // 16384 in x
+  int ty = i / 0x4000;
+  float tx0 = ((float)tx * b->textureAtlasTileWidth) / b->originalWidth;
+  float ty0 = ((float)ty * b->textureAtlasTileHeight) / b->originalHeight;
+  float tx1 = ((float)(tx+1) * b->textureAtlasTileWidth) / b->originalWidth;
+  float ty1 = ((float)(ty+1) * b->textureAtlasTileHeight) / b->originalHeight;
+  glTexCoord2f(xa==0?tx0:tx1,ya==0?ty0:ty1);
+  Vector ret((float)(x+xa)/b->textureGridWidth*2-1,0,(float)(y+ya)/b->textureGridHeight*2-1);
+  glVertex3dv(&ret.x);
+  return ret;
+}
+
+void paintIntoTextureGrid(class FileBinding *binding, int arrayPos, int toPaint) {
+  if (arrayPos<0||arrayPos>=binding->uintContent.size()) return;
+  if (binding->textureAtlasTileCountX<=0) return;
+  int tx = toPaint % binding->textureAtlasTileCountX;
+  int ty = toPaint / binding->textureAtlasTileCountX;
+  binding->uintContent[arrayPos] = (tx & 0x3fff)+(ty * 0x4000);
+  renderingUpdated = true;
+}
+
+int getFromTextureGrid(class FileBinding *binding, int arrayPos) {
+  if (arrayPos<0||arrayPos>=binding->uintContent.size()) return -1;
+  if (binding->textureAtlasTileCountX<=0) return -1;
+  int i = binding->uintContent[arrayPos];
+  int tx = i & 0x3fff;
+  int ty = i / 0x4000;
+  return tx + ty*binding->textureAtlasTileCountX;
+}
+
+void paintTextureGrid(class GameObject *o, bool showModificators) {
+
+  if (!isInViewport(o)) return;
+
+  FileBinding *binding = getBindingById(o->fileBindingId);
+
+  Matrix cameraMatrix; glGetDoublev(GL_MODELVIEW_MATRIX, cameraMatrix.m);
+
+  glPushMatrix();
+  Matrix m = o->getRenderTransform();
+  glMultMatrixd(m.m);
+  Vector minB = o->boundingBoxMin;
+  Vector maxB = o->boundingBoxMax;
+  Vector center = (minB+maxB)*0.5;
+  Vector siz = (maxB-minB)*0.5;
+  glTranslatef(center.x,center.y,center.z);
+  glScalef(siz.x,siz.y,siz.z);
+
+  bool lightingWasOn = glIsEnabled(GL_LIGHTING); glDisable(GL_LIGHTING);
+
+  glDisable(GL_CULL_FACE);
+  glEnable(GL_TEXTURE_2D);
+  glEnable(GL_ALPHA_TEST);
+  glAlphaFunc(GL_GREATER,0);
+  glBindTexture(GL_TEXTURE_2D,binding != NULL && binding->textureIds.size()==1 ? binding->textureIds[0]:0);
+
+  bool noMap = false;
+  if (binding != NULL) {
+    if (binding->textureGridWidth<=0||binding->textureGridHeight<=0) noMap = true;
+    if (binding->originalWidth<=0||binding->originalHeight<=0) noMap = true;
+    if (binding->textureAtlasTileWidth<=0||binding->textureAtlasTileHeight<=0||binding->textureAtlasTileCountX<=0||binding->textureAtlasTileCountY<=0) noMap = true;
+  } else noMap = true;
+
+  glBegin(GL_QUADS);
+  unsigned int col = o->color;
+  glColor4f((col & 255)/255.f,((col>>8) & 255)/255.f,((col>>16) & 255)/255.f,((col>>24) & 255)/255.f);
+  glNormal3f(0,1,0);
+  if (noMap) {
+    glVertex3f(-1,0,+1);
+    glVertex3f(+1,0,+1);
+    glVertex3f(+1,0,-1);
+    glVertex3f(-1,0,-1);
+  } else {
+    for (int z = 0; z < binding->textureGridHeight; z++) {
+      for (int x = 0; x < binding->textureGridWidth; x++) {
+        glColor4f((col & 255)/255.f,((col>>8) & 255)/255.f,((col>>16) & 255)/255.f,((col>>24) & 255)/255.f);
+        if (o->showStructure) {
+          bool k = (x + z) & 1 ? true : false;
+          glColor4f(k?0.75:0.25,k?0.75:0.25,k?0.75:0.25,1);
+        }
+        if (binding->index == x + z * binding->textureGridWidth) {
+          glColor4f(0.25,0.25,0.25,1); binding->index = -1;
+        }
+        Vector p0 = textureGridVertex(binding,x,z,1,0);
+        Vector p1 = textureGridVertex(binding,x,z,0,0);
+        Vector p2 = textureGridVertex(binding,x,z,0,1);
+        Vector p3 = textureGridVertex(binding,x,z,1,1);
+        if (o->selected && (mode == MODE_SELECT)) {
+          Vector collisionPoint;
+          if (triangleHitTest(p0,p1,p2,collisionPoint)||triangleHitTest(p2,p3,p0,collisionPoint)) {
+            Hit h;
+            h.depth = length(collisionPoint - mouseHitStart);
+            h.point = collisionPoint;
+            h.object = o;
+            h.toolId = HITTESTTOOL_TEXTUREGRIDPAINT;
+            h.index = x + z * binding->textureGridWidth;
+            hits.push_back(h);
+          }
+        }
+      }
+    }
+  }
+  glEnd();
+
+  glDisable(GL_ALPHA_TEST);
+  glDisable(GL_TEXTURE_2D);
+  glEnable(GL_CULL_FACE);
+
+  if (lightingWasOn) glEnable(GL_LIGHTING); else glDisable(GL_LIGHTING);
+
+  addHitTestCube(o,0,minB,maxB);
+
+  glTranslatef(o->anchor.x,o->anchor.y,o->anchor.z);
+
+  if (showModificators) {
+    Vector minB2 = minB - o->anchor;
+    Vector maxB2 = maxB - o->anchor;
+    addHitTestScaleGizmo(o,minB2,maxB2);
+    addHitTestRotateGizmo(o,minB2,maxB2);
+    addHitTestMoveGizmo2(cameraMatrix,o,minB2,maxB2);
+  }
+
+  glPopMatrix();
 }

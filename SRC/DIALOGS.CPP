@@ -120,6 +120,11 @@ void dialogQuit(bool openIt) {
   DIALOGEND()
 }
 
+void setXZ(GameObject *o, float x, float z) {
+  o->scaling.x = x * 0.5;
+  o->scaling.z = z * 0.5;
+}
+
 void dialogAddObject(bool openIt, unsigned int type) {
   static char name[NAMEMAX];
   static char title[NAMEMAX];
@@ -134,6 +139,14 @@ void dialogAddObject(bool openIt, unsigned int type) {
   }
   ImGui::PushItemWidth(7*NAMEMAX);
   ImGui::Text("Name"); ImGui::SameLine(); DIALOGKEYSHERE(); ImGui::InputText("##DIALOGADDGAMEOBJECTNAME", name, NAMEMAX);
+  static float sizeX = 100;
+  static float sizeZ = 100;
+  switch(t) {
+  case GAMEOBJECT_TEXTUREGRID: {
+      ImGui::Text("Size X:");ImGui::SameLine();ImGui::InputFloat("##DIALOGADDGAMEOBJECTSIZEX",&sizeX);ImGui::SameLine();ImGui::Text("Z:");ImGui::SameLine();ImGui::InputFloat("##DIALOGADDGAMEOBJECTSIZEZ",&sizeZ);
+    } break;
+  }
+
   if (t == GAMEOBJECT_MESH || t == GAMEOBJECT_BILLBOARD || t == GAMEOBJECT_TEXTUREGRID) {
     if (ImGui::Button("Load##DIALOGADDGAMEOBJECTLOAD")) {
       GameObject *o = new GameObject();
@@ -142,6 +155,7 @@ void dialogAddObject(bool openIt, unsigned int type) {
       o->selected = true;
       o->outlinerShouldFocusThis = true;
       o->layers = outlinerLayers;
+      if (t == GAMEOBJECT_TEXTUREGRID) setXZ(o,sizeX,sizeZ);
       for (int i = 0; i < gameObjects.size(); i++) gameObjects[i]->selected = false;
       gameObjects.insert(o,pos);
       unsigned int k = DIALOG_NONE;
@@ -163,6 +177,7 @@ void dialogAddObject(bool openIt, unsigned int type) {
     o->selected = true;
     o->outlinerShouldFocusThis = true;
     o->layers = outlinerLayers;
+      if (t == GAMEOBJECT_TEXTUREGRID) setXZ(o,sizeX,sizeZ);
     for (int i = 0; i < gameObjects.size(); i++) gameObjects[i]->selected = false;
     gameObjects.insert(o,pos);
     if (t == GAMEOBJECT_CAMERA) o->setCamera(&cameras[currentCamera]);
@@ -383,12 +398,15 @@ void dialogControls(bool openIt) {
     "Use shift and escape to quit.\n"
     "Mouse:\n"
     "Right mouse button and mouse to rotate view.\n"
-    "Right mouse button and shift and mouse to roll.\n"
-    "Right mouse button and ctrl and mouse to pan.\n"
+    "Right mouse button and ctrl and mouse to roll.\n"
+    "Right mouse button and shift and mouse to pan.\n"
     "Tool \"selection\":\n"
     "Left Mouse select this object\n"
     "Left Mouse and shift add to selection\n"
     "Left Mouse and ctrl remove from selection\n"
+    "On texture grids (with Tool \"selection\"):\n"
+    "Left Mouse and alt to paint on selected grid.\n"
+    "Right Mouse and alt to get from selected grid.\n"
   );
   ImGui::Separator();
   if (ImGui::Button("Close##DIALOGCONTROLSCLOSE")) {
@@ -414,6 +432,8 @@ void dialogTroubleShooting(bool openIt) {
     "\n"
     "If you have memory problems, try to install SBEMU v1.0.0-beta5.\n"
     "It's packaged DPMI host provides enough memory. And you get sound.\n"
+    "\n"
+    "If you want to paint to a texture grid be sure to have the selection mode on.\n"
   );
   ImGui::Separator();
   if (ImGui::Button("Close##DIALOGTROUBLESHOOTING")) {

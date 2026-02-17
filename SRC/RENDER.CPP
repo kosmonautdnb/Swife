@@ -79,7 +79,7 @@ void Camera::wasdControls() {
   GLboolean alt,shift,ctrl;
   glSpecialKeys(&shift, &ctrl, &alt);
 
-  if (rightMousePressed) {
+  if (rightMousePressed && (!alt)) {
     if (shift) {
       Vector positionBefore = position;
       position += q.rotateVector(Vector(1,0,0))*walkSpeed*mouseWalkSpeed*mouseDeltaXHere;
@@ -286,6 +286,7 @@ void paintSimpleGameObject(GameObject *o, bool showModificators) {
   case GAMEOBJECT_BILLBOARD: {paintBillBoard(o,showModificators);} break;
   case GAMEOBJECT_TRIGGER: {paintTrigger(o,showModificators);} break;
   case GAMEOBJECT_POINT: {paintPoint(o,showModificators);} break;
+  case GAMEOBJECT_TEXTUREGRID: {paintTextureGrid(o,showModificators);} break;
   }
 }
 
@@ -476,6 +477,21 @@ void handleHitTest() {
         for (int i = 0; i < gameObjects.size(); i++) gameObjects[i]->selected = false;
       }
       renderingUpdated = true;
+
+      Hit *h2 = getNearestToolHit();
+      switch(h2->toolId) {
+        case HITTESTTOOL_TEXTUREGRIDPAINT: {
+          GameObject *o = h2->object;
+          FileBinding *b = getBindingById(o->fileBindingId);
+          if (b != NULL) {
+            b->index = h2->index;
+            if (alt) {
+              if (ImGui::IsMouseDown(0)) paintIntoTextureGrid(b,b->index,b->selected);
+              if (ImGui::IsMouseDown(1)) b->selected = getFromTextureGrid(b,b->index);
+            }
+          }
+        } break;
+      }
     } break;
   }
 }
@@ -680,10 +696,16 @@ void lightSetup(bool on) {
 void drawScene() {
   bool leftClicked = ImGui::IsMouseClicked(0);
   bool leftDown = ImGui::IsMouseDown(0);
-  if (renderMouseClicksOff>0) {renderMouseClicksOff--; leftClicked = false; leftDown = false;}
+  bool rightDown = ImGui::IsMouseDown(1);
+  if (renderMouseClicksOff>0) {renderMouseClicksOff--; leftClicked = false; leftDown = false; rightDown = false;}
 
   static unsigned int k = 0;
   bool hitTestOn = (mode == MODE_SELECT) && leftClicked;
+
+  GLboolean alt,shift,ctrl;
+  glSpecialKeys(&shift, &ctrl, &alt);
+  bool forceFastAndHitTest = false;
+  if (alt && (mode == MODE_SELECT) && (leftDown || rightDown)) forceFastAndHitTest = true;
 
   static bool lastMouseButtonLeft = false;
   startTool = (!lastMouseButtonLeft) && leftDown;
@@ -700,13 +722,19 @@ void drawScene() {
   if (renderingUpdated) {renderingUpdated = false; k = 1;} 
   if (renderingUpdated2) {renderingUpdated2 = false; k = 0;} 
   if (hitTestOn) k = 1;
-  k++;
+  if (forceFastAndHitTest) {hitTestOn = true; k = 0;}
 
-  bool tiny = k == 1;
-  if (k < 3) {
+  bool tiny = k == 0;
+  if (k < 2) {
+    k++;
     GLboolean f = glFastTexturing; glFastTexturing = GL_FALSE;
 
-    stretchy = 1; cameras[currentCamera].applyToGL();
+    enableFrameBuffer(false); glBindFramebuffer(GL_FRAMEBUFFER,0); cameras[currentCamera].applyToGL();
+
+    if (hitTestOn) 
+      prepareMouseHitTest(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+    else
+      prepareMouseHitTest(-1,-1);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -716,19 +744,12 @@ void drawScene() {
     paintBillBoardContents();
     lightSetup(false);
    
-    enableFrameBuffer(tiny);
-
-    cameras[currentCamera].applyToGL(); // needed after enableFrameBuffer(tiny) because of aspect ratio
+    enableFrameBuffer(tiny); cameras[currentCamera].applyToGL(); // needed after enableFrameBuffer(tiny) because of aspect ratio
   
     glClearDepth(1.f);
     glClearStencil(0);
     glClearColor((clearColor & 255)/255.0,((clearColor>>8) & 255)/255.0,((clearColor>>16) & 255)/255.0,((clearColor>>24) & 255)/255.0);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
-
-    if (hitTestOn) 
-      prepareMouseHitTest(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
-    else
-      prepareMouseHitTest(-1,-1);
 
     drawProblems = 0;
     drawSkyBox();

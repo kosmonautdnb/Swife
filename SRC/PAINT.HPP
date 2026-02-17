@@ -38,9 +38,13 @@ void paintCamera(class GameObject *o);
 void paintBillBoard(class GameObject *o, bool showModificators);
 void paintLink(class GameObject *o1,class GameObject *o2);
 void paintPoint(class GameObject *o, bool showModificators);
+void paintTextureGrid(class GameObject *o, bool showModificators);
 
 void paintBillBoardContents();
 
 void combineForNoRotation(class Matrix *modelViewMatrix, const class Matrix *modelViewMatrixToGetRotationFrom, bool maxScale);
+
+void paintIntoTextureGrid(class FileBinding *binding, int arrayPos, int toPaint);
+int getFromTextureGrid(class FileBinding *binding, int arrayPos);
 
 #endif //__PAINT_HPP__

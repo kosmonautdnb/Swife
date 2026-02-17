@@ -195,6 +195,7 @@ public:
     billBoardTY0 = 0;
     billBoardTX1 = 0;
     billBoardTY1 = 0;
+    showStructure = false;
   }
 
   unsigned int layers;
@@ -229,6 +230,7 @@ public:
   int billBoardTY0;
   int billBoardTX1;
   int billBoardTY1;
+  bool showStructure;
   bool isCamera[CAMERA_COUNT];
   Array<GameObjectProperty> properties;
   Array<unsigned int> uniqueLinkIds;
@@ -290,6 +292,7 @@ public:
   S_INT("billBoardTY0",(__o__)->billBoardTY0);\
   S_INT("billBoardTX1",(__o__)->billBoardTX1);\
   S_INT("billBoardTY1",(__o__)->billBoardTY1);\
+  S_BOOL("showStructure",(__o__)->showStructure);\
   S_CARRAY("isCamera",(__o__)->isCamera,S_BOOL(NULL,(__o__)->isCamera[i]),CAMERA_COUNT);\
   S_ARRAY("uniqueLinkIds",(__o__)->uniqueLinkIds,S_UINT(NULL,(__o__)->uniqueLinkIds[i]));\
   S_ARRAY("properties",(__o__)->properties,S_GAMEOBJECTPROPERTY(NULL,&((__o__)->properties[i])));\

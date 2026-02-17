@@ -45,8 +45,8 @@ const char *logFileName = "SWIFE.LOG";
 
 String appFolder;
 
-int maxTextureWidth = 512;
-int maxTextureHeight = 512;
+int maxTextureWidth = 1000; // 1024 is too much here maybe due to glMalloc that maybe can't allocate more than 4mb at once (WatcomC11) (there are strange behaviours and  crashes)
+int maxTextureHeight = 1000; // 1024 is too much here maybe due to glMalloc that maybe can't allocate more than 4mb at once (WatcomC11) (there are strange behaviours and  crashes)
 
 int defaultRenderTargetWidth = 380;
 int defaultRenderTargetHeight = 380;

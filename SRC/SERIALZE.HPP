@@ -68,6 +68,8 @@ public:
     textureAtlasTileCountX = 0;
     textureAtlasTileCountY = 0;
     selected = -1;
+    index = -1;
+    forceTwoSided = false;
   }
   ~FileBinding();
   unsigned int type;
@@ -85,6 +87,8 @@ public:
   int textureAtlasTileCountX;
   int textureAtlasTileCountY;
   int selected;
+  int index;
+  bool forceTwoSided;
   Array<unsigned int> textureIds;
   Array<BakedVertex> triangles;
   Array<unsigned int> uintContent;
@@ -111,6 +115,8 @@ public:
   S_INT("textureAtlasTileCountX",(__o__)->textureAtlasTileCountX);\
   S_INT("textureAtlasTileCountY",(__o__)->textureAtlasTileCountY);\
   S_INT("selected",(__o__)->selected);\
+  S_INT("index",(__o__)->index);\
+  S_BOOL("forceTwoSided",(__o__)->forceTwoSided);\
   S_ARRAY("uintContent",(__o__)->uintContent,S_UINT(NULL,(__o__)->uintContent[i]));\
   S_OBJECT_CLOSE();
 

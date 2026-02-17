@@ -228,6 +228,7 @@ void showMeshProperties(GameObject *object) {
       ImGui::Text("Triangles:%d",binding->triangles.size());
       ImGui::Text("Textures:%d",binding->textureIds.size());
     }
+    ImGui::Text("Two sided"); ImGui::SameLine(); if (ImGui::Checkbox("##MESHPROPTWOSIDED",&binding->forceTwoSided)) {renderingUpdated = true;}
     ImGui::Text("%s",binding->fileName.last(19).c_str());
   }
   if (propsButton("Load##MESHPROPLOAD",strlen("Load")+4)) {
@@ -391,7 +392,7 @@ void showBillboardProperties(GameObject *object) {
       ImGui::Text(" Binding ID:%d",binding->uniqueId);
       bool rescaledWidth = glGetTextureWidth(binding->textureIds[0]) != binding->originalWidth;
       bool rescaledHeight = glGetTextureHeight(binding->textureIds[0]) != binding->originalHeight;
-      if (rescaledWidth || rescaledHeight) ImGui::Text("Texture rescaled");
+      if (rescaledWidth || rescaledHeight) ImGui::TextColored(ERRORCOLOR,"Texture rescaled");
       ImGui::Text("Original width:%d",binding->originalWidth);
       ImGui::Text("Original height:%d",binding->originalHeight);
     }
@@ -401,6 +402,7 @@ void showBillboardProperties(GameObject *object) {
       ImGui::Text("Textures:%d",binding->textureIds.size());
       ImGui::Text("Rtt width:%d",binding->originalWidth);
       ImGui::Text("Rtt height:%d",binding->originalHeight);
+      ImGui::Text("Two sided"); ImGui::SameLine(); if (ImGui::Checkbox("##BILLBOARDPROPTWOSIDED",&binding->forceTwoSided)) {renderingUpdated = true;}
     }
     ImGui::Text("%s",binding->fileName.last(19).c_str());
   }
@@ -439,12 +441,13 @@ void showTextureGridProperties(GameObject *object) {
       ImGui::Text(" Binding ID:%d",binding->uniqueId);
       bool rescaledWidth = glGetTextureWidth(binding->textureIds[0]) != binding->originalWidth;
       bool rescaledHeight = glGetTextureHeight(binding->textureIds[0]) != binding->originalHeight;
-      if (rescaledWidth || rescaledHeight) ImGui::Text("Texture rescaled");
+      if (rescaledWidth || rescaledHeight) ImGui::TextColored(ERRORCOLOR,"Texture rescaled");
       ImGui::Text("Original width:%d",binding->originalWidth);
       ImGui::Text("Original height:%d",binding->originalHeight);
       ImGui::Text("");
       ImGui::Text("Map");
       ImGui::Text(" Count X:%d Y:%d",binding->textureGridWidth,binding->textureGridHeight);
+      if (binding->textureGridWidth<=0||binding->textureGridHeight<=0) ImGui::TextColored(ERRORCOLOR,"  Resize map!");
       static int resizeX = 0; static int resizeY = 0;
       static int offsetX = 0; static int offsetY = 0;
       ImGui::Text("  Resize to X"); ImGui::SameLine(); if (ImGui::InputInt("##TEXTUREGRIDPROPRELOADRESIZEX",&resizeX,0,0));
@@ -456,15 +459,22 @@ void showTextureGridProperties(GameObject *object) {
       if (propsButton("Resize map##TEXTUREGRIDPROPRESIZEMAP",strlen("Resize map")+4)) {binding->resizeTextureGrid(offsetX,offsetY,resizeX,resizeY); renderingUpdated = true;}
       ImGui::Text("");
       ImGui::Text("Texture atlas");
+      if (binding->textureAtlasTileWidth<=0||binding->textureAtlasTileHeight<=0||binding->textureAtlasTileCountX<=0||binding->textureAtlasTileCountY<=0) ImGui::TextColored(ERRORCOLOR," Enter values!");
       ImGui::PushItemWidth(40);
       ImGui::Text(" Tile width"); ImGui::SameLine(); if (ImGui::InputInt("##TEXTUREGRIDPROPRELOADTILEWIDTH",&binding->textureAtlasTileWidth,0,0)) {renderingUpdated = true;}
       ImGui::Text(" Tile height"); ImGui::SameLine(); if (ImGui::InputInt("##TEXTUREGRIDPROPRELOADTILEHEIGHT",&binding->textureAtlasTileHeight,0,0)) {renderingUpdated = true;}
       ImGui::Text(" Tiles in X"); ImGui::SameLine(); if (ImGui::InputInt("##TEXTUREGRIDPROPRELOADTILESX",&binding->textureAtlasTileCountX,0,0)) {renderingUpdated = true;}
       ImGui::Text(" Tiles in Y"); ImGui::SameLine(); if (ImGui::InputInt("##TEXTUREGRIDPROPRELOADTILESY",&binding->textureAtlasTileCountY,0,0)) {renderingUpdated = true;}
-      if (binding->textureAtlasTileCountX < 0) binding->textureAtlasTileCountX = 0;
-      if (binding->textureAtlasTileCountY < 0) binding->textureAtlasTileCountY = 0;
       if (binding->textureAtlasTileWidth < 0) binding->textureAtlasTileWidth = 0;
       if (binding->textureAtlasTileHeight < 0) binding->textureAtlasTileHeight = 0;
+      if (binding->textureAtlasTileCountX < 0) binding->textureAtlasTileCountX = 0;
+      if (binding->textureAtlasTileCountY < 0) binding->textureAtlasTileCountY = 0;
+      if (binding->textureAtlasTileCountX * binding->textureAtlasTileWidth > binding->originalWidth) {
+        if (binding->textureAtlasTileWidth>0) binding->textureAtlasTileCountX = binding->originalWidth / binding->textureAtlasTileWidth;
+      }
+      if (binding->textureAtlasTileCountY * binding->textureAtlasTileHeight > binding->originalHeight) {
+        if (binding->textureAtlasTileHeight>0) binding->textureAtlasTileCountY = binding->originalHeight / binding->textureAtlasTileHeight;
+      }
       ImGui::PopItemWidth();
     }
     ImGui::Text("%s",binding->fileName.last(19).c_str());
@@ -478,13 +488,34 @@ void showTextureGridProperties(GameObject *object) {
       ImGui::Text("None selected");
     else
       ImGui::Text("Selected Tile %d",binding->selected);
+    ImGui::Text("Show structure"); ImGui::SameLine(); if (ImGui::Checkbox("##TEXTUREGRIDPROPLOADSHOWSTRUCTURE",&object->showStructure)) {renderingUpdated = true;}
+    static bool x2 = false; ImGui::Text("X2"); ImGui::SameLine(); ImGui::Checkbox("##TEXTUREGRIDPROPLOADX2",&x2);
+    ImGui::SameLine();
+    float tx0=0,ty0=0,tx1=0,ty1=0;
+    if (binding->selected>=0&&binding->textureAtlasTileCountX>0&&binding->originalWidth>0&&binding->originalHeight>0) {
+      int tx = binding->selected % binding->textureAtlasTileCountX;
+      int ty = binding->selected / binding->textureAtlasTileCountX;
+      tx0 = ((float)tx * binding->textureAtlasTileWidth) / binding->originalWidth;
+      ty0 = ((float)ty * binding->textureAtlasTileHeight) / binding->originalHeight;
+      tx1 = ((float)(tx+1) * binding->textureAtlasTileWidth) / binding->originalWidth;
+      ty1 = ((float)(ty+1) * binding->textureAtlasTileHeight) / binding->originalHeight;
+      ImGui::PushID("##TEXTUREGRIDPROPBIGTILE");
+      float w = 64;
+      ImGui::ImageButton((ImTextureID)binding->textureIds[0],ImVec2(w,w*aspectRatio*main_window_yres/main_window_xres),ImVec2(tx0,ty0),ImVec2(tx1,ty1),-1,ImVec4(0,0,0,1));
+      ImGui::PopID();
+    }
+
     ImGui::Separator();
     int tileCount = binding->textureAtlasTileCountX*binding->textureAtlasTileCountY;
     if (tileCount > 4096) tileCount = 4096;
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(1,1));
     static double t = 0; t += timeDelta;
+    int modulo = x2 ? 4 : 8;
+    int w = x2 ? 32 : 16;
+    static int lastFocused = -1;
+    int focusOnElement = lastFocused != binding->selected ? binding->selected : -1;
     for (int i = 0; i < tileCount; i++)  {
-      if ((i % 8)!=0) ImGui::SameLine();
+      if ((i % modulo)!=0) ImGui::SameLine();
       float r,g,b,a;
       r = 1;
       g = 1;
@@ -494,19 +525,20 @@ void showTextureGridProperties(GameObject *object) {
         g *= sin(t*10)*0.5+0.5;
         b *= sin(t*10)*0.5+0.5;
       }
-      float tx0=0,ty0=0,tx1=0,ty1=0;
       if (binding->textureAtlasTileCountX>0&&binding->originalWidth>0&&binding->originalHeight>0) {
         int tx = i % binding->textureAtlasTileCountX;
         int ty = i / binding->textureAtlasTileCountX;
-        tx0 = (float)tx * binding->textureAtlasTileWidth / binding->originalWidth;
-        ty0 = (float)ty * binding->textureAtlasTileHeight / binding->originalHeight;
-        tx1 = (float)(tx+1) * binding->textureAtlasTileWidth / binding->originalWidth;
-        ty1 = (float)(ty+1) * binding->textureAtlasTileHeight / binding->originalHeight;
+        tx0 = ((float)tx * binding->textureAtlasTileWidth) / binding->originalWidth;
+        ty0 = ((float)ty * binding->textureAtlasTileHeight) / binding->originalHeight;
+        tx1 = ((float)(tx+1) * binding->textureAtlasTileWidth) / binding->originalWidth;
+        ty1 = ((float)(ty+1) * binding->textureAtlasTileHeight) / binding->originalHeight;
       }
-      if (textureAtlasButton((String("##TEXTUREGRIDPROPBTN")+String::fromInt(i)).c_str(),binding->textureIds[0],16,16*aspectRatio*main_window_yres/main_window_xres,tx0,ty0,tx1,ty1,r,g,b,a)) {
+      if (focusOnElement==i) ImGui::SetScrollHere();
+      if (textureAtlasButton((String("##TEXTUREGRIDPROPBTN")+String::fromInt(i)).c_str(),binding->textureIds[0],w,w*aspectRatio*main_window_yres/main_window_xres,tx0,ty0,tx1,ty1,r,g,b,a)) {
         binding->selected = i;
       }
     }
+    lastFocused = binding->selected;
     ImGui::PopStyleVar();
     ImGui::Separator();
   }
