@@ -485,6 +485,7 @@ void handleHitTest() {
           FileBinding *b = getBindingById(o->fileBindingId);
           if (b != NULL) {
             b->index = h2->index;
+            b->index2 = h2->index2;
             if (alt) {
               if (ImGui::IsMouseDown(0)) paintIntoTextureGrid(b,b->index,b->selected);
               if (ImGui::IsMouseDown(1)) b->selected = getFromTextureGrid(b,b->index);
@@ -676,20 +677,22 @@ void lightSetup(bool on) {
   glEnable(GL_LIGHT0);
   glEnable(GL_COLOR_MATERIAL);
 
+  Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX,modelView.m);
+  Vector camPos = inverse(modelView)*Vector(0,0,0);
+
   float dir[4] = {1,1,1,0};
   float one[4] = {1,1,1,0};
   float zero[4] = {0,0,0,0};
-  float darker[4] = {0.125,0.125,0.125,0};
-  float lighter[4] = {2,2,2,0};
+  float darker[4] = {0.5,0.5,0.5,0};
+  float lighter[4] = {0.5,0.5,0.5,0};
   glLightModelfv(GL_LIGHT_MODEL_AMBIENT, zero);
-  //glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL,GL_SEPARATE_SPECULAR_COLOR);
   glLightfv(GL_LIGHT0, GL_POSITION,dir);
   glLightfv(GL_LIGHT0, GL_DIFFUSE,lighter);
-  glLightfv(GL_LIGHT0, GL_SPECULAR,one);
-  glLightfv(GL_LIGHT0, GL_AMBIENT,one);
+  glLightfv(GL_LIGHT0, GL_SPECULAR,zero);
+  glLightfv(GL_LIGHT0, GL_AMBIENT,zero);
   glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);
   glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,zero);
-  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,darker);
+  glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION,darker);
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,0.0);
 }
 

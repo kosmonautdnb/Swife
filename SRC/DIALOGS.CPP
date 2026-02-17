@@ -200,6 +200,7 @@ void dialogAddProperty(bool openIt, class GameObject *object) {
   ImGui::SameLine();
   if (ImGui::Combo("Type##DIALOGADDPROPERTYTYPE",(int*)&p.type, propertyTypeNames, GAMEOBJECTPROPERTY_COUNT)) p.clearValue();
   ImGui::PopItemWidth();
+  if (strlen(p.name)==0) ImGui::TextColored(ERRORCOLOR,"Please enter a name for the property!");
   ImGui::Text("Value"); ImGui::SameLine();
   ImGui::PushItemWidth(7*NAMEMAX);
   switch(p.type) {
@@ -244,11 +245,13 @@ void dialogAddProperty(bool openIt, class GameObject *object) {
   }
   }
   ImGui::PopItemWidth();
-  if (ImGui::Button("Add##DIALOGADDPROPERTYADD")) {
-    if (o != NULL) {o->addProperty(&p); o = NULL; renderingUpdated = true;}
-    ImGui::CloseCurrentPopup();
+  if (strlen(p.name)>0) {
+    if (ImGui::Button("Add##DIALOGADDPROPERTYADD")) {
+      if (o != NULL) {o->addProperty(&p); o = NULL; renderingUpdated = true;}
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
   }
-  ImGui::SameLine();
   if (ImGui::Button("Close##DIALOGADDPROPERTYCLOSE")) {
     ImGui::CloseCurrentPopup();
   }

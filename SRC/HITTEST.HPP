@@ -26,6 +26,7 @@
 
 #include "STL/ARRAY.HPP"
 #include "STL/VECTOR.HPP"
+#include "STL/MATRIX.HPP"
 #include "SERIALZE.HPP"
 
 enum TOOLID {
@@ -59,10 +60,12 @@ public:
     depth = 0;
     point.set(0,0,0);
     index = -1;
+    index2 = -1;
   }
   class GameObject *object;
   int toolId;
   int index;
+  int index2;
   double depth;
   Vector point; 
 };
@@ -74,6 +77,7 @@ extern bool startTool;
 extern int activatedTool;
 extern bool moveToolWorldSpace;
 extern class GameObject *activatedToolObjectBase;
+extern Matrix hitTestInverseModelView;
 
 void prepareMouseHitTest(int mouseX, int mouseY);
 

@@ -156,6 +156,23 @@ bool editProperty(GameObjectProperty *p, int i) {
  return ret;
 }
 
+void bindingReloadAndMakeUnique(GameObject *object, FileBinding *binding,const char *prefix) {
+  ImGui::SameLine(); if (propsButton((String("Reload")+prefix+String("RELOAD")).c_str(),strlen("Reload")+4)) {
+    binding->reload();
+  }
+  int count = 0;
+  for (int i = 0; i < gameObjects.size(); i++) {
+    if (gameObjects[i]->fileBindingId == binding->uniqueId) count++;
+  }
+  if (count > 1) {
+    if (propsButton((String("Make unique")+prefix+String("MAKEUNIQUE")).c_str(),strlen("Make unique")+4)) {
+      FileBinding *binding2 = binding->clone();
+      bindings.push_back(binding2);
+      object->fileBindingId = binding2->uniqueId;
+    }
+  }
+}
+
 void showSkyBoxProperties(GameObject *object) {
   ImGui::Text("Transform");
   Quaternion rotation = object->rotation;
@@ -166,9 +183,7 @@ void showSkyBoxProperties(GameObject *object) {
   ImGui::Text("Binding");
   FileBinding *binding = getBindingById(object->fileBindingId);
   if (binding != NULL) {
-    ImGui::SameLine(); if (propsButton("Reload##SKYBOXPROPRELOAD",strlen("Reload")+4)) {
-      binding->reload();
-    }
+    bindingReloadAndMakeUnique(object,binding,"##SKYBOXPROP");
     if (binding->textureIds.size()==6) {
       ImGui::Text(" Binding ID:%d",binding->uniqueId);
       ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0));
@@ -192,6 +207,14 @@ void showSkyBoxProperties(GameObject *object) {
   ImGui::Separator();
 }
 
+Vector clampScale(const Vector &v) {
+  Vector ret = v;
+  if (ret.x < 0.000001) ret.x = 0.000001;
+  if (ret.y < 0.000001) ret.y = 0.000001;
+  if (ret.z < 0.000001) ret.z = 0.000001;
+  return ret;
+}
+
 void showTransform(GameObject *object, const char *id) {
   ImGui::Text("Transform");
   Vector anchor = object->anchor;
@@ -206,7 +229,7 @@ void showTransform(GameObject *object, const char *id) {
   if (vectorInput("S.",&scaling,(const char*)(String(id)+String("SCALING")).c_str())) {renderingUpdated = true;}
   if (quaternionInput("R.",&rotation,(const char*)(String(id)+String("ROTATION")).c_str())) {renderingUpdated = true;}
   object->translation = translation;  
-  object->scaling = scaling;  
+  object->scaling = clampScale(scaling);  
   object->rotation = rotation;
   colorItem("C.",(const char*)(String(id)+String("COLOR")).c_str(),&object->color, true);
   if (propsButton(("Quantize"+String(id)+"BAKEGRID").c_str(),strlen("Grid off")+14)) {applyGrid(&grids[object->gridId],&object->translation,&object->scaling,&object->rotation); object->useGrid = false; renderingUpdated = true;}
@@ -220,9 +243,7 @@ void showMeshProperties(GameObject *object) {
   ImGui::Text("Binding");
   FileBinding *binding = getBindingById(object->fileBindingId);
   if (binding != NULL) {
-    ImGui::SameLine(); if (propsButton("Reload##MESHPROPRELOAD",strlen("Reload")+4)) {
-      binding->reload();
-    }
+    bindingReloadAndMakeUnique(object,binding,"##MESHPROP");
     if (!binding->triangles.empty()) {
       ImGui::Text(" Binding ID:%d",binding->uniqueId);
       ImGui::Text("Triangles:%d",binding->triangles.size());
@@ -326,7 +347,7 @@ void showCameraProperties(GameObject *object) {
   if (vectorInput("P.",&object->camera.position,"##CAMERAPROPTRANSLATION")) {renderingUpdated = true;}
   if (quaternionInput("R.",&object->camera.rotation,"##CAMERAPROPROTATION")) {renderingUpdated = true;}
   ImGui::PushItemWidth(9*7);
-  ImGui::Text("Size"); ImGui::SameLine(); float k = object->scaling.x; if (ImGui::InputFloat("##CAMERAPROPSCALE",&k)) {renderingUpdated = true;} if (k<0.001) k = 0.001; object->scaling = Vector(k,k,k); 
+  ImGui::Text("Size"); ImGui::SameLine(); float k = object->scaling.x; if (ImGui::InputFloat("##CAMERAPROPSCALE",&k)) {renderingUpdated = true;} if (k<0.001) k = 0.001; object->scaling = clampScale(Vector(k,k,k)); 
   ImGui::Separator();
   if (!object->camera.ortho) {ImGui::Text("Fov"); ImGui::SameLine(); if (ImGui::InputFloat("##CAMERAPROPFOV",&object->camera.fov)) {renderingUpdated = true;}
   } else {ImGui::Text("Ortho scale"); ImGui::SameLine(); if (ImGui::InputFloat("##CAMERAPROPORTHOSCALE",&object->camera.orthoScale)) {renderingUpdated = true;}}
@@ -357,7 +378,7 @@ void showBillboardProperties(GameObject *object) {
   if (isTexture) {ImGui::Text("Rotation"); ImGui::SameLine(); if (ImGui::InputFloat("##BILLBOARDPROPROTATION",&object->billBoardRotation)) {renderingUpdated = true;}}
   ImGui::PushItemWidth(9*7);
   ImGui::Text("Scale"); ImGui::SameLine(); if (ImGui::InputFloat("##BILLBOARDPROPSCALE",&object->billBoardScale)) {renderingUpdated = true;}
-  object->scaling.x = object->scaling.y = object->scaling.z = object->billBoardScale; // just that the anchor gets processed properly
+  object->scaling.x = object->scaling.y = object->scaling.z = object->billBoardScale; object->scaling = clampScale(object->scaling);// just that the anchor gets processed properly
   if (isTexture) {ImGui::Text("Aspect ratio"); ImGui::SameLine(); if (ImGui::InputFloat("##BILLBOARDPROPASPECT",&object->billBoardAspect)) {renderingUpdated = true;}}
   colorItem("C.","##BILLBOARDPROPCOLOR",&object->color, true);
   if (propsButton("Quantize##BILLBOARDPROPBAKEGRID",strlen("Grid off")+14)) {applyGrid(&grids[object->gridId],&object->translation,&object->scaling,&object->rotation); object->useGrid = false; renderingUpdated = true;}
@@ -385,9 +406,7 @@ void showBillboardProperties(GameObject *object) {
 
   ImGui::Text("Binding");
   if (binding != NULL) {
-    ImGui::SameLine(); if (propsButton("Reload##BILLBOARDPROPRELOAD",strlen("Reload")+4)) {
-      binding->reload();
-    }
+    bindingReloadAndMakeUnique(object,binding,"##BILLBOARDPROP");
     if (binding->billBoardIsTexture && binding->textureIds.size()==1) {
       ImGui::Text(" Binding ID:%d",binding->uniqueId);
       bool rescaledWidth = glGetTextureWidth(binding->textureIds[0]) != binding->originalWidth;
@@ -424,6 +443,7 @@ void showPointProperties(GameObject *object) {
   float k=0;
   ImGui::Text("Size"); ImGui::SameLine(); k = object->scaling.x; if (ImGui::InputFloat("##POINTPROPSCALE",&k)) {renderingUpdated = true;}
   object->scaling.x = object->scaling.y = object->scaling.z = k;
+  object->scaling = clampScale(object->scaling);
   ImGui::PopItemWidth();
   colorItem("C.","##POINTROPCOLOR",&object->color, true);
   ImGui::Separator();
@@ -434,9 +454,7 @@ void showTextureGridProperties(GameObject *object) {
   showTransform(object,"##TEXTUREGRIDPROP");
   ImGui::Text("Binding");
   if (binding != NULL) {
-    ImGui::SameLine(); if (propsButton("Reload##TEXTUREGRIDPROPRELOAD",strlen("Reload")+4)) {
-      binding->reload();
-    }
+    bindingReloadAndMakeUnique(object,binding,"##TEXTUREGRIDPROP");
     if (binding->textureIds.size()==1) {
       ImGui::Text(" Binding ID:%d",binding->uniqueId);
       bool rescaledWidth = glGetTextureWidth(binding->textureIds[0]) != binding->originalWidth;
@@ -484,6 +502,15 @@ void showTextureGridProperties(GameObject *object) {
   }
   ImGui::Separator();
   if (binding != NULL && binding->textureIds.size()==1) {
+    if (binding->index2>=0&&binding->index2<binding->floatContent.size()) {
+      ImGui::Text("Heightmap"); 
+      ImGui::PushItemWidth(80);
+      ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.5,0.5,0.5,1));
+      ImGui::Text(" Height");ImGui::SameLine(); if (ImGui::InputFloat("##TEXTUREGRIDPROPEDITHEIGHTA",&binding->floatContent[binding->index2],1,1)) {renderingUpdated = true; binding->recalcTextureGridBoundingBox();}
+      ImGui::PopStyleColor();
+      ImGui::PopItemWidth();
+      ImGui::Separator();
+    }
     if (binding->selected<0)
       ImGui::Text("None selected");
     else

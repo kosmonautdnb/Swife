@@ -69,6 +69,7 @@ public:
     textureAtlasTileCountY = 0;
     selected = -1;
     index = -1;
+    index2 = -1;
     forceTwoSided = false;
   }
   ~FileBinding();
@@ -88,14 +89,18 @@ public:
   int textureAtlasTileCountY;
   int selected;
   int index;
+  int index2;
   bool forceTwoSided;
   Array<unsigned int> textureIds;
   Array<BakedVertex> triangles;
   Array<unsigned int> uintContent;
+  Array<float> floatContent;
   class SpriteObject *spriteObject;
   void load(const char *fileName, unsigned int type);
   bool reload();
   void free();
+  FileBinding *clone();
+  void recalcTextureGridBoundingBox();
   void resizeTextureGrid(int ofsX, int ofsY, int newX, int newY);
 };
 #define S_FILEBINDING(__name__,__o__)\
@@ -116,8 +121,10 @@ public:
   S_INT("textureAtlasTileCountY",(__o__)->textureAtlasTileCountY);\
   S_INT("selected",(__o__)->selected);\
   S_INT("index",(__o__)->index);\
+  S_INT("index2",(__o__)->index2);\
   S_BOOL("forceTwoSided",(__o__)->forceTwoSided);\
   S_ARRAY("uintContent",(__o__)->uintContent,S_UINT(NULL,(__o__)->uintContent[i]));\
+  S_ARRAY("floatContent",(__o__)->floatContent,S_FLOAT(NULL,(__o__)->floatContent[i]));\
   S_OBJECT_CLOSE();
 
 extern Array<FileBinding*> bindings;

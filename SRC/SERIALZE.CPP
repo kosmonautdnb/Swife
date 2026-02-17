@@ -460,8 +460,27 @@ void FileBinding::free() {
   if (spriteObject != 0) {freeSpriteObject(spriteObject); delete spriteObject; spriteObject = NULL;}
 }
 
+FileBinding *FileBinding::clone() {
+  FileBinding *ret = new FileBinding();
+  unsigned int id = ret->uniqueId;
+  *ret = *this;
+  ret->uniqueId = id;
+  return ret;
+}
+
+void FileBinding::recalcTextureGridBoundingBox() {
+  boundingBoxMin.set(-1,-1,-1);
+  boundingBoxMax.set(1,1,1);
+  for (int i = 0; i < floatContent.size(); i++) {
+    float f = floatContent[i];
+    if (f < boundingBoxMin.y) boundingBoxMin.y = f;
+    if (f > boundingBoxMax.y) boundingBoxMax.y = f;
+  }
+}
+
 void FileBinding::resizeTextureGrid(int ofsX, int ofsY, int newX, int newY) {
   Array<unsigned int> zwo; zwo.resize(newX*newY);
+  Array<float> zwo2; zwo2.resize((newX+1)*(newY+1));
   for (int y = 0; y < newY; y++) {
     for (int x = 0; x < newX; x++) {
       int sx = x+ofsX;
@@ -476,9 +495,25 @@ void FileBinding::resizeTextureGrid(int ofsX, int ofsY, int newX, int newY) {
       zwo[x+y*newX] = c;
     }
   }
+  for (int y2 = 0; y2 < newY+1; y2++) {
+    for (int x2 = 0; x2 < newX+1; x2++) {
+      int sx = x2+ofsX;
+      int sy = y2+ofsY;
+      float f = 0;
+      if (sx>=0&&sx<(textureGridWidth+1)&&sy>=0&&sy<(textureGridHeight+1)) {
+        int k = sx + sy*(textureGridWidth+1);
+        if (k<floatContent.size()) {
+          f = floatContent[k];
+        }
+      }
+      zwo2[x2+y2*(newX+1)] = f;
+    }
+  }
   uintContent = zwo;
+  floatContent = zwo2;
   textureGridWidth = newX;
   textureGridHeight = newY;
+  recalcTextureGridBoundingBox();
 }
 
 unsigned int bindingUniqueId = 1;
