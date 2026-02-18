@@ -39,6 +39,8 @@ extern bool toolOn;
 extern bool showOverlays;
 extern Array<Overlay> overlays;
 extern Vector cursor;
+extern Vector cursorNormal;
+extern bool placeCursor;
 
 void setOrthoLookTo(double x, double y, double z);
 void centerSelection();

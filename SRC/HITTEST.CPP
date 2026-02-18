@@ -222,6 +222,7 @@ void addHitTestTriangles(class GameObject *o, int toolId, Array<BakedVertex> *tr
           h.point = collisionPoint;
           h.object = o;
           h.toolId = toolId;
+          h.normal = normalize(cross(t1-t0,t2-t0)); 
           hits.push_back(h);
         }
       }

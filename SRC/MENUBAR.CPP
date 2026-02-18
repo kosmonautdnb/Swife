@@ -29,6 +29,7 @@
 #include "DIALOGS.HPP"
 #include "GAMEOBJ.HPP"
 #include "VIEWPORT.HPP"
+#include "TOOLBAR.HPP"
 #include "RENDER.HPP"
 #include "HITTEST.HPP"
 #include "SVG.HPP"
@@ -90,6 +91,8 @@ void drawMenuBar() {
       ImGui::Separator();
       bool selected = false;
       selected = moveToolWorldSpace; if (ImGui::MenuItem("Movetool is in worldspace","",&selected)) {moveToolWorldSpace = !moveToolWorldSpace; renderingUpdated = true;}
+      ImGui::Separator();
+      selected = placeCursor; if (ImGui::MenuItem("Place cursor","",&selected, mode == MODE_SELECT)) {placeCursor = !placeCursor; renderingUpdated = true;}
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("View")) {

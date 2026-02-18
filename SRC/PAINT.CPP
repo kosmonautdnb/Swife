@@ -717,6 +717,8 @@ void paintTextureGrid(class GameObject *o, bool showModificators) {
   Vector gizmoPos;
   bool hasGizmo = false;
 
+  Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m);
+
   glBegin(GL_QUADS);
   unsigned int col = o->color;
   glColor4f((col & 255)/255.f,((col>>8) & 255)/255.f,((col>>16) & 255)/255.f,((col>>24) & 255)/255.f);
@@ -768,6 +770,7 @@ void paintTextureGrid(class GameObject *o, bool showModificators) {
               h.toolId = HITTESTTOOL_TEXTUREGRIDPAINT;
               h.index = x + z * binding->textureGridWidth;
               h.index2 = x+(((k-1)&3)/2) + (z+k/2) * (binding->textureGridWidth+1);
+              h.normal = normalize(inverse(transpose(inverse(cameraMatrix)*modelView))*n);
               hits.push_back(h);
             }
             Hit h2;
@@ -775,6 +778,7 @@ void paintTextureGrid(class GameObject *o, bool showModificators) {
             h2.point = collisionPoint;
             h2.object = o;
             h2.toolId = HITTESTTOOL_NONE;
+            h2.normal = normalize(inverse(transpose(inverse(cameraMatrix)*modelView))*n);
             hits.push_back(h2);
           }
         }
@@ -855,4 +859,35 @@ void paintTextureGrid(class GameObject *o, bool showModificators) {
     glEnable(GL_CULL_FACE);
     if (lightingWasOn) glEnable(GL_LIGHTING); else glDisable(GL_LIGHTING);
   }
+}
+
+void paintCursor() {
+  Vector pos = cursor;
+  Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX,modelView.m);
+  Matrix projection; glGetDoublev(GL_PROJECTION_MATRIX,projection.m);
+  Vector screenSpace = projection * modelView * pos;
+  if (screenSpace.w != 0) {screenSpace /= screenSpace.w; screenSpace.w = 1;}
+  double rad = main_window_xres/50;
+  Vector screenSpaceP = inverse(modelView) * inverse(projection) * screenSpace;
+  Vector screenSpaceX = inverse(modelView) * inverse(projection) * (screenSpace+Vector(rad/main_window_xres,0,0));
+  if (screenSpaceP.w != 0) {screenSpaceP /= screenSpaceP.w; screenSpaceP.w = 1;}
+  if (screenSpaceX.w != 0) {screenSpaceX /= screenSpaceX.w; screenSpaceX.w = 1;}
+  double radius = length(screenSpaceX-screenSpaceP);
+  Matrix invModelView = inverse(modelView);
+  Vector tangent = normalize(invModelView.getColumn(0));
+  Vector cotangent = normalize(invModelView.getColumn(1));
+  int steps = 20;
+  glBegin(GL_LINES);
+  glColor4f(1,0,0,1);
+  for (int i = 0; i < steps; i++) {
+    float angle = i * 2.0 * PI / steps;
+    Vector p = pos;
+    p += sin(angle)*tangent*radius + cos(angle)*cotangent*radius;
+    glVertex3dv(&p.x);
+  }
+  glEnd();
+  glBegin(GL_POINTS);
+  glColor4f(1,1,1,1);
+  glVertex3dv(&pos.x);
+  glEnd();
 }

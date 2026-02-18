@@ -122,12 +122,9 @@ void drawToolBar() {
   ImGui::SameLine();
   for (int i = 0; i < toolBarButtons.size(); i++) {
     if (i != 0) ImGui::SameLine();
+    if (toolBarButtons[i].isSingle()) toolBarButtons[i].selected = mode == toolBarButtons[i].mode;
     if (toolBarButtons[i].paint(IDINDEXED("##DRAWTOOLBARBUTTONID",i))) {
-      if (toolBarButtons[i].isSingle()) {
-        for (int j = 0; j < toolBarButtons.size(); j++) if (toolBarButtons[j].isSingle()) toolBarButtons[j].selected = false;
-        toolBarButtons[i].selected = !toolBarButtons[i].selected;
-        if (toolBarButtons[i].selected) mode = toolBarButtons[i].mode;
-      }
+      if (toolBarButtons[i].isSingle()) mode = toolBarButtons[i].mode;
     }
   }
   ImGui::SameLine();

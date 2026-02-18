@@ -35,6 +35,7 @@
 #include "SERIALZE.HPP"
 #include "PROPS.HPP"
 #include "PAINT.HPP"
+#include "VIEWPORT.HPP"
 #include <math.h>
 
 typedef void (*LOADSAVEFUNC)(const char *shortPath, const char *longFileName);
@@ -120,9 +121,14 @@ void dialogQuit(bool openIt) {
   DIALOGEND()
 }
 
-void setXZ(GameObject *o, float x, float z) {
+void setScalingXZ(GameObject *o, float x, float z) {
   o->scaling.x = x * 0.5;
   o->scaling.z = z * 0.5;
+}
+
+void getTransformForGameObjectFromCursor(GameObject *o) {
+  o->translation = cursor;
+  o->rotation = rotationMatrixToQuaternion(rotationMatrixFromNormal(cursorNormal));
 }
 
 void dialogAddObject(bool openIt, unsigned int type) {
@@ -155,7 +161,8 @@ void dialogAddObject(bool openIt, unsigned int type) {
       o->selected = true;
       o->outlinerShouldFocusThis = true;
       o->layers = outlinerLayers;
-      if (t == GAMEOBJECT_TEXTUREGRID) setXZ(o,sizeX,sizeZ);
+      getTransformForGameObjectFromCursor(o);
+      if (t == GAMEOBJECT_TEXTUREGRID) setScalingXZ(o,sizeX,sizeZ);
       for (int i = 0; i < gameObjects.size(); i++) gameObjects[i]->selected = false;
       gameObjects.insert(o,pos);
       unsigned int k = DIALOG_NONE;
@@ -177,7 +184,8 @@ void dialogAddObject(bool openIt, unsigned int type) {
     o->selected = true;
     o->outlinerShouldFocusThis = true;
     o->layers = outlinerLayers;
-      if (t == GAMEOBJECT_TEXTUREGRID) setXZ(o,sizeX,sizeZ);
+    getTransformForGameObjectFromCursor(o);
+    if (t == GAMEOBJECT_TEXTUREGRID) setScalingXZ(o,sizeX,sizeZ);
     for (int i = 0; i < gameObjects.size(); i++) gameObjects[i]->selected = false;
     gameObjects.insert(o,pos);
     if (t == GAMEOBJECT_CAMERA) o->setCamera(&cameras[currentCamera]);

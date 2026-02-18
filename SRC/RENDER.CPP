@@ -446,25 +446,27 @@ void disableRenderMouseClicks() {
 }
 
 void handleHitTest() {
+  static double lastDepth = 0;
+  Hit *h = getNearestHit(&selectionCounter,lastDepth);
+  Hit *h2 = getNearestToolHit();
+
   GLboolean shift,ctrl,alt;
   glSpecialKeys(&shift,&ctrl,&alt);
 
   if (startTool) {
-    Hit *h = getNearestToolHit();
-    if (h != NULL) {
+    if (h2 != NULL) {
       if (activatedToolObjectBase != NULL) {delete activatedToolObjectBase; activatedToolObjectBase = NULL;}
-      activatedToolObjectBase = h->object->clone();
-      activatedTool = h->toolId;
+      activatedToolObjectBase = h2->object->clone();
+      activatedTool = h2->toolId;
       renderingUpdated = true;
     }
   }
 
   switch(mode) {
     case MODE_SELECT: {
-      static double lastDepth = 0;
-      Hit *h = getNearestHit(&selectionCounter,lastDepth); selectionCounter++;
-      lastDepth = h->depth;
+      selectionCounter++; lastDepth = h->depth;
       if (h != NULL) {
+        if (placeCursor) {cursor = h->point; cursorNormal = h->normal;}
         if (shift) h->object->selected = true;
         else
         if (ctrl) h->object->selected = false;
@@ -478,7 +480,6 @@ void handleHitTest() {
       }
       renderingUpdated = true;
 
-      Hit *h2 = getNearestToolHit();
       switch(h2->toolId) {
         case HITTESTTOOL_TEXTUREGRIDPAINT: {
           GameObject *o = h2->object;
@@ -741,6 +742,7 @@ void drawScene() {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glDepthFunc(GL_LEQUAL);      
+    glPointSize(3);
 
     lightSetup(lightOn);
     paintBillBoardContents();
@@ -763,6 +765,7 @@ void drawScene() {
     drawLinks();
     drawGameObjects();
     lightSetup(false);
+    paintCursor();
     renderedTriangles = glDrawnTrianglesFrame;
 
     drawSelecting(tiny);

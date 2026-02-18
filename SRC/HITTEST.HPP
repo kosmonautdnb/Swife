@@ -59,6 +59,7 @@ public:
     toolId = 0;
     depth = 0;
     point.set(0,0,0);
+    normal.set(0,1,0);
     index = -1;
     index2 = -1;
   }
@@ -68,6 +69,7 @@ public:
   int index2;
   double depth;
   Vector point; 
+  Vector normal;
 };
 
 extern Array<Hit> hits;

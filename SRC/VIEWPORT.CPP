@@ -43,6 +43,8 @@ bool toolOn = false;
 bool showOverlays = true;
 Array<Overlay> overlays;
 Vector cursor(0,0,0);
+Vector cursorNormal(0,1,0);
+bool placeCursor = true;
 
 float minScale = 0.0001;
 Vector moveV(0,0,0); bool move_negate = false;
@@ -229,13 +231,16 @@ void setOrthoLookTo(double x, double y, double z) {
 
 namespace ImGui {
   void Text2(const char *text) {
-    ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(1,1,1,1));
     ImVec2 c = ImGui::GetCursorScreenPos();
-    //c.x += 1;
+    c.x += 1;
     c.y += 1;
     ImGui::GetWindowDrawList()->AddText(ImGui::GetWindowFont(),ImGui::GetWindowFontSize(),ImVec2(c.x,c.y),0xc0000000,text);
-    ImGui::Text("%s",text);
-    ImGui::PopStyleColor();
+    c.x -= 1;
+    c.y -= 1;
+    ImGui::GetWindowDrawList()->AddText(ImGui::GetWindowFont(),ImGui::GetWindowFontSize(),ImVec2(c.x,c.y),0xffffffff,text);
+    String text2 = text;
+    for (int i = 0; i < text2.length(); i++) text2[i] = ' ';
+    ImGui::Text(text2.c_str());
   }
 }
 
@@ -248,13 +253,14 @@ void drawViewport() {
   ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.5,0.5,0.5,1));
   bool one = false; for (int i2 = 0; i2 < gameObjects.size(); i2++) if (gameObjects[i2]->selected && gameObjects[i2]->type != GAMEOBJECT_SECTION) {one=true; break;}
   if (one && mode != MODE_UNDEFINED && mode != MODE_SELECT) {
-    if (ImGui::Checkbox("Tool##VIEWPORTTOOLON",&toolOn)) {;}
+    ImGui::Text2("Tool"); ImGui::SameLine();
+    if (ImGui::Checkbox("##VIEWPORTTOOLON",&toolOn)) {;}
     if (toolOn) {
       ImGui::PushItemWidth(15*7);
       switch(mode) {
       case MODE_MOVE: {
         if (ImGui::Button("Clear##VIEWPORTMOVECLEAR")) {moveV.set(0,0,0); move_negate = false;}
-        vectorInput("MoveXYZ",&moveV,"##VIEWPORTMOVE");
+        ImGui::SameLine();ImGui::Text2("MoveXYZ"); ImGui::SameLine(); vectorInput("",&moveV,"##VIEWPORTMOVE");
         if (ImGui::Button(!move_negate ? "Add##VIEWPORTMOVEAPPLY" : "Sub##VIEWPORTMOVEAPPLY")) {
           moveBy(moveV.x,moveV.y,moveV.z, move_negate);
         }
@@ -267,7 +273,7 @@ void drawViewport() {
       } break;
       case MODE_SCALE: {
         if (ImGui::Button("Clear##VIEWPORTSCALECLEAR")) {scaleV.set(1,1,1); scale_negate = false;}
-        vectorInput("ScaleXYZ",&scaleV,"##VIEWPORTSCALE");
+        ImGui::SameLine();ImGui::Text2("ScaleXYZ"); ImGui::SameLine(); vectorInput("",&scaleV,"##VIEWPORTSCALE");
         if (scaleV.x < minScale) scaleV.x = minScale;
         if (scaleV.y < minScale) scaleV.y = minScale; 
         if (scaleV.z < minScale) scaleV.z = minScale;
@@ -278,7 +284,7 @@ void drawViewport() {
       } break;
       case MODE_ROTATE: {
         if (ImGui::Button("Clear##VIEWPORTROTCLEAR")) {rotateV.set(0,0,0); rotate_negate = false;}
-        vectorInput("RotABC",&rotateV,"##VIEWPORTROT");
+        ImGui::SameLine();ImGui::Text2("RotABC"); ImGui::SameLine(); vectorInput("",&rotateV,"##VIEWPORTROT");
         if (ImGui::Button(!rotate_negate ? "Add##VIEWPORTROTAPPLY" : "Sub##VIEWPORTROTAPPLY")) {
           rotateBy(rotateV.x,rotateV.y,rotateV.z,rotate_negate);
         }
@@ -293,14 +299,19 @@ void drawViewport() {
     ImGui::Text2("Camera"); ImGui::SameLine();
     if (ImGui::Checkbox("##VIEWPORTOVERLAYON",&viewportOn)) {;}
     if (viewportOn) {
-      ImGui::SameLine(); if (vectorInput("Cursor",&cursor,"##VIEWPORTCURSOR")) {renderingUpdated = true;}
+      ImGui::SameLine(); ImGui::Text2("Cursor"); ImGui::SameLine(); if (vectorInput("",&cursor,"##VIEWPORTCURSOR")) {renderingUpdated = true; cursorNormal.set(0,1,0);} 
+      ImGui::SameLine(); bool isUp = cursorNormal == Vector(0,1,0); ImGui::Text2("Upwards"); ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTCURSORNORMALUP",&isUp)) {if (isUp) {cursorNormal.set(0,1,0); renderingUpdated = true;}}
+      if (mode == MODE_SELECT) {
+        ImGui::SameLine(); ImGui::Text2("Place cursor"); 
+        ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTPLACECURSOR",&placeCursor)) {renderingUpdated = true;}
+      }
       ImGui::BeginChild("VIEWPORTSETTING");
       Camera *c = &cameras[currentCamera];
       float k;
       ImGui::PushItemWidth(15*7);
-      if (vectorInput("PosXYZ",&c->position,"##VIEWPORTCAM")) {renderingUpdated = true;}
+       ImGui::Text2("PosXYZ"); ImGui::SameLine(); if (vectorInput("",&c->position,"##VIEWPORTCAM")) {renderingUpdated = true;}
       Vector yawPitchRoll = c->rotation.getYawPitchRoll()*180/PI;
-      if (vectorInput("RotABC",&yawPitchRoll,"##VIEWPORTYAWPITCHROLL")) {
+       ImGui::Text2("RotABC"); ImGui::SameLine(); if (vectorInput("",&yawPitchRoll,"##VIEWPORTYAWPITCHROLL")) {
         yawPitchRoll *= PI/180;
         c->rotation.yawPitchRoll(yawPitchRoll.x,yawPitchRoll.y,yawPitchRoll.z);
         renderingUpdated = true;
