@@ -41,12 +41,13 @@
 typedef void (*LOADSAVEFUNC)(const char *shortPath, const char *longFileName);
 const char *images = ".png,.jpg,.tga,.bmp,.psd,.gif,.pic,.pnm,.hdr";
 const char *meshes = ".obj";
+const char *csv = ".csv";
 const char *imagesAndMeshes = ".png,.jpg,.tga,.bmp,.psd,.gif,.pic,.pnm,.hdr,.obj";
-const char *dialogCaption[DIALOG_COUNT] = {"NO MODE","Load a scene","Save a scene","Load a skybox","Load a mesh","Load a billboard","Load a texturegrid"};
-const char *proceedButton[DIALOG_COUNT] = {"<button>", "Load", "Save","Load","Load","Load","Load"};
-const char *dialogFileTypes[DIALOG_COUNT] = {"",".sfs",".sfs",images,meshes,imagesAndMeshes,images};
-const char *dialogDefaultExtension[DIALOG_COUNT] = {"",".SFS",".SFS","","","",""};
-LOADSAVEFUNC funcs[DIALOG_COUNT] = {NULL, loadScene, saveScene, loadSkyBox, loadMesh, loadBillBoard,loadTextureGrid};
+const char *dialogCaption[DIALOG_COUNT] = {"NO MODE","Load a scene","Save a scene","Load a skybox","Load a mesh","Load a billboard texture","Load a texturegrid texture","Load a texturegrid CSV","Save a texturegrid CSV"};
+const char *proceedButton[DIALOG_COUNT] = {"<button>", "Load", "Save","Load","Load","Load","Load","Load","Save"};
+const char *dialogFileTypes[DIALOG_COUNT] = {"",".sfs",".sfs",images,meshes,imagesAndMeshes,images,csv,csv};
+const char *dialogDefaultExtension[DIALOG_COUNT] = {"",".SFS",".SFS","","","","",".CSV",".CSV"};
+LOADSAVEFUNC funcs[DIALOG_COUNT] = {NULL, loadScene, saveScene, loadSkyBox, loadMesh, loadBillBoard,loadTextureGrid,loadTextureGridCSV,saveTextureGridCSV};
 
 
 #define DIALOGSTART(__name__) static int keyboardFocusNew = 0; static bool openItNextTime = false;  if (openIt) {openItNextTime = true; keyboardFocusNew = 2; return;}  if (openItNextTime) {openItNextTime = false; ImGui::OpenPopup(__name__); } ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0,0,0,1)); ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(1,1,1,1); if (ImGui::BeginPopupModal(__name__,NULL,ImGuiWindowFlags_AlwaysAutoResize)) { ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(0,0,0,1); ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.4,0.4,0.4,1));disableRenderMouseClicks();

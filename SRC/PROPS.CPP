@@ -501,6 +501,13 @@ void showTextureGridProperties(GameObject *object) {
     dialogLoadSaveSetFileNameAndPath = binding == NULL ? "" : binding->fileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADTEXTUREGRID);
   }
   ImGui::Separator();
+  if (binding != NULL) {
+    if (propsButton("export##TEXTUREGRIDPROPEXPORTCSV",strlen("export")+4)) {dialogLoadSaveSetFileNameAndPath = ""; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_SAVETEXTUREGRIDCSV); renderingUpdated = true;}
+    ImGui::SameLine();
+  }
+  if (propsButton("import##TEXTUREGRIDPROPIMPORTCSV",strlen("import")+2+strlen("export")+4)) {dialogLoadSaveSetFileNameAndPath = ""; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADTEXTUREGRIDCSV); renderingUpdated = true;}
+  ImGui::Separator();
+
   if (binding != NULL && binding->textureIds.size()==1) {
     if (binding->index2>=0&&binding->index2<binding->floatContent.size()) {
       ImGui::Text("Heightmap"); 
@@ -531,7 +538,6 @@ void showTextureGridProperties(GameObject *object) {
       ImGui::ImageButton((ImTextureID)binding->textureIds[0],ImVec2(w,w*aspectRatio*main_window_yres/main_window_xres),ImVec2(tx0,ty0),ImVec2(tx1,ty1),-1,ImVec4(0,0,0,1));
       ImGui::PopID();
     }
-
     ImGui::Separator();
     int tileCount = binding->textureAtlasTileCountX*binding->textureAtlasTileCountY;
     if (tileCount > 4096) tileCount = 4096;

@@ -145,7 +145,8 @@ void loadBillBoardForObject(class GameObject *o, const char *fileName);
 void loadBillBoard(const char *path, const char *fileName);
 void loadTextureGridForObject(class GameObject *o, const char *fileName);
 void loadTextureGrid(const char *path, const char *fileName);
-
+void loadTextureGridCSV(const char *path, const char *fileName);
+void saveTextureGridCSV(const char *path, const char *fileName);
 void serializeAll(FILE *file, bool save);
 
 #endif //__SERIALZE_HPP__

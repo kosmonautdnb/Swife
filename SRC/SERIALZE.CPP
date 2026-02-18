@@ -570,21 +570,28 @@ void loadScene(const char *path, const char *fileName) {
   renderingUpdated = true;
 }
 
-void saveScene(const char *path, const char *fileName) {
-  String fileName2 = fileName;
+FILE *createTempFile(const char *path) {
+  String tempName = String(path)+"TMP.TMP"; dosRemoveFile(tempName.c_str());
+  return fopen(dosFileName(tempName).c_str(),"w");
+}
+
+void renameTempFile(const char *path, const char *fileName) {
   String tempName = String(path)+"TMP.TMP";
-  dosRemoveFile(tempName.c_str());
-  String fullName = String(path) + fileName2;
-  FILE *out = fopen(dosFileName(tempName).c_str(),"w");
-  if (out == NULL) return;
-  serializeAll(out, true);
-  fclose(out);
+  String fullName = String(path) + fileName;
   if (!doslfnDeleteFiles(fullName.c_str(),false)) {
     dosRemoveFile(fullName.c_str());
   }
   if (!doslfnRename(tempName.c_str(),fullName.c_str())) {
     rename(tempName.c_str(),fullName.c_str());
   }
+}
+
+void saveScene(const char *path, const char *fileName) {
+  FILE *out = createTempFile(path);
+  if (out == NULL) return;
+  serializeAll(out, true);
+  fclose(out);
+  renameTempFile(path,fileName);
 }
 
 void loadSkyBoxForObject(class GameObject *o, const char *fileName) {
@@ -658,4 +665,93 @@ void loadTextureGrid(const char *path, const char *fileName) {
   if (j<0) return;
   GameObject *o = gameObjects[j];
   loadTextureGridForObject(o,shortFileName(String(path)+String(fileName)).c_str());
+}
+
+void loadTextureGridCSV(const char *path, const char *fileName) {
+  int j = getObjectIdByUniqueId(dialogLoadSaveGameObjectUniqueId);
+  if (j<0) return;
+
+  String fullName = String(path) + fileName;
+  FILE *in = fopen(dosFileName(shortFileName(fullName)).c_str(),"rb");
+  if (in == NULL) return;
+  Array<char> csvSource; loadArray(&csvSource,in);
+  fclose(in);
+  Array<String> csvData;
+  String particle;
+  for (int i = 0; i < csvSource.size(); i++) {
+    char c = csvSource[i];
+    if (c == 0x0d || c == 0x0a) continue;
+    if (c == ',' || c == ';') {
+      csvData.push_back(particle); particle = "";
+    } else {
+      particle += String::fromChar(c);
+    }
+  }
+  if (!particle.empty()) csvData.push_back(particle);
+
+  GameObject *o = gameObjects[j];
+  FileBinding *binding = getBindingById(o->fileBindingId);
+  if (binding == NULL) {
+    binding = newBinding();
+    binding->type = FILETYPE_TEXTUREGRID;
+    o->fileBindingId = binding->uniqueId;
+  }
+
+  if (csvData.size()>=20&&csvData[0]=="Swife texture grid CSV") {
+    binding->fileName = fromLocalFileName(csvData[2]);
+    binding->reload();
+    binding->textureAtlasTileWidth = csvData[4].toInt();
+    binding->textureAtlasTileHeight = csvData[6].toInt();
+    binding->textureAtlasTileCountX = csvData[8].toInt();
+    binding->textureAtlasTileCountY = csvData[10].toInt();
+    binding->textureGridWidth = csvData[12].toInt();
+    binding->textureGridHeight = csvData[14].toInt();
+    binding->uintContent.resize(binding->textureGridWidth*binding->textureGridHeight);
+    for (int i1 = 0; i1 < binding->uintContent.size(); i1++) {
+      int tx = csvData[20+i1*2].toInt();
+      int ty = csvData[21+i1*2].toInt();
+      binding->uintContent[i1] = tx + ty * 0x4000;
+    }
+    int floatOffset = 20 + binding->uintContent.size()*2 + 1;
+    binding->floatContent.resize((binding->textureGridWidth+1)*(binding->textureGridHeight+1));
+    for (int i2 = 0; i2 < binding->floatContent.size(); i2++) {
+      binding->floatContent[i2] = csvData[floatOffset+i2].toFloat();
+    }
+  }
+}
+
+void saveTextureGridCSV(const char *path, const char *fileName) {
+  int j = getObjectIdByUniqueId(dialogLoadSaveGameObjectUniqueId);
+  if (j<0) return;
+  GameObject *o = gameObjects[j];
+  FileBinding *binding = getBindingById(o->fileBindingId);
+  if (binding == NULL) return;
+  FILE *out = createTempFile(path);
+  if (out == NULL) return;
+  fprintf(out,"Swife texture grid CSV;\n");
+  fprintf(out,"Texture filename, %s;\n", toLocalFileName(binding->fileName).c_str());
+  fprintf(out,"Texture atlas tile width, %d;\n", binding->textureAtlasTileWidth);
+  fprintf(out,"Texture atlas tile height, %d;\n", binding->textureAtlasTileHeight);
+  fprintf(out,"Texture atlas count x, %d;\n", binding->textureAtlasTileCountX);
+  fprintf(out,"Texture atlas count y, %d;\n", binding->textureAtlasTileCountY);
+  fprintf(out,"Tile typemap width, %d;\n", binding->textureGridWidth);
+  fprintf(out,"Tile typemap height, %d;\n", binding->textureGridHeight);
+  fprintf(out,"Tile heightmap width, %d;\n", binding->textureGridWidth+1);
+  fprintf(out,"Tile heightmap height, %d;\n", binding->textureGridHeight+1);
+  fprintf(out,"Typemap;\n");
+  for (int i1 = 0; i1 < binding->uintContent.size(); i1++) {
+    unsigned int k = binding->uintContent[i1];
+    int tx = k & 0x3fff;
+    int ty = k / 0x4000;
+    fprintf(out,"%d,%d;",tx,ty);
+  }
+  fprintf(out,"\n");
+  fprintf(out,"Heightmap;\n");
+  for (int i2 = 0; i2 < binding->floatContent.size(); i2++) {
+    float k = binding->floatContent[i2];
+    fprintf(out,"%f;",k);
+  }
+  fprintf(out,"\n");
+  fclose(out);
+  renameTempFile(path, fileName);
 }
