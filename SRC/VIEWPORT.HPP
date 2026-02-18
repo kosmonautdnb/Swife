@@ -24,6 +24,7 @@
 #ifndef __VIEWPORT_HPP__
 #define __VIEWPORT_HPP__
 
+#include "STL/VECTOR.HPP"
 #include "STL/ARRAY.HPP"
 #include "STL/STRING.HPP"
 
@@ -37,6 +38,7 @@ public:
 extern bool toolOn;
 extern bool showOverlays;
 extern Array<Overlay> overlays;
+extern Vector cursor;
 
 void setOrthoLookTo(double x, double y, double z);
 void centerSelection();

@@ -600,6 +600,10 @@ void dialogColor(bool openIt, unsigned int *color) {
   DIALOGEND()
 }
 
+unsigned int swapRB(unsigned int color) {
+  return (color & 0xff00ff00)|((color>>16)&0x000000ff)|((color<<16)&0x00ff0000);
+}
+
 void colorItem(const String &name, const String &id, unsigned int *color, bool colorPicker) {
   ImVec4 cl = ImVec4(((*color)&255)/255.0,((*color>>8)&255)/255.0,((*color>>16)&255)/255.0,((*color>>24)&255)/255.0);
   if (colorPicker) {
@@ -614,7 +618,7 @@ void colorItem(const String &name, const String &id, unsigned int *color, bool c
   ImGui::Text("%s#",name.c_str());
   ImGui::SameLine();
   static char colorText[11];
-  sprintf(colorText,"%08x",*color);
+  sprintf(colorText,"%08x",swapRB(*color));
   for (int i = 0; i < strlen(colorText); i++) if (colorText[i]>='a'&&colorText[i]<='f') colorText[i]=(char)((colorText[i]-'a')+'A');
   ImGui::PushItemWidth(7*8);
   if (ImGui::InputText(id.c_str(),colorText,9)) {
@@ -626,6 +630,7 @@ void colorItem(const String &name, const String &id, unsigned int *color, bool c
       if (c>='a'&&c<='f') value += c-'a'+10;
       if (c>='A'&&c<='F') value += c-'A'+10;
     }
+    value = swapRB(value);
     if (*color != value) renderingUpdated = true;
     *color = value;
   }
