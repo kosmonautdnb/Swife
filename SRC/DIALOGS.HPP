@@ -43,7 +43,7 @@ void dialogSelectInvisible(bool openIt);
 void dialogColor(bool openIt, unsigned int *color);
 void dialogObjectTextures(bool openIt);
 
-void colorItem(const char *name, const char *id, unsigned int *color, bool colorPicker);
+void colorItem(const String &name, const String &id, unsigned int *color, bool colorPicker);
 
 enum DIALOGMODE {
   DIALOG_NONE = 0,

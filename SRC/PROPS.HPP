@@ -24,10 +24,12 @@
 #ifndef __PROPS_HPP__
 #define __PROPS_HPP__
 
+#include "STL/STRING.HPP"
+
 extern int properties_width;
 
-bool vectorInput(const char *name,class Vector *v, const char *dcl);
-bool quaternionInput(const char *name,class Quaternion *q, const char *dcl);
+bool vectorInput(const String &name,class Vector *v, const String &dcl);
+bool quaternionInput(const String &name,class Quaternion *q, const String &dcl);
 
 void drawProperties();
 

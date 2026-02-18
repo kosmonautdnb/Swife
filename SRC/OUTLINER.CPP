@@ -77,9 +77,9 @@ void objectSelect(unsigned int i) {
 
   bool selected = gameObjects[i]->selected;
   if (t == GAMEOBJECT_SECTION) { 
-    if (ImGui::Checkbox((const char*)(String("##OBJECTSELECTSECTION")+String::fromInt(i)).c_str(),&gameObjects[i]->sectionOn)) {renderingUpdated = true;}
+    if (ImGui::Checkbox(IDINDEXED("##OBJECTSELECTSECTION",i),&gameObjects[i]->sectionOn)) {renderingUpdated = true;}
     ImGui::SameLine();
-    if (ImGui::Checkbox((const char*)(String("##OBJECTSELECTSECTIONVISIBLE")+String::fromInt(i)).c_str(),&gameObjects[i]->sectionVisible)) {renderingUpdated = true;}
+    if (ImGui::Checkbox(IDINDEXED("##OBJECTSELECTSECTIONVISIBLE",i),&gameObjects[i]->sectionVisible)) {renderingUpdated = true;}
     ImGui::SameLine();
     sectionOn = gameObjects[i]->sectionOn;
     sectionVisible = gameObjects[i]->sectionVisible;
@@ -98,12 +98,12 @@ void objectSelect(unsigned int i) {
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered,ImVec4(0.8,0.8,0.8,1));
 
   if (gameObjects[i]->type == GAMEOBJECT_LINK) {
-    ImGui::Checkbox((const char*)(String("##OBJECTSELECTLINK")+String::fromInt(i)).c_str(),&gameObjects[i]->showLinks);
+    ImGui::Checkbox(IDINDEXED("##OBJECTSELECTLINK",i),&gameObjects[i]->showLinks);
     ImGui::SameLine();
   }
 
   bool empty = strlen(gameObjects[i]->name) == 0;
-  if (ImGui::Button((const char*)(String(empty ? NONAME : gameObjects[i]->name)+String("##OBJECTSELECT")+String::fromInt(i)).c_str())) {
+  if (ImGui::Button(IDINDEXED(String(empty ? NONAME : gameObjects[i]->name)+String("##OBJECTSELECT"),i))) {
     GLboolean shift,ctrl,alt;
     glSpecialKeys(&shift,&ctrl,&alt);
     if (!shift) {

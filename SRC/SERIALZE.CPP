@@ -410,7 +410,7 @@ bool FileBinding::reload() {
   renderingUpdated = true;
   switch(type) {
   case FILETYPE_SKYBOX: {RGBAImage s = RGBAImage::fromFile(dosFileName(fileName).c_str());
-      if (s.data == NULL) {dialogMessage(true,(const char*)(String("Couldn't load file:<")+fileName+">").c_str()); return false;}
+      if (s.data == NULL) {String nm = String("Couldn't load file:<")+fileName+">";dialogMessage(true,nm.c_str()); return false;}
       textureIds.resize(6); 
       skyBoxFromHorizontalCrossImage(&textureIds[0], &s);
       s.free();
@@ -435,12 +435,13 @@ bool FileBinding::reload() {
         createSpriteObjectFrameBuffer(spriteObject,originalWidth,originalHeight);
         return true;
       }
-      dialogMessage(true,(const char*)(String("Couldn't load file:<")+fileName+">").c_str()); 
+      String nm = String("Couldn't load file:<")+fileName+">";
+      dialogMessage(true,nm.c_str()); 
       return false;
     } //break;
     case FILETYPE_TEXTUREGRID: {
       RGBAImage s = RGBAImage::fromFile(dosFileName(fileName).c_str());
-      if (s.data == NULL) {dialogMessage(true,(const char*)(String("Couldn't load file:<")+fileName+">").c_str()); return false;}
+      if (s.data == NULL) {String nm = String("Couldn't load file:<")+fileName+">";dialogMessage(true,nm.c_str()); return false;}
       textureIds.push_back(textureFromImage(&s));
       originalWidth = s.width;
       originalHeight = s.height;

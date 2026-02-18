@@ -688,11 +688,10 @@ void lightSetup(bool on) {
   glLightModelfv(GL_LIGHT_MODEL_AMBIENT, zero);
   glLightfv(GL_LIGHT0, GL_POSITION,dir);
   glLightfv(GL_LIGHT0, GL_DIFFUSE,lighter);
+  glLightfv(GL_LIGHT0, GL_AMBIENT,darker);
   glLightfv(GL_LIGHT0, GL_SPECULAR,zero);
-  glLightfv(GL_LIGHT0, GL_AMBIENT,zero);
-  glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);
+  glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE);
   glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,zero);
-  glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION,darker);
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,0.0);
 }
 

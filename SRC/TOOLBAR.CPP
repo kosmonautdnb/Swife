@@ -122,7 +122,7 @@ void drawToolBar() {
   ImGui::SameLine();
   for (int i = 0; i < toolBarButtons.size(); i++) {
     if (i != 0) ImGui::SameLine();
-    if (toolBarButtons[i].paint((const char*)(String("##DRAWTOOLBARBUTTONID")+String::fromInt(i)).c_str())) {
+    if (toolBarButtons[i].paint(IDINDEXED("##DRAWTOOLBARBUTTONID",i))) {
       if (toolBarButtons[i].isSingle()) {
         for (int j = 0; j < toolBarButtons.size(); j++) if (toolBarButtons[j].isSingle()) toolBarButtons[j].selected = false;
         toolBarButtons[i].selected = !toolBarButtons[i].selected;

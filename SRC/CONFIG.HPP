@@ -37,6 +37,10 @@
 #define NONAME "<no name>"
 #define ERRORCOLOR ImVec4(1,0,0,1)
 #define UNUSED(__p__) (void)(__p__)
+#define IDINDEXED(__prefix__,__number__) idIndexed(__prefix__,__number__)
+#define IDINDEXED2(__prefix__,__number1__,__number2__) idIndexed2(__prefix__,__number1__,__number2__)
+#define IDCOMBINED(__prefix__,__suffix__) idCombined(__prefix__,__suffix__)
+#define IDCOMBINED3(__string1__,__string2__,__string3__) idCombined3(__string1__,__string2__,__string3__)
 
 extern bool fullScreen;
 extern double fps;
@@ -64,5 +68,11 @@ extern int maxTextureHeight;
 
 extern int defaultRenderTargetWidth;
 extern int defaultRenderTargetHeight;
+
+const char *idIndexed(const String &str, int number); // this function is not really safe, it cannot be nested
+const char *idIndexed(const char *prefix, int number); // this function is not really safe, it cannot be nested
+const char *idIndexed2(const char *prefix, int number1, int number2); // this function is not really safe, it cannot be nested
+const char *idCombined(const char *prefix, const char *suffix); // this function is not really safe, it cannot be nested
+const char *idCombined3(const char *str1, const char *str2,const char *str3); // this function is not really safe, it cannot be nested
 
 #endif //__CONFIG_H__

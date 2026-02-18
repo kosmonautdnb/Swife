@@ -23,6 +23,7 @@
 */
 #include "CONFIG.HPP"
 #include "IMGUI/IMGUI.H"
+#include "STL/STRING.HPP"
 
 bool fullScreen = false;
 double fps = 30.0;
@@ -50,3 +51,31 @@ int maxTextureHeight = 1000; // 1024 is too much here maybe due to glMalloc that
 
 int defaultRenderTargetWidth = 380;
 int defaultRenderTargetHeight = 380;
+
+const char *idIndexed(const String &prefix, int number) {
+  return idIndexed((const char*)prefix.c_str(), number);
+}
+
+const char *idIndexed(const char *prefix, int number) {
+  static String tmpString;
+  tmpString = String(prefix)+String::fromInt(number);
+  return tmpString.c_str();
+}
+
+const char *idIndexed2(const char *prefix, int number1, int number2) {
+  static String tmpString;
+  tmpString = String(prefix)+String::fromInt(number1) + "_" + String::fromInt(number2);
+  return tmpString.c_str();
+}
+
+const char *idCombined(const char *prefix, const char *suffix) {
+  static String tmpString;
+  tmpString = String(prefix)+String(suffix);
+  return tmpString.c_str();
+}
+
+const char *idCombined3(const char *str1, const char *str2, const char *str3) {
+  static String tmpString;
+  tmpString = String(str1)+String(str2)+String(str3);
+  return tmpString.c_str();
+}

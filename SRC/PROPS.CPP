@@ -39,35 +39,35 @@
 int properties_width = 160;
 char properties_filter[NAMEMAX] = {0};
 
-bool vectorInput(const char *name,Vector *v, const char *dcl) {
+bool vectorInput(const String &name,Vector *v, const String &dcl) {
   bool ret = false;
-  ImGui::Text("%s",name);
+  ImGui::Text("%s",name.c_str());
   ImGui::SameLine();
   ImGui::PushItemWidth(40);
-  char dcl2[32];
   float k;
-  sprintf(dcl2,"%sx",dcl); k = v->x; if (ImGui::InputFloat(dcl2,&k)) {ret = true;} v->x = k; 
+  String dcl2;
+  dcl2 = dcl + "x"; k = v->x; if (ImGui::InputFloat(dcl2.c_str(),&k)) {ret = true;} v->x = k; 
   ImGui::SameLine();
-  sprintf(dcl2,"%sy",dcl); k = v->y; if (ImGui::InputFloat(dcl2,&k)) {ret = true;} v->y = k; 
+  dcl2 = dcl + "y"; k = v->y; if (ImGui::InputFloat(dcl2.c_str(),&k)) {ret = true;} v->y = k; 
   ImGui::SameLine();                                                                                
-  sprintf(dcl2,"%sz",dcl); k = v->z; if (ImGui::InputFloat(dcl2,&k)) {ret = true;} v->z = k; 
+  dcl2 = dcl + "z"; k = v->z; if (ImGui::InputFloat(dcl2.c_str(),&k)) {ret = true;} v->z = k; 
   ImGui::PopItemWidth();
   return ret;
 }
 
-bool quaternionInput(const char *name,Quaternion *q, const char *dcl) {
+bool quaternionInput(const char *name,Quaternion *q, const String &dcl) {
   bool ret = false;
   ImGui::Text("%s",name);
   ImGui::SameLine();
   ImGui::PushItemWidth(40);
-  char dcl2[32];
   float k;
+  String dcl2;
   Vector v = q->getYawPitchRoll();
-  sprintf(dcl2,"%sa",dcl); k = v.x * 180 / PI; if (ImGui::InputFloat(dcl2,&k)) {ret = true;} v.x = k * PI / 180; 
+  dcl2 = dcl + "a"; k = v.x * 180 / PI; if (ImGui::InputFloat(dcl2.c_str(),&k)) {ret = true;} v.x = k * PI / 180; 
   ImGui::SameLine();
-  sprintf(dcl2,"%sb",dcl); k = v.y * 180 / PI; if (ImGui::InputFloat(dcl2,&k)) {ret = true;} v.y = k * PI / 180; 
+  dcl2 = dcl + "b"; k = v.y * 180 / PI; if (ImGui::InputFloat(dcl2.c_str(),&k)) {ret = true;} v.y = k * PI / 180; 
   ImGui::SameLine();                                                                                
-  sprintf(dcl2,"%sc",dcl); k = v.z * 180 / PI; if (ImGui::InputFloat(dcl2,&k)) {ret = true;} v.z = k * PI / 180; 
+  dcl2 = dcl + "c"; k = v.z * 180 / PI; if (ImGui::InputFloat(dcl2.c_str(),&k)) {ret = true;} v.z = k * PI / 180; 
   if (ret) {
     q->yawPitchRoll(v.x,v.y,v.z);
   }
@@ -75,7 +75,7 @@ bool quaternionInput(const char *name,Quaternion *q, const char *dcl) {
   return ret;
 }
 
-bool propsButton(const char *name,int k) {
+bool propsButton(const String &name,int k) {
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(5,0));
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3);
 
@@ -84,7 +84,7 @@ bool propsButton(const char *name,int k) {
 
   ImGui::PushStyleColor(ImGuiCol_Button,color_button_on_bg);
   ImGui::PushStyleColor(ImGuiCol_Text,color_button_on_text);
-  bool ret = ImGui::Button(name);
+  bool ret = ImGui::Button(name.c_str());
   ImGui::PopStyleColor();
   ImGui::PopStyleColor();
 
@@ -157,7 +157,7 @@ bool editProperty(GameObjectProperty *p, int i) {
 }
 
 void bindingReloadAndMakeUnique(GameObject *object, FileBinding *binding,const char *prefix) {
-  ImGui::SameLine(); if (propsButton((String("Reload")+prefix+String("RELOAD")).c_str(),strlen("Reload")+4)) {
+  ImGui::SameLine(); if (propsButton(IDCOMBINED3("Reload",prefix,"RELOAD"),strlen("Reload")+4)) {
     binding->reload();
   }
   int count = 0;
@@ -165,7 +165,7 @@ void bindingReloadAndMakeUnique(GameObject *object, FileBinding *binding,const c
     if (gameObjects[i]->fileBindingId == binding->uniqueId) count++;
   }
   if (count > 1) {
-    if (propsButton((String("Make unique")+prefix+String("MAKEUNIQUE")).c_str(),strlen("Make unique")+4)) {
+    if (propsButton(IDCOMBINED3("Make unique",prefix,"MAKEUNIQUE"),strlen("Make unique")+4)) {
       FileBinding *binding2 = binding->clone();
       bindings.push_back(binding2);
       object->fileBindingId = binding2->uniqueId;
@@ -218,20 +218,20 @@ Vector clampScale(const Vector &v) {
 void showTransform(GameObject *object, const char *id) {
   ImGui::Text("Transform");
   Vector anchor = object->anchor;
-  if (vectorInput("A.",&anchor,(const char*)(String(id)+String("ANCHOR")).c_str())) {renderingUpdated = true;}
+  if (vectorInput("A.",&anchor,IDCOMBINED(id,"ANCHOR"))) {renderingUpdated = true;}
   object->anchor = anchor;
   if (propsButton(("Center anchor"+String(id)+"USEGRID").c_str(),strlen("Center anchor")+4)) {object->anchor = (object->boundingBoxMin+object->boundingBoxMax)*0.5; renderingUpdated = true;}
   ImGui::Separator();
   Vector translation = object->translation;
   Vector scaling = object->scaling;
   Quaternion rotation = object->rotation;
-  if (vectorInput("P.",&translation,(const char*)(String(id)+String("TRANSLATION")).c_str())) {renderingUpdated = true;}
-  if (vectorInput("S.",&scaling,(const char*)(String(id)+String("SCALING")).c_str())) {renderingUpdated = true;}
-  if (quaternionInput("R.",&rotation,(const char*)(String(id)+String("ROTATION")).c_str())) {renderingUpdated = true;}
+  if (vectorInput("P.",&translation,IDCOMBINED(id,"TRANSLATION"))) {renderingUpdated = true;}
+  if (vectorInput("S.",&scaling,IDCOMBINED(id,"SCALING"))) {renderingUpdated = true;}
+  if (quaternionInput("R.",&rotation,IDCOMBINED(id,"ROTATION"))) {renderingUpdated = true;}
   object->translation = translation;  
   object->scaling = clampScale(scaling);  
   object->rotation = rotation;
-  colorItem("C.",(const char*)(String(id)+String("COLOR")).c_str(),&object->color, true);
+  colorItem("C.",String(id)+String("COLOR"),&object->color, true);
   if (propsButton(("Quantize"+String(id)+"BAKEGRID").c_str(),strlen("Grid off")+14)) {applyGrid(&grids[object->gridId],&object->translation,&object->scaling,&object->rotation); object->useGrid = false; renderingUpdated = true;}
   ImGui::SameLine();
   if (propsButton(((object->useGrid?"Grid off":"Grid on")+String(id)+"USEGRID").c_str(),strlen("Grid off")+4)) {object->useGrid = !object->useGrid; renderingUpdated = true;}
@@ -383,7 +383,7 @@ void showBillboardProperties(GameObject *object) {
   colorItem("C.","##BILLBOARDPROPCOLOR",&object->color, true);
   if (propsButton("Quantize##BILLBOARDPROPBAKEGRID",strlen("Grid off")+14)) {applyGrid(&grids[object->gridId],&object->translation,&object->scaling,&object->rotation); object->useGrid = false; renderingUpdated = true;}
   ImGui::SameLine();
-  if (propsButton((const char*)(String(object->useGrid?"Grid off":"Grid on")+"##BILLBOARDPROPUSEGRID").c_str(),strlen("Grid off")+4)) {object->useGrid = !object->useGrid; renderingUpdated = true;}
+  if (propsButton(IDCOMBINED(object->useGrid?"Grid off":"Grid on","##BILLBOARDPROPUSEGRID"),strlen("Grid off")+4)) {object->useGrid = !object->useGrid; renderingUpdated = true;}
   ImGui::Separator();
   if (isTexture) {
     ImGui::Text("Texture X0"); ImGui::SameLine(); if (ImGui::InputInt("##BILLBOARDPROPTX0",&object->billBoardTX0,0,0)) {renderingUpdated = true;}
@@ -561,7 +561,7 @@ void showTextureGridProperties(GameObject *object) {
         ty1 = ((float)(ty+1) * binding->textureAtlasTileHeight) / binding->originalHeight;
       }
       if (focusOnElement==i) ImGui::SetScrollHere();
-      if (textureAtlasButton((String("##TEXTUREGRIDPROPBTN")+String::fromInt(i)).c_str(),binding->textureIds[0],w,w*aspectRatio*main_window_yres/main_window_xres,tx0,ty0,tx1,ty1,r,g,b,a)) {
+      if (textureAtlasButton(IDINDEXED("##TEXTUREGRIDPROPBTN",i),binding->textureIds[0],w,w*aspectRatio*main_window_yres/main_window_xres,tx0,ty0,tx1,ty1,r,g,b,a)) {
         binding->selected = i;
       }
     }
@@ -645,17 +645,18 @@ void drawProperties() {
     SVG *svg = &svgs["search"];ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h));ImGui::SameLine();ImGui::InputText("##PROPERTIESFILTER",properties_filter,NAMEMAX);
     ImGui::Separator();
     String filter = toLower(String(properties_filter));
+    String visib_ = "visible";
     for(int i2 = 0; i2 < gameObjects.size(); i2++) {
       if (gameObjects[i2]->selected && gameObjects[i2]->type != GAMEOBJECT_SECTION) {
         if (count>1) ImGui::Text("%d\"%s\"",i2,gameObjects[i2]->name);
-        if (filter.empty()||(String("visible").findFirst(filter)>=0)) if (ImGui::Checkbox((const char*)(String("Visible##PROPERTIESGAMEOBJECTVISIBLE")+String::fromInt(i2)).c_str(),&gameObjects[i2]->visible2)) {renderingUpdated = true;}
+        if (filter.empty()||(visib_.findFirst(filter)>=0)) if (ImGui::Checkbox(IDINDEXED("Visible##PROPERTIESGAMEOBJECTVISIBLE",i2),&gameObjects[i2]->visible2)) {renderingUpdated = true;}
         for (int j = 0; j < gameObjects[i2]->properties.size(); j++) {
           if (!(filter.empty()||(toLower(String(gameObjects[i2]->properties[j].name)).findFirst(filter)>=0))) continue;
           if (editProperty(&gameObjects[i2]->properties[j], i2 + j * 32768)) {
             gameObjects[i2]->properties.erase(j,1); j--;
           }
         }
-        if (filter.empty() && propsButton((const char*)(String("Add property##")+String::fromInt(i2)).c_str(),strlen("Add property")+6)) {
+        if (filter.empty() && propsButton(IDINDEXED("Add property##",i2),strlen("Add property")+6)) {
           dialogAddProperty(true, gameObjects[i2]);
         }
         ImGui::Separator();
