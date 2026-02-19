@@ -561,6 +561,9 @@ void screenSpacePlane(GameObject *o, Vector *d2d, Vector *d3d, double x, double 
 void handleTool() {
   if (activatedToolObjectBase == NULL) return;
 
+  GLboolean shift, ctrl, alt;
+  glSpecialKeys(&shift, &ctrl, &alt);
+
   Vector d2d,d3d,scale,rot;
 
   switch(activatedTool) {
@@ -638,7 +641,32 @@ void handleTool() {
       for (int i = 0; i < gameObjects.size(); i++) {
         GameObject *o = gameObjects[i];
         if (o->selected) {
-          gameObjects[i]->scaling += scale * v;
+          if (!shift) {
+            gameObjects[i]->scaling += scale * v;
+          } else {
+            double before = dot(gameObjects[i]->scaling,normalize(scale));
+            gameObjects[i]->scaling += scale * v;
+            double after = dot(gameObjects[i]->scaling,normalize(scale));
+            double delta = 1;
+            if (before != 0) delta = after/before;
+            switch(activatedTool) {
+              case HITTESTTOOL_SCALE_PLUS_X: 
+              case HITTESTTOOL_SCALE_MINUS_X: {
+                gameObjects[i]->scaling.y *= delta;
+                gameObjects[i]->scaling.z *= delta;
+              } break;
+              case HITTESTTOOL_SCALE_PLUS_Y: 
+              case HITTESTTOOL_SCALE_MINUS_Y: {
+                gameObjects[i]->scaling.x *= delta;
+                gameObjects[i]->scaling.z *= delta;
+              } break;
+              case HITTESTTOOL_SCALE_PLUS_Z: 
+              case HITTESTTOOL_SCALE_MINUS_Z: {
+                gameObjects[i]->scaling.x *= delta;
+                gameObjects[i]->scaling.y *= delta;
+              } break;
+            }
+          }
           double minScale = 0.00001;
           if (gameObjects[i]->scaling.x < minScale) gameObjects[i]->scaling.x = minScale;
           if (gameObjects[i]->scaling.y < minScale) gameObjects[i]->scaling.y = minScale;
@@ -713,6 +741,13 @@ void drawScene() {
 
   static unsigned int k = 0;
   bool hitTestOn = (mode == MODE_SELECT) && leftClicked;
+  if (mode == MODE_SCALE) {
+    static GLboolean lastShift = GL_FALSE;
+    GLboolean shift,ctrl,alt;
+    glSpecialKeys(&shift,&ctrl,&alt);
+    if (shift != lastShift) renderingUpdated = true;
+    lastShift = shift;
+  }
 
   GLboolean alt,shift,ctrl;
   glSpecialKeys(&shift, &ctrl, &alt);

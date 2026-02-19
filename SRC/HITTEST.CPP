@@ -364,12 +364,15 @@ void addHitTestMoveGizmo(class GameObject *o, const Vector &minB, const Vector &
   Vector yp2 = normalize(modelView * Vector(0,maxB.y+1,0) - yp);
   Vector zp2 = normalize(modelView * Vector(0,0,maxB.z+1) - zp);
   float k = 1;
-  hitTestLine(o,HITTESTTOOL_MOVE_PLUS_X,p,xp+xp2*k,0xff0000ff);
-  hitTestLine(o,HITTESTTOOL_MOVE_PLUS_Y,p,yp+yp2*k,0xff00ff00);
-  hitTestLine(o,HITTESTTOOL_MOVE_PLUS_Z,p,zp+zp2*k,0xffff0000);
-  hitTestLine(o,HITTESTTOOL_MOVE_MINUS_X,p,xp3-xp2*k,0xff0000ff);
-  hitTestLine(o,HITTESTTOOL_MOVE_MINUS_Y,p,yp3-yp2*k,0xff00ff00);
-  hitTestLine(o,HITTESTTOOL_MOVE_MINUS_Z,p,zp3-zp2*k,0xffff0000);
+  unsigned int colorx = 0xff0000ff;
+  unsigned int colory = 0xff00ff00;
+  unsigned int colorz = 0xffff0000;
+  hitTestLine(o,HITTESTTOOL_MOVE_PLUS_X,p,xp+xp2*k,colorx);
+  hitTestLine(o,HITTESTTOOL_MOVE_PLUS_Y,p,yp+yp2*k,colory);
+  hitTestLine(o,HITTESTTOOL_MOVE_PLUS_Z,p,zp+zp2*k,colorz);
+  hitTestLine(o,HITTESTTOOL_MOVE_MINUS_X,p,xp3-xp2*k,colorx);
+  hitTestLine(o,HITTESTTOOL_MOVE_MINUS_Y,p,yp3-yp2*k,colory);
+  hitTestLine(o,HITTESTTOOL_MOVE_MINUS_Z,p,zp3-zp2*k,colorz);
 }
 
 void addHitTestScaleGizmo(class GameObject *o, const Vector &minB, const Vector &maxB) {
@@ -385,12 +388,18 @@ void addHitTestScaleGizmo(class GameObject *o, const Vector &minB, const Vector 
   Vector yp2 = normalize(modelView * Vector(0,maxB.y+1,0) - yp);
   Vector zp2 = normalize(modelView * Vector(0,0,maxB.z+1) - zp);
   float k = 1;
-  hitTestLine(o,HITTESTTOOL_SCALE_PLUS_X,xp,xp+xp2*k,0xff0000ff);
-  hitTestLine(o,HITTESTTOOL_SCALE_PLUS_Y,yp,yp+yp2*k,0xff00ff00);
-  hitTestLine(o,HITTESTTOOL_SCALE_PLUS_Z,zp,zp+zp2*k,0xffff0000);
-  hitTestLine(o,HITTESTTOOL_SCALE_MINUS_X,xp3,xp3-xp2*k,0xff0000ff);
-  hitTestLine(o,HITTESTTOOL_SCALE_MINUS_Y,yp3,yp3-yp2*k,0xff00ff00);
-  hitTestLine(o,HITTESTTOOL_SCALE_MINUS_Z,zp3,zp3-zp2*k,0xffff0000);
+  unsigned int colorx = 0xff0000ff;
+  unsigned int colory = 0xff00ff00;
+  unsigned int colorz = 0xffff0000;
+  GLboolean shift,alt,ctrl;
+  glSpecialKeys(&shift,&alt,&ctrl);
+  if (shift) colorx = colory = colorz = 0xffffff00;
+  hitTestLine(o,HITTESTTOOL_SCALE_PLUS_X,xp,xp+xp2*k,colorx);
+  hitTestLine(o,HITTESTTOOL_SCALE_PLUS_Y,yp,yp+yp2*k,colory);
+  hitTestLine(o,HITTESTTOOL_SCALE_PLUS_Z,zp,zp+zp2*k,colorz);
+  hitTestLine(o,HITTESTTOOL_SCALE_MINUS_X,xp3,xp3-xp2*k,colorx);
+  hitTestLine(o,HITTESTTOOL_SCALE_MINUS_Y,yp3,yp3-yp2*k,colory);
+  hitTestLine(o,HITTESTTOOL_SCALE_MINUS_Z,zp3,zp3-zp2*k,colorz);
 }
 
 void addHitTestRotateGizmo(class GameObject *o, const Vector &minB, const Vector &maxB) {
@@ -407,12 +416,15 @@ void addHitTestRotateGizmo(class GameObject *o, const Vector &minB, const Vector
   Vector zp2 = normalize(modelView * Vector(0,0,maxB.z+1) - zp);
   float k = 1;
   float k2 = 1;
-  hitTestLine(o,HITTESTTOOL_ROTATE_PLUS_X,xp+xp2*k+yp2*k2,xp+xp2*k-yp2*k2,0xff0000ff);
-  hitTestLine(o,HITTESTTOOL_ROTATE_PLUS_Y,yp+yp2*k+zp2*k2,yp+yp2*k-zp2*k2,0xff00ff00);
-  hitTestLine(o,HITTESTTOOL_ROTATE_PLUS_Z,zp+zp2*k+xp2*k2,zp+zp2*k-xp2*k2,0xffff0000);
-  hitTestLine(o,HITTESTTOOL_ROTATE_MINUS_X,xp3-xp2*k+yp2*k2,xp3-xp2*k-yp2*k2,0xff0000ff);
-  hitTestLine(o,HITTESTTOOL_ROTATE_MINUS_Y,yp3-yp2*k+zp2*k2,yp3-yp2*k-zp2*k2,0xff00ff00);
-  hitTestLine(o,HITTESTTOOL_ROTATE_MINUS_Z,zp3-zp2*k+xp2*k2,zp3-zp2*k-xp2*k2,0xffff0000);
+  unsigned int colorx = 0xff0000ff;
+  unsigned int colory = 0xff00ff00;
+  unsigned int colorz = 0xffff0000;
+  hitTestLine(o,HITTESTTOOL_ROTATE_PLUS_X,xp+xp2*k+yp2*k2,xp+xp2*k-yp2*k2,colorx);
+  hitTestLine(o,HITTESTTOOL_ROTATE_PLUS_Y,yp+yp2*k+zp2*k2,yp+yp2*k-zp2*k2,colory);
+  hitTestLine(o,HITTESTTOOL_ROTATE_PLUS_Z,zp+zp2*k+xp2*k2,zp+zp2*k-xp2*k2,colorz);
+  hitTestLine(o,HITTESTTOOL_ROTATE_MINUS_X,xp3-xp2*k+yp2*k2,xp3-xp2*k-yp2*k2,colorx);
+  hitTestLine(o,HITTESTTOOL_ROTATE_MINUS_Y,yp3-yp2*k+zp2*k2,yp3-yp2*k-zp2*k2,colory);
+  hitTestLine(o,HITTESTTOOL_ROTATE_MINUS_Z,zp3-zp2*k+xp2*k2,zp3-zp2*k-xp2*k2,colorz);
 }
 
 bool triangleHitTest(const Vector &p0, const Vector &p1, const Vector &p2, Vector &collisionPoint) {

@@ -416,6 +416,8 @@ void dialogControls(bool openIt) {
     "Left Mouse select this object\n"
     "Left Mouse and shift add to selection\n"
     "Left Mouse and ctrl remove from selection\n"
+    "Tool \"scale\"\n"
+    "Use shift to scale uniformly\n"
     "On texture grids (with Tool \"selection\"):\n"
     "Left Mouse and alt to paint on selected grid.\n"
     "Right Mouse and alt to get from selected grid.\n"
