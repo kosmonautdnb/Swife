@@ -87,7 +87,7 @@ void addHitTestCube(class GameObject *o, int toolId, const Vector &minB, const V
 void addHitTestTriangles(class GameObject *o, int toolId, Array<BakedVertex> *triangles, const Vector &minB, const Vector &maxB);
 
 
-Hit *getNearestHit(unsigned int *counter, double lastDepth);
+Hit *getNearestHit(unsigned int *counter);
 Hit *getNearestToolHit();
 
 void hitTestLine(class GameObject *o, int toolId, const Vector &p0, const Vector &p1, unsigned int color);

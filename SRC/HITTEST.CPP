@@ -230,27 +230,28 @@ void addHitTestTriangles(class GameObject *o, int toolId, Array<BakedVertex> *tr
   }
 }
 
-Hit *getNearestHit(unsigned int *counter, double lastDepth) {
+Hit *getNearestHit(unsigned int *counter) {
   Hit *ret = NULL;
   double currentHitDepth = 0;
   for (int i = 0; i < hits.size(); i++) {
-    if (i == 0 || hits[i].depth < currentHitDepth) {
+    if (i == 0 || hits[i].depth < currentHitDepth && hits[i].toolId == HITTESTTOOL_NONE) {
       currentHitDepth = hits[i].depth;
       ret = &hits[i];
     }
   }
-  if (currentHitDepth != lastDepth) *counter = 0;
   if (ret != NULL) {
     int count = 0;
+    const double EPSILON = 0.00001;
     for (int i2 = 0; i2 < hits.size(); i2++) {
-      if (hits[i2].depth == currentHitDepth) {
+      if (fabs(hits[i2].depth-currentHitDepth)<EPSILON && hits[i2].toolId == HITTESTTOOL_NONE) {
         count++;
       }
     }
+    if (count == 1) *counter = 0;
     int number = 0;
     for (int i3 = 0; i3 < hits.size(); i3++) {
-      if (hits[i3].depth == currentHitDepth) {
-        if (number == (*counter % count)) 
+      if (fabs(hits[i3].depth-currentHitDepth)<EPSILON && hits[i3].toolId == HITTESTTOOL_NONE) {
+        if (number == ((*counter+count-1) % count)) 
           ret = &hits[i3];
         number++;
       }

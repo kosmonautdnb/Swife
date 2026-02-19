@@ -446,12 +446,13 @@ void disableRenderMouseClicks() {
 }
 
 void handleHitTest() {
-  static double lastDepth = 0;
-  Hit *h = getNearestHit(&selectionCounter,lastDepth);
-  Hit *h2 = getNearestToolHit();
 
   GLboolean shift,ctrl,alt;
   glSpecialKeys(&shift,&ctrl,&alt);
+
+  if (!alt && mode == MODE_SELECT) selectionCounter++;
+  Hit *h = getNearestHit(&selectionCounter);
+  Hit *h2 = getNearestToolHit();
 
   if (startTool) {
     if (h2 != NULL) {
@@ -464,7 +465,6 @@ void handleHitTest() {
 
   switch(mode) {
     case MODE_SELECT: {
-      selectionCounter++; lastDepth = h->depth;
       if (h != NULL) {
         if (placeCursor) {cursor = h->point; cursorNormal = h->normal;}
         if (shift) h->object->selected = true;
