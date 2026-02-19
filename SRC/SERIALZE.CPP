@@ -42,6 +42,7 @@
 #include "VIEWPORT.HPP"
 #include "PAINT.HPP"
 #include "HITTEST.HPP"
+#include "PROPS.HPP"
 
 int version = 101;
 
@@ -273,6 +274,9 @@ void serializeAll(FILE *file, bool save) {
 
   // PAINT.HPP
   S_BOOL("justDrawBoundingBoxes",justDrawBoundingBoxes);
+
+  // PROPS.HPP
+  S_UINT("uniqueIdOfSingleDisplayedObject",uniqueIdOfSingleDisplayedObject);
 
   // RENDER.HPP
   S_INT("currentCamera",currentCamera);

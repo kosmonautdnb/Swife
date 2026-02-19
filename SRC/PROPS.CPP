@@ -39,6 +39,8 @@
 int properties_width = 160;
 char properties_filter[NAMEMAX] = {0};
 
+unsigned int uniqueIdOfSingleDisplayedObject = 0;
+
 bool vectorInput(const String &name,Vector *v, const String &dcl) {
   bool ret = false;
   ImGui::Text("%s",name.c_str());
@@ -602,6 +604,8 @@ void drawProperties() {
     const char *icon = iconNameForGameObjectType[first->type]; SVG *svg = NULL; if (svgs.has(icon)) svg = &svgs[icon];
     if (svg != NULL) {ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h)); ImGui::SameLine();}
     ImGui::InputText("##PROPNAME",first->name,NAMEMAX);
+    ImGui::SameLine();
+    bool selected = uniqueIdOfSingleDisplayedObject != 0; if (ImGui::Checkbox("##PROPSINGLE",&selected)) {uniqueIdOfSingleDisplayedObject = selected ? first->uniqueId : 0 ;renderingUpdated = true;}
   }
   if (first2 != NULL && count2 == 1 && count == 0) {
     ImGui::InputText("##PROPNAME",first2->name,NAMEMAX); // section
@@ -622,16 +626,23 @@ void drawProperties() {
     ImGui::Separator();
   }
   if (count > 0) {
-    ImGui::Text("Layers");
-    unsigned int layerBefore = layerMask;
-    unsigned int layerAfter = layerSelection(layerBefore, "OBJLAYERS");
-    unsigned int layerDiff = layerBefore ^ layerAfter;
-    for(int i = 0; i < gameObjects.size(); i++) 
-      if (gameObjects[i]->selected) {
-        gameObjects[i]->layers ^= layerDiff;
-        if (layerDiff != 0) renderingUpdated = true;
-      }
-    ImGui::Separator();
+
+    bool selected = uniqueIdOfSingleDisplayedObject == first->uniqueId;
+    if (!selected) {
+      ImGui::Text("Layers");
+      unsigned int layerBefore = layerMask;
+      unsigned int layerAfter = layerSelection(layerBefore, "OBJLAYERS");
+      unsigned int layerDiff = layerBefore ^ layerAfter;
+      for(int i = 0; i < gameObjects.size(); i++) 
+        if (gameObjects[i]->selected) {
+          gameObjects[i]->layers ^= layerDiff;
+          if (layerDiff != 0) renderingUpdated = true;
+        }
+      ImGui::Separator();
+    } else {
+      ImGui::Text("Single object view");
+      ImGui::Separator();
+    }
     ImGui::BeginChild("PROPERTIESPROPERTIES",ImVec2(0,0));
     if (count == 1) {
       switch(first->type) {

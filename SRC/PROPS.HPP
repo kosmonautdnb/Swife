@@ -28,6 +28,8 @@
 
 extern int properties_width;
 
+extern unsigned int uniqueIdOfSingleDisplayedObject;
+
 bool vectorInput(const String &name,class Vector *v, const String &dcl);
 bool quaternionInput(const String &name,class Quaternion *q, const String &dcl);
 

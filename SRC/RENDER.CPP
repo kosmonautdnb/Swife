@@ -349,8 +349,12 @@ void drawGameObject(GameObject *o) {
 void drawSkyBox() {
   for (int i = 0; i < gameObjects.size(); i++) {
     GameObject *o = gameObjects[i];
-    if (!(o->visible1 && o->visible2)) continue;
-    if (!((o->layers==0)||(outlinerLayers==0)||(o->layers & outlinerLayers))) continue;
+
+    if (uniqueIdOfSingleDisplayedObject == 0) {
+      if (!(o->visible1 && o->visible2)) continue;
+      if (!((o->layers==0)||(outlinerLayers==0)||(o->layers & outlinerLayers))) continue;
+    } else if (o->uniqueId != uniqueIdOfSingleDisplayedObject) continue;
+
     if (o->type == GAMEOBJECT_SKYBOX) {
       if (o->selected) {
         glStencilFunc(GL_ALWAYS,0x01,0xffffffff);
@@ -366,9 +370,14 @@ void drawSkyBox() {
 void drawGameObjects() {
   for (int i = 0; i < gameObjects.size(); i++) {
     GameObject *o = gameObjects[i];
-    if (!(o->visible1 && o->visible2)) continue;
-    if (!((o->layers==0)||(outlinerLayers==0)||(o->layers & outlinerLayers))) continue;
-    if (o->type != GAMEOBJECT_SKYBOX) drawGameObject(o);
+
+    if (uniqueIdOfSingleDisplayedObject == 0) {
+      if (!(o->visible1 && o->visible2)) continue;
+      if (!((o->layers==0)||(outlinerLayers==0)||(o->layers & outlinerLayers))) continue;
+    } else if (o->uniqueId != uniqueIdOfSingleDisplayedObject) continue;
+
+    if (o->type != GAMEOBJECT_SKYBOX) 
+      drawGameObject(o);
   }
 }
 
