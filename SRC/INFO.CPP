@@ -79,12 +79,13 @@ int getAdditionalMemoryFreeBytes() {
 
 void drawInfo() {
 
-  ImGui::PushStyleColor(ImGuiCol_WindowBg,ImVec4(0,0,0,0));
+  static bool infoOn = false;
+
+  ImGui::PushStyleColor(ImGuiCol_WindowBg,ImVec4(0,0,0,infoOn?0.5:0));
   ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0.25,0.25,0.25,1));
 
   ImGui::SetNextWindowPos(ImVec2(outliner_width,main_window_yres-timeLine_height-info_height));
   ImGui::Begin("INFO", NULL, ImVec2(main_window_xres-outliner_width-properties_width,info_height),1.0,FROZENWINDOW);
-  static bool infoOn = false;
   ImGui::Checkbox("##INFOINFOON",&infoOn);
   if (infoOn) {
     ImGui::SameLine();

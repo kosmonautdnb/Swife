@@ -382,6 +382,8 @@ void dialogAbout(bool openIt) {
     "Coded in early 2026 by\n"
     "Stefan Mader of Puls4r\n"
     "------------------------------------\n"
+    "Build date:" __DATE__ "\n"
+    "Build time:" __TIME__ "\n"
   );
   ImGui::Separator();
   if (ImGui::Button("Close##DIALOGABOUTCLOSE")) {
@@ -450,6 +452,8 @@ void dialogTroubleShooting(bool openIt) {
     "If you want to paint to a texture grid be sure to have the selection mode on.\n"
     "\n"
     "In GLTF/GLB format polygons without textures will not be displayed.\n"
+    "\n"
+    "If it gets too imperformat, maybe use billboard meshes instead of meshes.\n"
   );
   ImGui::Separator();
   if (ImGui::Button("Close##DIALOGTROUBLESHOOTING")) {
