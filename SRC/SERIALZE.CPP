@@ -44,7 +44,7 @@
 #include "HITTEST.HPP"
 #include "PROPS.HPP"
 
-int version = 101;
+int version = 102;
 
 const char *fileTypeNames[FILETYPE_COUNT] = {"none","skybox","mesh","billboard","texturegrid"};
 

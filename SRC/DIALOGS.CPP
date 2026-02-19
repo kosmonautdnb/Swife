@@ -382,8 +382,10 @@ void dialogAbout(bool openIt) {
     "Coded in early 2026 by\n"
     "Stefan Mader of Puls4r\n"
     "------------------------------------\n"
-    "Build date:" __DATE__ "\n"
-    "Build time:" __TIME__ "\n"
+    "Build date: " __DATE__ "\n"
+    "Build time: " __TIME__ "\n"
+    "Version: %d.%02d\n"
+  ,version / 100, version % 100
   );
   ImGui::Separator();
   if (ImGui::Button("Close##DIALOGABOUTCLOSE")) {

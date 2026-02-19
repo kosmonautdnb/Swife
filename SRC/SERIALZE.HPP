@@ -40,6 +40,7 @@ enum FILETYPE {
 extern const char *fileTypeNames[FILETYPE_COUNT];
 
 extern unsigned int bindingUniqueId;
+extern int version;
 
 class BakedVertex {
 public:
