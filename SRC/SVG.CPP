@@ -30,11 +30,13 @@ HashMap<String, SVG> svgs;
 #include "STL\NANOSVG.HPP"
 #define NANOSVGRAST_IMPLEMENTATION
 #include "STL\NSVGRAST.HPP"
+#include "STL\IMAGE.HPP"
+#include "CONFIG.HPP"
 
 #define ICONSCALE (16.0/11.0)
 #define ICONSCALEX (20.0/11.0)
-#define ADDICON(__a__,__b__) addSVG(__a__,"DATA/ICONS/" __b__,11*ICONSCALE,11*ICONSCALE,1*ICONSCALE)
-#define ADDICONX(__a__,__b__) addSVG(__a__,"DATA/ICONS/" __b__,11*ICONSCALEX,11*ICONSCALEX,1*ICONSCALEX)
+#define ADDICON(__a__,__b__) addSVG(__a__,"DATA/ICONS/" __b__,11*ICONSCALE,11*ICONSCALE,1*ICONSCALE,aspectRatio)
+#define ADDICONX(__a__,__b__) addSVG(__a__,"DATA/ICONS/" __b__,11*ICONSCALEX,11*ICONSCALEX,1*ICONSCALEX,aspectRatio)
 
 SVG *SVG::free() {
   if (rgba != NULL) {::free(rgba); rgba = NULL;}
@@ -61,7 +63,7 @@ SVG *SVG::set(const char *fileName, unsigned int *rgba, int w, int h) {
   return this;
 }
 
-void addSVG(const char *id, const char *fileName, int width, int height,double scale) {
+void addSVG(const char *id, const char *fileName, int width, int height,double scale, double aspect) {
   NSVGimage* image;
   NSVGrasterizer* rast = nsvgCreateRasterizer();
   image = nsvgParseFromFile(fileName, "px", 96);
@@ -75,7 +77,14 @@ void addSVG(const char *id, const char *fileName, int width, int height,double s
   nsvgRasterize(rast, image, 0,0,scale, (unsigned char*)img, w, h, w*4);
   nsvgDelete(image);
   nsvgDeleteRasterizer(rast);
-  svgs[id].set(fileName,img,w,h);
+  RGBAImage img2;
+  img2.data = img;
+  img2.width = w;
+  img2.height = h;
+  RGBAImage img3;
+  img3 = img2.getResized(w/aspect*main_window_xres/main_window_yres,h); // this here somehow "blurs" the images, but is needed on FreeDOS
+  img2.free();
+  svgs[id].set(fileName,img3.data,img3.width,img3.height);
 }
 
 void colorIcon(const char *id, unsigned int color) {

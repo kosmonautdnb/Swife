@@ -238,8 +238,15 @@ void serializeAll(FILE *file, bool save) {
   // CONFIG.HPP
   S_BOOL("fullScreen",fullScreen);
   S_STRING("appFolder",appFolder);
-  S_INT("maxTextureWidth",maxTextureWidth);
-  S_INT("maxTextureHeight",maxTextureHeight);
+  int newMaxTextureWidth = maxTextureWidth;
+  int newMaxTextureHeight = maxTextureHeight;
+  S_INT("maxTextureWidth",newMaxTextureWidth);
+  S_INT("maxTextureHeight",newMaxTextureHeight);
+  if (newMaxTextureWidth > maxTextureWidth) newMaxTextureWidth = maxTextureWidth;
+  if (newMaxTextureHeight > maxTextureHeight) newMaxTextureHeight = maxTextureHeight;
+  maxTextureWidth = newMaxTextureWidth;
+  maxTextureHeight = newMaxTextureHeight;
+
   S_INT("defaultRenderTargetWidth",defaultRenderTargetWidth);
   S_INT("defaultRenderTargetHeight",defaultRenderTargetHeight);
 

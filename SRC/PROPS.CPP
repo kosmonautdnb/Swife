@@ -234,7 +234,7 @@ void showTransform(GameObject *object, const char *id) {
   colorItem("C.",String(id)+String("COLOR"),&object->color, true);
   if (propsButton(("Quantize"+String(id)+"BAKEGRID").c_str(),strlen("Grid off")+14)) {applyGrid(&grids[object->gridId],&object->translation,&object->scaling,&object->rotation); object->useGrid = false; renderingUpdated = true;}
   ImGui::SameLine();
-  if (propsButton(((object->useGrid?"Grid off":"Grid on")+String(id)+"USEGRID").c_str(),strlen("Grid off")+4)) {object->useGrid = !object->useGrid; renderingUpdated = true;}
+  if (propsButton(((object->useGrid?"Grid off":"Use grid")+String(id)+"USEGRID").c_str(),strlen("Grid off")+4)) {object->useGrid = !object->useGrid; renderingUpdated = true;}
   ImGui::Separator();
 }
 

@@ -71,4 +71,6 @@ void dialogGridSettings(bool openIt);
 void dialogOverwrite(bool openIt);
 void dialogCompactAndMove(bool openIt);
 
+void getTransformForGameObjectFromCursor(GameObject *o);
+
 #endif // __DIALOGS_HPP__

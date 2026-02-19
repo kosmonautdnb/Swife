@@ -176,6 +176,7 @@ void duplicate() {
     if (o->selected) {
       GameObject *o2 = o->clone();
       cloneName(o2->name, o->name);
+      getTransformForGameObjectFromCursor(o2);
       o2->selected = false;
       gameObjects.insert(o2,i2+1);
       i2++;
