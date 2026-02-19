@@ -40,9 +40,9 @@
 
 typedef void (*LOADSAVEFUNC)(const char *shortPath, const char *longFileName);
 const char *images = ".png,.jpg,.tga,.bmp,.psd,.gif,.pic,.pnm,.hdr";
-const char *meshes = ".obj";
+const char *meshes = ".obj,.glb";
 const char *csv = ".csv";
-const char *imagesAndMeshes = ".png,.jpg,.tga,.bmp,.psd,.gif,.pic,.pnm,.hdr,.obj";
+const char *imagesAndMeshes = ".png,.jpg,.tga,.bmp,.psd,.gif,.pic,.pnm,.hdr,.obj,.glb";
 const char *dialogCaption[DIALOG_COUNT] = {"NO MODE","Load a scene","Save a scene","Load a skybox","Load a mesh","Load a billboard texture","Load a texturegrid texture","Load a texturegrid CSV","Save a texturegrid CSV"};
 const char *proceedButton[DIALOG_COUNT] = {"<button>", "Load", "Save","Load","Load","Load","Load","Load","Save"};
 const char *dialogFileTypes[DIALOG_COUNT] = {"",".sfs",".sfs",images,meshes,imagesAndMeshes,images,csv,csv};
@@ -446,6 +446,8 @@ void dialogTroubleShooting(bool openIt) {
     "It's packaged DPMI host provides enough memory. And you get sound.\n"
     "\n"
     "If you want to paint to a texture grid be sure to have the selection mode on.\n"
+    "\n"
+    "In GLTF/GLB format polygons without textures will not be displayed.\n"
   );
   ImGui::Separator();
   if (ImGui::Button("Close##DIALOGTROUBLESHOOTING")) {

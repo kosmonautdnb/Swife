@@ -33,6 +33,7 @@
 #include "STL/ARRAY.HPP"
 #include "SERIALZE.HPP"
 #include "RENDER.HPP"
+#include <malloc.h>
 
 String infoString;
 int info_height = 32;
@@ -67,7 +68,10 @@ int getAdditionalMemoryFreeBytes() {
   sregs.es = FP_SEG( &MemInfo );
   regs.x.edi = FP_OFF( &MemInfo );
   int386x( 0x31, &regs, &regs, &sregs );
-  return MemInfo.LargestBlockAvail;
+  int pageSize = 4096;
+  int mem = 0;
+  if (mem == 0 && MemInfo.LargestBlockAvail != 0xffffffff) mem = MemInfo.LargestBlockAvail;
+  return mem;
 #else
   return -1;
 #endif

@@ -30,7 +30,7 @@
 #include "TEXTURES.HPP"
 #include "RENDER.HPP"
 #define CGLTF_IMPLEMENTATION
-#include "cgltf.hpp"
+#include "STL/CGLTFA.HPP"
 #include "STL/SMPLOBJL.HPP"
 #include "STL/SPRTEOBJ.HPP"
 #include "STL/DOS.HPP"
@@ -314,6 +314,31 @@ void FileBinding::load(const char *name, unsigned int type) {
   reload();
 }
 
+double loadingBarTimeBefore = 0;
+int loadingBarPos = 0;
+void startLoadingBar() {
+  loadingBarTimeBefore = glSeconds();
+  loadingBarPos = 0;
+  glFrameBuffer[loadingBarPos % (glFrameBufferWidth*glFrameBufferHeight)] = 0xff00ff00;
+  loadingBarPos++;
+  glRefresh();
+}
+
+void stopLoadingBar() {
+  for (int i = 0; i < loadingBarPos; i++) glFrameBuffer[i % (glFrameBufferWidth*glFrameBufferHeight)] = 0xff000000;
+  glRefresh();
+}
+
+void updateLoadingBar() {
+  double timeHere = glSeconds();
+  if (fabs(timeHere-loadingBarTimeBefore)>1) {
+    loadingBarTimeBefore = timeHere;
+    glFrameBuffer[loadingBarPos % (glFrameBufferWidth*glFrameBufferHeight)] = 0xff00ff00;
+    loadingBarPos++;
+    glRefresh();
+  }
+}
+
 Array<unsigned int> allGenTexturesHere;
 unsigned int OBJloadTexture(const String &fileName, const String &type) {
   unsigned int texture = 0;
@@ -331,6 +356,7 @@ unsigned int OBJloadTexture(const String &fileName, const String &type) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   image.free();
+  updateLoadingBar();
   return texture;
 }
 
@@ -346,15 +372,194 @@ unsigned int vectorToColor(const Vector &v) {
   return r|(g<<8)|(b<<16)|(a<<24);
 }
 
+unsigned int gltfTextureCallback(RGBAImage *img) {
+  correctTextureSize(img);
+  unsigned int r;
+  glGenTextures(1, &r);
+  glBindTexture(GL_TEXTURE_2D, r);
+  glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,img->width,img->height,0,GL_RGBA,GL_UNSIGNED_BYTE,img->data);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  allGenTexturesHere.push_back(r);
+  updateLoadingBar();
+  return r;
+}
+
+void updateBoundingBoxByBakedVertex(FileBinding *binding,const BakedVertex *b,bool first) {
+  if (first || b->x < binding->boundingBoxMin.x) binding->boundingBoxMin.x = b->x;
+  if (first || b->y < binding->boundingBoxMin.y) binding->boundingBoxMin.y = b->y;
+  if (first || b->z < binding->boundingBoxMin.z) binding->boundingBoxMin.z = b->z;
+  if (first || b->x > binding->boundingBoxMax.x) binding->boundingBoxMax.x = b->x;
+  if (first || b->y > binding->boundingBoxMax.y) binding->boundingBoxMax.y = b->y;
+  if (first || b->z > binding->boundingBoxMax.z) binding->boundingBoxMax.z = b->z;
+}
+
+void gltfProcessPrimitive(FileBinding *binding, GLTFA_File *f, GLTFA_Primitive *a, GLTFA_Skin *b, const Vector &color, const double *matrix, unsigned int texHandle) {
+  Vector _c = color;
+  Vector _t,_n,_p;
+
+  Vector *colorsV = NULL;
+  Vector *texCoordsV = NULL;
+  Vector *normalsV = NULL;
+  Vector *positionsV = NULL;
+  Vector *weightsV = NULL;
+  Vector *jointsV = NULL;
+
+  Matrix positionMatrix; memcpy(positionMatrix.m,matrix,4*4*sizeof(double));
+  Matrix normalMatrix = inverse(transpose(positionMatrix));
+
+  if (a->colors.has(0)) colorsV = &a->colors[0][0];
+  if (a->texCoords.has(0)) texCoordsV = &a->texCoords[0][0];
+  if (a->normals.has(0)) {normalsV = &a->normals[0][0];}
+  if (a->positions.has(0)) positionsV = &a->positions[0][0];
+  if (a->weights.has(0)) weightsV = &a->weights[0][0];
+  if (a->joints.has(0)) jointsV = &a->joints[0][0];
+
+  if (b == NULL) {
+    switch(a->primitive_type) {
+      case GLTFA_Primitive_type_triangle: {
+        for (int i = 0; i < a->indices.size(); i++) {
+          int j = a->indices[i];
+          if (colorsV) _c = colorsV[j]*color;
+          if (texCoordsV) _t = texCoordsV[j];
+          if (normalsV) _n = normalize(normalMatrix * normalsV[j]);
+          if (positionsV) _p = positionMatrix * positionsV[j];
+          BakedVertex b;
+          b.x = _p.x; b.y = _p.y; b.z = _p.z;
+          b.nx = _n.x; b.ny = _n.y; b.nz = _n.z;
+          b.tx = _t.x; b.ty = _t.y;
+          b.textureId = texHandle;
+          int rc = color.x * 255.0;
+          int gc = color.y * 255.0;
+          int bc = color.z * 255.0;
+          int ac = color.w * 255.0;
+          if (rc < 0) rc = 0; if (rc > 255) rc = 255;
+          if (gc < 0) gc = 0; if (gc > 255) gc = 255;
+          if (bc < 0) bc = 0; if (bc > 255) bc = 255;
+          if (ac < 0) ac = 0; if (ac > 255) ac = 255;
+          b.color = rc|(gc<<8)|(bc<<16)|(ac<<24);
+          updateBoundingBoxByBakedVertex(binding,&b,binding->triangles.empty());
+          binding->triangles.push_back(b);
+          updateLoadingBar();
+        }
+      } break;
+    }
+  } else {
+    Array<Vector> *normals0 = &a->normals0;
+    Array<Vector> *positions0 = &a->positions0;
+    Vector k; k.x = 0; // time
+    switch(a->primitive_type) {
+      case GLTFA_Primitive_type_triangle: {
+        for (int i = 0; i < a->indices.size(); i++) {
+          int j = a->indices[i];
+          if (colorsV) _c = colorsV[j]*color;
+          if (texCoordsV) _t = texCoordsV[j];
+          if (normalsV) {
+            if (j >= normals0->size()) normals0->resize(j+1);
+            Vector *z = &(*normals0)[j];
+            if (z->w != k.x) {
+              *z = b->transformNormal(normalsV[j], jointsV[j], weightsV[j]); 
+              z->w = k.x;
+            }
+            _n = *z;
+          }
+          if (positionsV) {
+            if (j >= positions0->size()) positions0->resize(j+1);
+            Vector *z = &(*positions0)[j];
+            if (z->w != k.x) {
+              *z = b->transformPosition(positionsV[j], jointsV[j], weightsV[j]);
+              z->w = k.x;
+            }
+            _p = *z;
+          }
+          BakedVertex b;
+          b.x = _p.x; b.y = _p.y; b.z = _p.z;
+          b.nx = _n.x; b.ny = _n.y; b.nz = _n.z;
+          b.tx = _t.x; b.ty = _t.y;
+          b.textureId = texHandle;
+          int rc = color.x * 255.0;
+          int gc = color.y * 255.0;
+          int bc = color.z * 255.0;
+          int ac = color.w * 255.0;
+          if (rc < 0) rc = 0; if (rc > 255) rc = 255;
+          if (gc < 0) gc = 0; if (gc > 255) gc = 255;
+          if (bc < 0) bc = 0; if (bc > 255) bc = 255;
+          if (ac < 0) ac = 0; if (ac > 255) ac = 255;
+          b.color = rc|(gc<<8)|(bc<<16)|(ac<<24);
+          updateBoundingBoxByBakedVertex(binding,&b,binding->triangles.empty());
+          binding->triangles.push_back(b);
+          updateLoadingBar();
+        }
+      } break;
+    }
+  }
+}
+
+void gltfProcessMesh(FileBinding *binding, GLTFA_File *f, unsigned int meshId, double *matrix, unsigned int skinId, const Vector &color) {
+  if (!f->gltfMeshes.has(meshId)) return;
+  if (skinId != 0 && (!f->gltfSkins.has(skinId))) return;
+  GLTFA_Skin *s = NULL; if (skinId != 0) s = f->gltfSkins[skinId];
+  GLTFA_Mesh *m = f->gltfMeshes[meshId];
+  for (int i = 0; i < m->primitives.size(); i++) {
+    if (f->gltfMaterials.has(m->primitives[i]->materialId)) {
+      GLTFA_Material *a = f->gltfMaterials[m->primitives[i]->materialId];
+      if (a->texHandle!=0) {
+        gltfProcessPrimitive(binding,f,m->primitives[i],s,color,matrix,a->texHandle);
+      } 
+      else {
+        if (f->displayWithoutTexture) {
+          gltfProcessPrimitive(binding,f,m->primitives[i],s,color,matrix,0);
+        }
+      }
+    } else {
+      gltfProcessPrimitive(binding,f,m->primitives[i],s,color,matrix,0);
+    }
+  }
+}
+
+void gltfProcessNode(FileBinding *binding, GLTFA_File *f, unsigned int nodeId) {
+  Array<unsigned int> stack;
+  stack.push_back(nodeId);
+  while(!stack.empty()) {
+    nodeId = stack.back();
+    stack.pop_back();
+    if (f->gltfNodes.has(nodeId)) {
+      GLTFA_Node *n = f->gltfNodes[nodeId];
+      if (n->meshId != 0) {
+        if (n->skinId == 0) {
+          gltfProcessMesh(binding,f,n->meshId, n->finalMatrix.m,0,n->color);
+        } else {
+          Matrix identity;
+          gltfProcessMesh(binding,f,n->meshId, identity.m,n->skinId,n->color);
+        }
+      }
+      for (int i = n->child_ids.size()-1; i >= 0; i--) {
+        stack.push_back(n->child_ids[i]);
+      }
+    }
+  }
+}
+
+void gltfProcessScene(FileBinding *binding, GLTFA_File *f, unsigned int sceneId) {
+  if (!f->gltfScenes.has(sceneId)) return;
+  GLTFA_Scene *s = f->gltfScenes[sceneId];
+  for (int i = 0; i < s->nodes.size(); i++) {
+    gltfProcessNode(binding,f,s->nodes[i]->id);
+  }
+}
+
 bool loadMeshForBinding(const String &fileName, FileBinding *binding) {
   String a = toLower(fileName);
+  startLoadingBar();
   if (a.endsWith(".obj")) { // WAVEFRONT OBJECT IMPORT
-    SMPL_File *obj = loadObj(dosFileName(fileName).c_str(), true);
+    SMPL_File *obj = loadObj(dosFileName(shortFileName(fileName)).c_str(), true);
+    updateLoadingBar();
     if (obj == NULL) return false;
     allGenTexturesHere.clear();
     obj->loadTextures(OBJloadTexture);
     binding->textureIds = allGenTexturesHere;
-    bool first = true;
     binding->boundingBoxMin.set(-1,-1,-1);
     binding->boundingBoxMax.set(1,1,1);
     for (int o = 0; o < obj->objs.size(); o++) {
@@ -369,13 +574,6 @@ bool loadMeshForBinding(const String &fileName, FileBinding *binding) {
         }
         for (int t = 0; t < 3; t++) {
           Vector *_p = &obj->vertices[fo->v[t]];
-          if (first||_p->x<binding->boundingBoxMin.x) binding->boundingBoxMin.x = _p->x;
-          if (first||_p->y<binding->boundingBoxMin.y) binding->boundingBoxMin.y = _p->y;
-          if (first||_p->z<binding->boundingBoxMin.z) binding->boundingBoxMin.z = _p->z;
-          if (first||_p->x>binding->boundingBoxMax.x) binding->boundingBoxMax.x = _p->x;
-          if (first||_p->y>binding->boundingBoxMax.y) binding->boundingBoxMax.y = _p->y;
-          if (first||_p->z>binding->boundingBoxMax.z) binding->boundingBoxMax.z = _p->z;
-          first = false;
           Vector *_n = &obj->normals[fo->n[t]];
           Vector *_t = &obj->texCoords[fo->t[t]];
           BakedVertex k;
@@ -395,11 +593,28 @@ bool loadMeshForBinding(const String &fileName, FileBinding *binding) {
               k.textureId = mat->mapDiffuse.glHandle;
             }
           }
+          updateBoundingBoxByBakedVertex(binding,&k,binding->triangles.empty());
+          updateLoadingBar();
           binding->triangles.push_back(k);
         }
       }
     }
     delete obj;
+    stopLoadingBar();
+    return true;
+  }
+  if (a.endsWith(".glb")) {
+    GLTFA_File *r = new GLTFA_File();
+    allGenTexturesHere.clear();
+    r->textureCallback = gltfTextureCallback;
+    updateLoadingBar();
+    r->load(dosFileName(shortFileName(fileName)).c_str(),1.0);
+    binding->textureIds = allGenTexturesHere;
+    binding->boundingBoxMin.set(-1,-1,-1);
+    binding->boundingBoxMax.set(1,1,1);
+    gltfProcessScene(binding,r,r->defaultScene);
+    delete r;
+    stopLoadingBar();
     return true;
   }
   return false;
