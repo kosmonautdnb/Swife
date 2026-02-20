@@ -300,7 +300,7 @@ void paintSimpleGameObject(GameObject *o, bool showModificators) {
 
   static Array<Matrix> transforms;
   transforms.clear();
-  transforms.push_back(restore);
+  transforms.push_back(Matrix());
 
   for (int j = 0; j < o->properties.size(); j++) {
     switch(o->properties[j].type) {
@@ -329,7 +329,7 @@ void paintSimpleGameObject(GameObject *o, bool showModificators) {
   }
 
   for (int i = 0; i < transforms.size(); i++) {
-    o->parentTransform = transforms[i];
+    o->parentTransform = restore * transforms[i];
     paintRawGameObject(o,i==0?showModificators:false);
   }
 
