@@ -206,6 +206,7 @@ Matrix toBillBoardTransform(const GameObject *o, const Matrix &m) {
 }
 
 Matrix toPointTransform(const GameObject *o, const Matrix &m) {
+  if (o->pointHasTransform) return m;
   Matrix ret; 
   Matrix projection,modelView; getCameraMatrices(&projection,&modelView);
   Vector projectedPoint = projection*modelView*m.getColumn(3); if (projectedPoint.w != 0) {projectedPoint /= projectedPoint.w; projectedPoint.w=1;}

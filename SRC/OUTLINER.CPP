@@ -59,6 +59,7 @@ unsigned int layerSelection(unsigned int a, const char *dcl) {
 
 bool sectionOn;
 bool sectionVisible;
+int sectionCounter = -1;
 bool sectionSelecting;
 bool sectionSelectingType;
 
@@ -83,6 +84,7 @@ void objectSelect(unsigned int i) {
     ImGui::SameLine();
     sectionOn = gameObjects[i]->sectionOn;
     sectionVisible = gameObjects[i]->sectionVisible;
+    sectionCounter = gameObjects[i]->sectionLength;
     v = true;
   } else {
     const char *icon = iconNameForGameObjectType[t]; SVG *svg = NULL; if (svgs.has(icon)) svg = &svgs[icon];
@@ -247,6 +249,15 @@ void drawOutliner() {
   sprintf(groupName,"%s","");
   for (int i = 0; i < gameObjects.size(); i++) {
     if (gameObjects[i]->outlinerShouldFocusThis) {ImGui::SetScrollHere(); gameObjects[i]->outlinerShouldFocusThis = false;}
+    if (sectionCounter>=0) {
+      sectionCounter--;
+      if (sectionCounter<0) {
+        sectionOn = true;
+        sectionVisible = true;
+        sectionSelecting = false;
+        sectionSelectingType = false;
+      }
+    }
     bool selectBefore = gameObjects[i]->selected;
     gameObjects[i]->visible1 = false;
     if (markAllWithSelecty) gameObjects[i]->selected = false;

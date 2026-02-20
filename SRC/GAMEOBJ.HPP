@@ -183,12 +183,14 @@ public:
     scaling.set(1,1,1);
     color = 0xFFFFFFFF;
     sectionOn = true;
+    sectionLength = -1;
     sectionVisible = true;
     showLinks = false;
     visible1 = true;
     visible2 = true;
     uniqueId = currentUniqueGameObjectId++;
     useGrid = false;
+    pointHasTransform = false;
     gridId = 0;
     hasDrawProblem = false;
     parentTransform.identity();
@@ -221,12 +223,14 @@ public:
   char caption[NAMEMAX];
   bool selected;
   bool sectionOn;
+  int sectionLength;
   bool showLinks;
   bool sectionVisible;
   bool visible1;
   bool visible2;
   bool hasDrawProblem;
   bool useGrid;
+  bool pointHasTransform;
   int gridId;
   unsigned int uniqueId;
   Vector boundingBoxMin;
@@ -284,13 +288,15 @@ public:
   S_NAME("name",(__o__)->name);\
   S_NAME("caption",(__o__)->caption);\
   S_BOOL("selected",(__o__)->selected);\
-  S_BOOL("selectionOn",(__o__)->sectionOn);\
+  S_BOOL("sectionOn",(__o__)->sectionOn);\
+  S_INT("sectionLength",(__o__)->sectionLength);\
   S_BOOL("showLinks",(__o__)->showLinks);\
   S_BOOL("sectionVisible",(__o__)->sectionVisible);\
   S_BOOL("visible1",(__o__)->visible1);\
   S_BOOL("visible2",(__o__)->visible2);\
   S_BOOL("hasDrawProblem",(__o__)->hasDrawProblem);\
   S_BOOL("useGrid", (__o__)->useGrid);\
+  S_BOOL("pointHasTransform", (__o__)->pointHasTransform);\
   S_INT("gridId", (__o__)->gridId);\
   S_UINT("uniqueId", (__o__)->uniqueId);\
   S_VECTOR("boundingBoxMin",(__o__)->boundingBoxMin);\

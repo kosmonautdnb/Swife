@@ -622,12 +622,20 @@ void paintPoint(class GameObject *o, bool showModificators) {
   glTranslatef(o->anchor.x,o->anchor.y,o->anchor.z);
 
   if (showModificators) {
-    Vector minB2 = minB - o->anchor;
-    Vector maxB2 = maxB - o->anchor;
-    Matrix objectMatrix; glGetDoublev(GL_MODELVIEW_MATRIX, objectMatrix.m);
-    combineForNoRotation(&objectMatrix,&cameraMatrix,true);
-    glLoadMatrixd(objectMatrix.m);
-    addHitTestMoveGizmo(o,minB2,maxB2);
+    if (!o->pointHasTransform) {
+      Vector minB2 = minB - o->anchor;
+      Vector maxB2 = maxB - o->anchor;
+      Matrix objectMatrix; glGetDoublev(GL_MODELVIEW_MATRIX, objectMatrix.m);
+      combineForNoRotation(&objectMatrix,&cameraMatrix,true);
+      glLoadMatrixd(objectMatrix.m);
+      addHitTestMoveGizmo(o,minB2,maxB2);
+    } else {
+      Vector minB2 = minB - o->anchor;
+      Vector maxB2 = maxB - o->anchor;
+      addHitTestScaleGizmo(o,minB2,maxB2);
+      addHitTestRotateGizmo(o,minB2,maxB2);
+      addHitTestMoveGizmo2(cameraMatrix,o,minB2,maxB2);
+    }
   }
 
   glPopMatrix();

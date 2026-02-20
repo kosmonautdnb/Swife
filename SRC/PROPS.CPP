@@ -499,16 +499,21 @@ void showPointProperties(GameObject *object) {
   ImGui::Separator();
   ImGui::Text("Text");ImGui::SameLine();if (ImGui::InputText("##POINTPROPCAPTION",object->caption,NAMEMAX)) {renderingUpdated = true;}
   ImGui::Separator();
-  Vector translation = object->translation;
-  if (vectorInput("P.",&translation,"##POINTROPTRANSLATION")) {renderingUpdated = true;}
-  object->translation = translation;
-  ImGui::PushItemWidth(9*7);
-  float k=0;
-  ImGui::Text("Size"); ImGui::SameLine(); k = object->scaling.x; if (ImGui::InputFloat("##POINTPROPSCALE",&k)) {renderingUpdated = true;}
-  object->scaling.x = object->scaling.y = object->scaling.z = k;
-  object->scaling = clampScale(object->scaling);
-  ImGui::PopItemWidth();
-  colorItem("C.","##POINTROPCOLOR",&object->color, true);
+  ImGui::Text("Extended"); ImGui::SameLine(); if (ImGui::Checkbox("##POINTPROPEXTENDED",&object->pointHasTransform)) {renderingUpdated = true;}
+  if (!object->pointHasTransform) {
+    Vector translation = object->translation;
+    if (vectorInput("P.",&translation,"##POINTROPTRANSLATION")) {renderingUpdated = true;}
+    object->translation = translation;
+    ImGui::PushItemWidth(9*7);
+    float k=0;
+    ImGui::Text("Size"); ImGui::SameLine(); k = object->scaling.x; if (ImGui::InputFloat("##POINTPROPSCALE",&k)) {renderingUpdated = true;}
+    object->scaling.x = object->scaling.y = object->scaling.z = k;
+    object->scaling = clampScale(object->scaling);
+    ImGui::PopItemWidth();
+    colorItem("C.","##POINTROPCOLOR",&object->color, true);
+  } else {
+    showTransform(object,"##POINTPROPTRANSFORM");
+  }
   ImGui::Separator();
 }
 
@@ -664,6 +669,21 @@ void showScriptProperties(GameObject *object) {
   ImGui::Separator();
 }
 
+void showSectionProperties(GameObject *object) {
+  ImGui::Text("Section");
+  ImGui::SameLine();
+  if (propsButton(IDCOMBINED((object->sectionLength>=0)?"Pure":"With length","##SECTIONPROPWITHLENGTH"),strlen("With length")+2)) {object->sectionLength = (object->sectionLength>=0) ? -1:1; renderingUpdated = true;}
+  if (object->sectionLength>=0) {
+    ImGui::PushItemWidth(64);
+    ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.9,0.9,0.9,1));
+    ImGui::Text("Length"); ImGui::SameLine(); if (ImGui::InputInt("##SECTIONPROPSECTIONLENGTH",&object->sectionLength,1,1)) {renderingUpdated = true;}
+    ImGui::PopStyleColor();
+    ImGui::PopItemWidth();
+  }
+
+  ImGui::Separator();
+}
+
 
 void drawProperties() {
   int count = 0;
@@ -694,6 +714,8 @@ void drawProperties() {
   }
   if (first2 != NULL && count2 == 1 && count == 0) {
     ImGui::InputText("##PROPNAME",first2->name,NAMEMAX); // section
+    ImGui::Separator();
+    showSectionProperties(first2);
   }
   if (count > 1) ImGui::Text("Multiple selecteds");
   ImGui::Separator();
