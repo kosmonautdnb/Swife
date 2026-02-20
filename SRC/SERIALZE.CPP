@@ -97,7 +97,7 @@ int arraySize = 0;
 #define S_ARRAY(__name__,__array__,__elementFunc__) {\
   int k = arrayIndex;\
   S_ARRAY_OPEN(__name__);\
-  if (!save) {\
+  if (!jsonIsSaving) {\
     (__array__).clear(); (__array__).resize(arraySize);\
   }\
   for (int i = 0; i < (__array__).size(); i++) {\
@@ -108,7 +108,7 @@ int arraySize = 0;
   arrayIndex = k;\
 }
 #define S_ARRAY_POINTER_RESIZE(__array__,__type__,__count__) {\
-  if (!save) {\
+  if (!jsonIsSaving) {\
     for (int i1 = 0; i1 < (__array__).size(); i1++) if ((__array__)[i1] != NULL) {delete (__array__)[i1]; (__array__)[i1]=NULL;}\
     (__array__).clear(); (__array__).resize(__count__);\
     for (int i2 = 0; i2 < (__array__).size(); i2++) (__array__)[i2] = new (__type__);\
@@ -197,24 +197,25 @@ void jsonSerialize(void *json, void **jsonPos, int type, const char *name, void 
       case JSONObject: {val = json_object_get_value(json_value_get_object(jval), name);} break;
       case JSONArray: {val = json_array_get_value(json_value_get_array(jval), arrayIndex);} break;
     }
+    bool has = json_value_get_type(val)!=JSONError;
     switch(type) {
       case JSONTYPE_NULL: {} break;
-      case JSONTYPE_BOOL: {*((bool*)data) = json_value_get_boolean(val)?true:false;} break;
-      case JSONTYPE_INT: {*((int*)data) = (int)json_value_get_number(val);} break;
-      case JSONTYPE_UINT: {*((unsigned int*)data) = (unsigned int)json_value_get_number(val);} break;
-      case JSONTYPE_FLOAT: {*((float*)data) = (float)json_value_get_number(val);} break;
-      case JSONTYPE_DOUBLE: {*((double*)data) = (double)json_value_get_number(val);} break;
-      case JSONTYPE_STRING: {*(String*)data = (const char *)json_value_get_string(val);} break;
-      case JSONTYPE_NAME: {sprintf((char*)data,"%s",(const char *)json_value_get_string(val));} break;
+      case JSONTYPE_BOOL: {if(!has)break;*((bool*)data) = json_value_get_boolean(val)?true:false;} break;
+      case JSONTYPE_INT: {if(!has)break;*((int*)data) = (int)json_value_get_number(val);} break;
+      case JSONTYPE_UINT: {if(!has)break;*((unsigned int*)data) = (unsigned int)json_value_get_number(val);} break;
+      case JSONTYPE_FLOAT: {if(!has)break;*((float*)data) = (float)json_value_get_number(val);} break;
+      case JSONTYPE_DOUBLE: {if(!has)break;*((double*)data) = (double)json_value_get_number(val);} break;
+      case JSONTYPE_STRING: {if(!has)break;*(String*)data = (const char *)json_value_get_string(val);} break;
+      case JSONTYPE_NAME: {if(!has)break;sprintf((char*)data,"%s",(const char *)json_value_get_string(val));} break;
       case JSONTYPE_ARRAY_OPEN: {jvals->push_back(val);arraySize=json_array_get_count(json_value_get_array(val));} break;
       case JSONTYPE_ARRAY_CLOSE: {jvals->pop_back();} break;
       case JSONTYPE_OBJECT_OPEN: {jvals->push_back(val);} break;
       case JSONTYPE_OBJECT_CLOSE: {jvals->pop_back();} break;
-      case JSONTYPE_VECTOR: {Vector *v = (Vector*)data; String t = (const char *)json_value_get_string(val); sscanf(t.c_str(),"%lf,%lf,%lf,%lf", &v->x, &v->y, &v->z, &v->w);} break;
-      case JSONTYPE_QUATERNION: {Quaternion *v = (Quaternion*)data; String t = (const char *)json_value_get_string(val); sscanf(t.c_str(),"%lf,%lf,%lf,%lf", &v->x, &v->y, &v->z, &v->w);} break;
-      case JSONTYPE_FLOAT4: {float *v = (float*)data; String t = (const char *)json_value_get_string(val); sscanf(t.c_str(),"%f,%f,%f,%f", &v[0], &v[1], &v[2], &v[3]);} break;
-      case JSONTYPE_MATRIX: {double *v = ((Matrix*)data)->m; String t = (const char *)json_value_get_string(val); sscanf(t.c_str(),"%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf", &v[0], &v[1], &v[2], &v[3], &v[4], &v[5], &v[6], &v[7], &v[8], &v[9], &v[10], &v[11], &v[12], &v[13], &v[14], &v[15]);} break;
-      case JSONTYPE_FILENAME: {*(String*)data = fromLocalFileName((const char *)json_value_get_string(val));} break;
+      case JSONTYPE_VECTOR: {if(!has)break;Vector *v = (Vector*)data; String t = (const char *)json_value_get_string(val); sscanf(t.c_str(),"%lf,%lf,%lf,%lf", &v->x, &v->y, &v->z, &v->w);} break;
+      case JSONTYPE_QUATERNION: {if(!has)break;Quaternion *v = (Quaternion*)data; String t = (const char *)json_value_get_string(val); sscanf(t.c_str(),"%lf,%lf,%lf,%lf", &v->x, &v->y, &v->z, &v->w);} break;
+      case JSONTYPE_FLOAT4: {if(!has)break;float *v = (float*)data; String t = (const char *)json_value_get_string(val); sscanf(t.c_str(),"%f,%f,%f,%f", &v[0], &v[1], &v[2], &v[3]);} break;
+      case JSONTYPE_MATRIX: {if(!has)break;double *v = ((Matrix*)data)->m; String t = (const char *)json_value_get_string(val); sscanf(t.c_str(),"%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf", &v[0], &v[1], &v[2], &v[3], &v[4], &v[5], &v[6], &v[7], &v[8], &v[9], &v[10], &v[11], &v[12], &v[13], &v[14], &v[15]);} break;
+      case JSONTYPE_FILENAME: {if(!has)break;*(String*)data = fromLocalFileName((const char *)json_value_get_string(val));} break;
     }
   }
 }
@@ -234,7 +235,9 @@ void serializeAll(FILE *file, bool save) {
   // ID/Header
   String idString = String("SWIFE SCENE FILE");
   S_STRING("id", idString);
+  int v = version;
   S_INT("version", version);
+  version = v;
 
   // CONFIG.HPP
   S_BOOL("fullScreen",fullScreen);
@@ -252,6 +255,7 @@ void serializeAll(FILE *file, bool save) {
   S_INT("defaultRenderTargetHeight",defaultRenderTargetHeight);
 
   // GAMEOBJECT.HPP
+  S_UINT("currentUniqueGameObjectId",currentUniqueGameObjectId);
   S_ARRAY_OPEN("grids");
   for (int i1 = 0; i1 < MAXGRIDS; i1++) {
     arrayIndex = i1;
@@ -299,7 +303,7 @@ void serializeAll(FILE *file, bool save) {
   for (int i4 = 0; i4 < bindings.size(); i4++) {
     arrayIndex = i4;
     S_FILEBINDING(NULL,bindings[i4]);
-    if (!save) bindings[i4]->reload();
+    if (!jsonIsSaving) bindings[i4]->reload();
   }
   S_ARRAY_CLOSE();
 
@@ -310,7 +314,41 @@ void serializeAll(FILE *file, bool save) {
 
   // VIEWPORT.HPP
   S_BOOL("toolOn", toolOn);
+
+  FINISHSERIALIZATION(file);
+}
+
+void serializeObjects(bool save, FILE *file, Array<GameObject*> &gameObjects, Array<FileBinding*> &bindings, unsigned int &currentUniqueGameObjectId, unsigned int &bindingUniqueId) {
+  STARTSERIALIZATION(save, file);
+  if (error) {return;}
+
+  // ID/Header
+  String idString = String("SWIFE GAME OBJECTS FILE");
+  S_STRING("id", idString);
+  int v = version;
+  S_INT("version", version);
+  version = v;
+
+  // GAMEOBJECT.HPP
   S_UINT("currentUniqueGameObjectId",currentUniqueGameObjectId);
+  S_ARRAY_OPEN("gameObjects");
+  S_ARRAY_POINTER_RESIZE(gameObjects,GameObject,arraySize);
+  for (int i2 = 0; i2 < gameObjects.size(); i2++) {
+    arrayIndex = i2;
+    S_GAMEOBJECT(NULL,gameObjects[i2]);
+  }
+  S_ARRAY_CLOSE();
+
+  // SERIALIZE.HPP
+  S_UINT("bindingUniqueId",bindingUniqueId);
+  S_ARRAY_OPEN("bindings");
+  S_ARRAY_POINTER_RESIZE(bindings,FileBinding,arraySize);
+  for (int i4 = 0; i4 < bindings.size(); i4++) {
+    arrayIndex = i4;
+    S_FILEBINDING(NULL,bindings[i4]);
+    if (!jsonIsSaving) bindings[i4]->reload();
+  }
+  S_ARRAY_CLOSE();
 
   FINISHSERIALIZATION(file);
 }
@@ -987,10 +1025,11 @@ void loadScript(const char *path, const char *fileName) {
   if (j<0) return;
   GameObject *o = gameObjects[j];
   String fullName = String(path) + fileName;
-  FILE *in = fopen(dosFileName(shortFileName(fullName)).c_str(),"rb");
+  FILE *in = fopen(dosFileName(shortFileName(fullName)).c_str(),"rb"); // actually better "r" here
   if (in == NULL) return;
   Array<char> csvSource; loadArray(&csvSource,in);
   fclose(in);
+  o->scriptFileName = String(path) + String(fileName);
   o->script = (const char*)&csvSource[0];
   if (o->script.size()>=STRINGMAX) o->script.resize(STRINGMAX-1);
 }
@@ -1001,8 +1040,143 @@ void saveScript(const char *path, const char *fileName) {
   GameObject *o = gameObjects[j];
   FILE *out = createTempFile(path);
   if (out == NULL) return;
+  o->scriptFileName = String(path) + String(fileName);
   fprintf(out,"%s",o->script.c_str());
   fclose(out);
   renameTempFile(path,fileName);
 }
 
+unsigned int newUniqueId(unsigned int id, HashMap<unsigned int, unsigned int> &map, unsigned int &top) {
+  if (!map.has(id)) {
+    map[id] = top;
+    top++;
+  }
+  return map[id];
+}
+
+void loadGameObjects(const char *path, const char *fileName) {
+  String fullName = String(path) + fileName;
+  FILE *in = fopen(dosFileName(shortFileName(fullName)).c_str(),"rb");
+  if (in == NULL) return;
+  Array<GameObject*> _gameObjects2;
+  Array<FileBinding*> _bindings2;
+  unsigned int a;
+  unsigned int b;
+  serializeObjects(false, in, _gameObjects2, _bindings2, a, b);
+  fclose(in);
+
+  // put loaded gameobjects to end of gameobjectuniqueids
+  HashMap<unsigned int, unsigned int> remapGameObjects;
+  for (int i1 = 0; i1 < _gameObjects2.size(); i1++) {
+    GameObject *o = _gameObjects2[i1]; 
+    o->uniqueId = newUniqueId(o->uniqueId, remapGameObjects,currentUniqueGameObjectId);
+    switch(o->type) {
+      case GAMEOBJECT_LINK: {
+        for (int i2 = 0; i2 < o->uniqueLinkIds.size(); i2++) o->uniqueLinkIds[i2] = newUniqueId(o->uniqueLinkIds[i2], remapGameObjects,currentUniqueGameObjectId);
+      } break;
+    }
+    for (int i2 = 0; i2 < o->properties.size(); i2++) {
+      switch(o->properties[i2].type) {
+        case GAMEOBJECTPROPERTY_SCRIPT: {
+          o->properties[i2].goUniqueId = newUniqueId(o->properties[i2].goUniqueId, remapGameObjects,currentUniqueGameObjectId);
+        } break;
+        case GAMEOBJECTPROPERTY_LINKS: {
+          for (int i4 = 0; i4 < o->properties[i2].goLinks.size(); i4++) {
+            o->properties[i2].goLinks[i4] = newUniqueId(o->properties[i2].goLinks[i4], remapGameObjects,currentUniqueGameObjectId);
+          }
+        } break;
+      }
+    }
+  }
+
+  HashMap<unsigned int, unsigned int> remapBinding;
+  for (int i2 = 0; i2 < _gameObjects2.size(); i2++) {
+    GameObject *o = _gameObjects2[i2]; 
+    o->fileBindingId = newUniqueId(o->fileBindingId,remapBinding,bindingUniqueId);
+  }
+  for (int i3 = 0; i3 < _bindings2.size(); i3++) {
+    _bindings2[i3]->uniqueId = newUniqueId(_bindings2[i3]->uniqueId,remapBinding,bindingUniqueId);
+    bindings.push_back(_bindings2[i3]);
+  }
+  int pos = 0;
+  for (int i5 = 0; i5 < gameObjects.size(); i5++) {
+    if (gameObjects[i5]->selected) {pos = i5;break;}
+  }
+  for (int i6 = 0; i6 < gameObjects.size(); i6++) {
+    gameObjects[i6]->selected = false;
+  }
+  for (int i4 = _gameObjects2.size()-1; i4 >= 0; i4--) {
+    _gameObjects2[i4]->selected = true;
+    gameObjects.insert(_gameObjects2[i4],pos);
+  }
+  renderingUpdated = true;
+}
+
+void saveGameObjects(const char *path, const char *fileName) {
+  HashMap<unsigned int, GameObject *> _gameObjects;
+  HashMap<unsigned int, FileBinding *> _bindings;
+  for (int i1 = 0; i1 < gameObjects.size(); i1++) {
+    GameObject *o = gameObjects[i1];
+    if (o->selected) {
+      _gameObjects.insert(o->uniqueId, o);
+      _bindings.insert(o->fileBindingId,getBindingById(o->fileBindingId));
+      switch(o->type) {
+        case GAMEOBJECT_LINK: {
+          for (int i2 = 0; i2 < o->uniqueLinkIds.size(); i2++) {
+            unsigned int id = o->uniqueLinkIds[i2];
+            for (int i3 = 0; i3 < gameObjects.size(); i3++) {
+              if (gameObjects[i3]->uniqueId == id) {
+                _gameObjects.insert(id,gameObjects[i3]);
+                _bindings.insert(gameObjects[i3]->fileBindingId,getBindingById(gameObjects[i3]->fileBindingId));
+                break;
+              }
+            }
+          }
+        } break;
+      }
+      for (int i2 = 0; i2 < o->properties.size(); i2++) {
+        switch(o->properties[i2].type) {
+          case GAMEOBJECTPROPERTY_SCRIPT: {
+            unsigned int id = o->properties[i2].goUniqueId;
+            for (int i3 = 0; i3 < gameObjects.size(); i3++) {
+              if (gameObjects[i3]->uniqueId == id) {
+                _gameObjects.insert(id,gameObjects[i3]);
+                _bindings.insert(gameObjects[i3]->fileBindingId,getBindingById(gameObjects[i3]->fileBindingId));
+                break;
+              }
+            }
+          } break;
+          case GAMEOBJECTPROPERTY_LINKS: {
+            for (int i4 = 0; i4 < o->properties[i2].goLinks.size(); i4++) {
+              unsigned int id = o->properties[i2].goLinks[i4];
+              for (int i3 = 0; i3 < gameObjects.size(); i3++) {
+                if (gameObjects[i3]->uniqueId == id) {
+                  _gameObjects.insert(id,gameObjects[i3]);
+                  _bindings.insert(gameObjects[i3]->fileBindingId,getBindingById(gameObjects[i3]->fileBindingId));
+                  break;
+                }
+              }
+            }
+          } break;
+        }
+      }
+    }
+  }
+
+  FILE *out = createTempFile(path);
+  if (out == NULL) return;
+  Array<GameObject*> _gameObjects2;
+  for (int i3 = 0; i3 < gameObjects.size(); i3++) {
+    if (_gameObjects.has(gameObjects[i3]->uniqueId)) _gameObjects2.push_back(gameObjects[i3]);
+  }
+  Array<FileBinding*> _bindings2 = _bindings.values();
+  for (int i2 = 0; i2 < _bindings2.size(); i2++) {
+    if (_bindings2[i2]==NULL) {_bindings2.erase(i2,1); i2--;}
+  }
+
+  unsigned int a = currentUniqueGameObjectId;
+  unsigned int b = bindingUniqueId;
+  serializeObjects(true, out, _gameObjects2, _bindings2, a, b);
+  fclose(out);
+  renameTempFile(path,fileName);
+}

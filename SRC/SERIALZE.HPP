@@ -152,5 +152,7 @@ void loadTextureGridCSV(const char *path, const char *fileName);
 void saveTextureGridCSV(const char *path, const char *fileName);
 void loadScript(const char *path, const char *fileName);
 void saveScript(const char *path, const char *fileName);
+void loadGameObjects(const char *path, const char *fileName);
+void saveGameObjects(const char *path, const char *fileName);
 
 #endif //__SERIALZE_HPP__

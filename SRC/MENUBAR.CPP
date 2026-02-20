@@ -80,6 +80,9 @@ void drawMenuBar() {
       if (ImGui::MenuItem("Load scene")) {dialogLoadSave(true,DIALOG_LOADSCENE);}
       if (ImGui::MenuItem("Save scene")) {dialogLoadSave(true,DIALOG_SAVESCENE);}
       ImGui::Separator();
+      if (ImGui::MenuItem("Include selection")) {dialogLoadSave(true,DIALOG_LOADANDINSERTGAMEOBJECTS);}
+      if (ImGui::MenuItem("Save selection")) {dialogLoadSave(true,DIALOG_SAVESELECTEDGAMEOBJECTS);}
+      ImGui::Separator();
       if (ImGui::MenuItem("Quit")) {
         dialogQuit(true);
       }

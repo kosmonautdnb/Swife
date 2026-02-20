@@ -34,6 +34,7 @@
 #include "PAINT.HPP"
 #include "TEXTURES.HPP"
 #include "SERIALZE.HPP"
+#include "STL/DOS.HPP"
 #include <math.h>
 
 int properties_width = 160;
@@ -595,14 +596,21 @@ void showTextureGridProperties(GameObject *object) {
 void showScriptProperties(GameObject *object) {
   ImGui::Text("Script");
   ImGui::SameLine();
-  if (propsButton("Load##SCRIPTPROPLOADSCRIPT",strlen("Load")+4)) {dialogLoadSaveSetFileNameAndPath = ""; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADSCRIPT); renderingUpdated = true;}
+  if (propsButton("Load##SCRIPTPROPLOADSCRIPT",strlen("Load")+4)) {dialogLoadSaveSetFileNameAndPath = object->scriptFileName.empty() ? "" : object->scriptFileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADSCRIPT); renderingUpdated = true;}
   if (!object->script.empty()) {
     ImGui::SameLine();
-    if (propsButton("Save##SCRIPTPROPSAVESCRIPT",strlen("Save")+2+strlen("Load")+4)) {dialogLoadSaveSetFileNameAndPath = ""; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_SAVESCRIPT); renderingUpdated = true;}
+    if (propsButton("Save##SCRIPTPROPSAVESCRIPT",strlen("Save")+2+strlen("Load")+4)) {dialogLoadSaveSetFileNameAndPath = object->scriptFileName.empty() ? "" : object->scriptFileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_SAVESCRIPT); renderingUpdated = true;}
   }
   if (propsButton("Edit##SCRIPTPROPEDIFSCRIPT",strlen("Edit")+4)) {dialogEditScript(true, object); renderingUpdated = true;}
   ImGui::Separator();
+  if (!object->scriptFileName.empty()) {
+    ImGui::Text("Filename:");
+    ImGui::Text("%s",object->scriptFileName.last(19).c_str());
+    if (propsButton("Reload##SCRIPTPROPRELOADSCRIPT",strlen("Reload")+4)) {dialogLoadSaveGameObjectUniqueId = object->uniqueId; loadScript(getPath(object->scriptFileName).c_str(),(getName(object->scriptFileName)+getExtension(object->scriptFileName)).c_str()); renderingUpdated = true;}
+    ImGui::Separator();
+  }
   ImGui::Text("Script text:");
+  ImGui::Separator();
   ImGui::BeginChild("##SCRIPTPROPCHILD",ImVec2(0,main_window_yres/2));
   ImGui::TextWrapped("%s",object->script.c_str());
   ImGui::EndChild();

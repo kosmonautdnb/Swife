@@ -201,6 +201,7 @@ public:
     billBoardTY1 = 0;
     showStructure = false;
     script = "";
+    scriptFileName = "";
   }
 
   unsigned int layers;
@@ -241,6 +242,7 @@ public:
   Array<unsigned int> uniqueLinkIds;
   Camera camera;
   String script;
+  String scriptFileName;
 
   GameObject *setName(const char *name);
   GameObject *setType(unsigned int type);
@@ -304,6 +306,7 @@ public:
   S_ARRAY("properties",(__o__)->properties,S_GAMEOBJECTPROPERTY(NULL,&((__o__)->properties[i])));\
   S_CAMERA("camera",&(__o__)->camera);\
   S_STRING("script",(__o__)->script);\
+  S_FILENAME("scriptFileName",(__o__)->scriptFileName);\
   S_OBJECT_CLOSE();
 
 extern HashMap<unsigned int, const char*> iconNameForGameObjectType;
