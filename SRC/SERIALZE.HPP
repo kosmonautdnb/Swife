@@ -72,6 +72,7 @@ public:
     index = -1;
     index2 = -1;
     forceTwoSided = false;
+    fileName = "";
   }
   ~FileBinding();
   unsigned int type;
@@ -134,6 +135,7 @@ FileBinding *getBindingByFileName(const char *fileName, unsigned int type);
 FileBinding *newBinding();
 void clearAllUnusedBindings();
 void freeBindings();
+void serializeAll(FILE *file, bool save);
 
 void loadScene(const char *path, const char *fileName);
 void saveScene(const char *path, const char *fileName);
@@ -148,6 +150,7 @@ void loadTextureGridForObject(class GameObject *o, const char *fileName);
 void loadTextureGrid(const char *path, const char *fileName);
 void loadTextureGridCSV(const char *path, const char *fileName);
 void saveTextureGridCSV(const char *path, const char *fileName);
-void serializeAll(FILE *file, bool save);
+void loadScript(const char *path, const char *fileName);
+void saveScript(const char *path, const char *fileName);
 
 #endif //__SERIALZE_HPP__

@@ -55,7 +55,9 @@ enum DIALOGMODE {
   DIALOG_LOADTEXTUREGRID = 6,
   DIALOG_LOADTEXTUREGRIDCSV = 7,
   DIALOG_SAVETEXTUREGRIDCSV = 8,
-  DIALOG_COUNT = 9
+  DIALOG_LOADSCRIPT = 9,
+  DIALOG_SAVESCRIPT = 10,
+  DIALOG_COUNT = 11
 };
 
 String longFileName(const String &a);
@@ -72,5 +74,7 @@ void dialogOverwrite(bool openIt);
 void dialogCompactAndMove(bool openIt);
 
 void getTransformForGameObjectFromCursor(GameObject *o);
+
+void dialogEditScript(bool openIt, class GameObject *object);
 
 #endif // __DIALOGS_HPP__

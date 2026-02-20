@@ -70,7 +70,7 @@ enum JSONTYPE {
 
 JSON_Value * json_parse_string(const char *string);
 
-#define JSONPORTIONLENGTH 1024
+#define JSONPORTIONLENGTH (STRINGMAX+1000)
 
 #define STARTSERIALIZATION(__save__, __file__) int arrayIndex = 0; bool error = false; JSON_Value *jval; Array<JSON_Value*> jvals; Array<char> jsonArray; jsonArray.resize(JSONPORTIONLENGTH); jsonArray[0] = '{'; char *jsonPos = &jsonArray[1]; bool jsonIsSaving = __save__; if (!jsonIsSaving) {loadArray(&jsonArray,file);jval=json_parse_string_with_comments(&jsonArray[0]); jvals.push_back(jval); jsonPos = (char*)&jvals; if (jval==NULL) error = true;}
 #define FINISHSERIALIZATION(__file__) {if (jsonIsSaving) {if (jsonPos[-1] == ',' ) jsonPos--; sprintf(jsonPos,"}");fputs(&jsonArray[0],file);}}
@@ -170,8 +170,8 @@ void jsonSerialize(void *json, void **jsonPos, int type, const char *name, void 
       case JSONTYPE_UINT: {newPos = json_uint( oldPos, name, *((unsigned int*)data), &len );} break;
       case JSONTYPE_FLOAT: {double v = *((float*)data); newPos = json_double( oldPos, name, v, &len );} break;
       case JSONTYPE_DOUBLE: {newPos = json_double( oldPos, name, *((double*)data), &len );} break;
-      case JSONTYPE_STRING: {String str = *(String*)data; newPos = json_str( oldPos, name, str.c_str(), &len );} break;
-      case JSONTYPE_NAME: {String str = (const char *)data; newPos = json_str( oldPos, name, str.c_str(), &len );} break;
+      case JSONTYPE_STRING: {String str = *(String*)data; newPos = json_str( oldPos, name, str.c_str() != NULL ? str.c_str() : "", &len );} break;
+      case JSONTYPE_NAME: {String str = (const char *)data; newPos = json_str( oldPos, name, str.c_str() != NULL ? str.c_str() : "", &len );} break;
       case JSONTYPE_ARRAY_OPEN: {newPos = json_arrOpen( oldPos, name, &len );} break;
       case JSONTYPE_ARRAY_CLOSE: {newPos = json_arrClose( oldPos,&len );} break;
       case JSONTYPE_OBJECT_OPEN: {newPos = json_objOpen( oldPos, name, &len );} break;
@@ -180,7 +180,7 @@ void jsonSerialize(void *json, void **jsonPos, int type, const char *name, void 
       case JSONTYPE_QUATERNION: {Quaternion *v = (Quaternion*)data; sprintf(tempBuffer,"%s,%s,%s,%s", _D(v->x), _D(v->y), _D(v->z), _D(v->w)); newPos = json_str( oldPos, name, tempBuffer, &len );} break;
       case JSONTYPE_FLOAT4: {float *v = (float*)data; sprintf(tempBuffer,"%s,%s,%s,%s", _F(v[0]), _F(v[1]), _F(v[2]), _F(v[3])); newPos = json_str( oldPos, name, tempBuffer, &len );} break;
       case JSONTYPE_MATRIX: {double *v = ((Matrix*)data)->m; sprintf(tempBuffer,"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s", _D(v[0]), _D(v[1]), _D(v[2]), _D(v[3]), _D(v[4]), _D(v[5]), _D(v[6]), _D(v[7]), _D(v[8]), _D(v[9]), _D(v[10]), _D(v[11]), _D(v[12]), _D(v[13]), _D(v[14]), _D(v[15])); newPos = json_str( oldPos, name, tempBuffer, &len );} break;
-      case JSONTYPE_FILENAME: {String str = toLocalFileName(*(String*)data); newPos = json_str( oldPos, name, str.c_str(), &len );} break;
+      case JSONTYPE_FILENAME: {String str = toLocalFileName(*(String*)data); newPos = json_str( oldPos, name, str.c_str() != NULL ? str.c_str() : "", &len );} break;
     }
     int posInString = (int)(newPos - &(*w)[0]);
     if (posInString > w->size()-JSONPORTIONLENGTH) {
@@ -981,3 +981,28 @@ void saveTextureGridCSV(const char *path, const char *fileName) {
   fclose(out);
   renameTempFile(path, fileName);
 }
+
+void loadScript(const char *path, const char *fileName) {
+  int j = getObjectIdByUniqueId(dialogLoadSaveGameObjectUniqueId);
+  if (j<0) return;
+  GameObject *o = gameObjects[j];
+  String fullName = String(path) + fileName;
+  FILE *in = fopen(dosFileName(shortFileName(fullName)).c_str(),"rb");
+  if (in == NULL) return;
+  Array<char> csvSource; loadArray(&csvSource,in);
+  fclose(in);
+  o->script = (const char*)&csvSource[0];
+  if (o->script.size()>=STRINGMAX) o->script.resize(STRINGMAX-1);
+}
+
+void saveScript(const char *path, const char *fileName) {
+  int j = getObjectIdByUniqueId(dialogLoadSaveGameObjectUniqueId);
+  if (j<0) return;
+  GameObject *o = gameObjects[j];
+  FILE *out = createTempFile(path);
+  if (out == NULL) return;
+  fprintf(out,"%s",o->script.c_str());
+  fclose(out);
+  renameTempFile(path,fileName);
+}
+

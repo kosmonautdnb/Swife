@@ -53,8 +53,11 @@ void rotateCameraBy(double degrees, double x, double y, double z) {
   renderingUpdated = true;
 }
 
+int renderMouseClicksOff = 0;
+
 void Camera::wasdControls() {
   if (ImGui::GetIO().WantCaptureKeyboard) return;
+  if (renderMouseClicksOff>0) return; // also keyboard off
   bool rightMousePressed = mouseB & 2;
   double mouseDeltaXHere = mouseDX;
   double mouseDeltaYHere = mouseDY;
@@ -447,7 +450,6 @@ void drawSelecting(bool tiny) {
 }
 
 unsigned int selectionCounter = 0;
-int renderMouseClicksOff = 0;
 int drawProblems = 0;
 
 void disableRenderMouseClicks() {

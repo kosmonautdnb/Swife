@@ -42,12 +42,13 @@ typedef void (*LOADSAVEFUNC)(const char *shortPath, const char *longFileName);
 const char *images = ".png,.jpg,.tga,.bmp,.psd,.gif,.pic,.pnm,.hdr";
 const char *meshes = ".obj,.glb";
 const char *csv = ".csv";
+const char *all = "*.*";
 const char *imagesAndMeshes = ".png,.jpg,.tga,.bmp,.psd,.gif,.pic,.pnm,.hdr,.obj,.glb";
-const char *dialogCaption[DIALOG_COUNT] = {"NO MODE","Load a scene","Save a scene","Load a skybox","Load a mesh","Load a billboard texture","Load a texturegrid texture","Load a texturegrid CSV","Save a texturegrid CSV"};
-const char *proceedButton[DIALOG_COUNT] = {"<button>", "Load", "Save","Load","Load","Load","Load","Load","Save"};
-const char *dialogFileTypes[DIALOG_COUNT] = {"",".sfs",".sfs",images,meshes,imagesAndMeshes,images,csv,csv};
-const char *dialogDefaultExtension[DIALOG_COUNT] = {"",".SFS",".SFS","","","","",".CSV",".CSV"};
-LOADSAVEFUNC funcs[DIALOG_COUNT] = {NULL, loadScene, saveScene, loadSkyBox, loadMesh, loadBillBoard,loadTextureGrid,loadTextureGridCSV,saveTextureGridCSV};
+const char *dialogCaption[DIALOG_COUNT] = {"NO MODE","Load a scene","Save a scene","Load a skybox","Load a mesh","Load a billboard texture","Load a texturegrid texture","Load a texturegrid CSV","Save a texturegrid CSV","Load a script","Save a script"};
+const char *proceedButton[DIALOG_COUNT] = {"<button>", "Load", "Save","Load","Load","Load","Load","Load","Save","Load","Save"};
+const char *dialogFileTypes[DIALOG_COUNT] = {"",".sfs",".sfs",images,meshes,imagesAndMeshes,images,csv,csv,all};
+const char *dialogDefaultExtension[DIALOG_COUNT] = {"",".SFS",".SFS","","","","",".CSV",".CSV","",""};
+LOADSAVEFUNC funcs[DIALOG_COUNT] = {NULL, loadScene, saveScene, loadSkyBox, loadMesh, loadBillBoard,loadTextureGrid,loadTextureGridCSV,saveTextureGridCSV,loadScript,saveScript};
 
 
 #define DIALOGSTART(__name__) static int keyboardFocusNew = 0; static bool openItNextTime = false;  if (openIt) {openItNextTime = true; keyboardFocusNew = 2; return;}  if (openItNextTime) {openItNextTime = false; ImGui::OpenPopup(__name__); } ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0,0,0,1)); ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(1,1,1,1); if (ImGui::BeginPopupModal(__name__,NULL,ImGuiWindowFlags_AlwaysAutoResize)) { ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(0,0,0,1); ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.4,0.4,0.4,1));disableRenderMouseClicks();
@@ -251,7 +252,28 @@ void dialogAddProperty(bool openIt, class GameObject *object) {
     } else {
       ImGui::Text("Links to %d objects will be generated.",count);
     }
-  }
+  } break;
+  case GAMEOBJECTPROPERTY_SCRIPT: {
+    ImGui::Text(""); // SameLine before
+    for (int j = 0; j < gameObjects.size(); j++) {
+      if (gameObjects[j]==o) {ImGui::Text("Please select script for object: %d\"%s\"",j,o->name); break;}
+    }
+    ImGui::BeginChild("DIALOGADDPROPERTYLINKSCHILD",ImVec2(main_window_xres/3,main_window_yres/6));
+    int count = 0;
+    for(int i = 0; i < gameObjects.size(); i++) {
+      if (gameObjects[i]->type == GAMEOBJECT_SCRIPT && gameObjects[i] != o) {
+        String a = (gameObjects[i]->uniqueId == p.goUniqueId ? ">" : " ") + String::fromInt(i) + "\"" + gameObjects[i]->name + "\"##DIALOGADDPROPERTYSCRIPTBUTTON";
+        if (ImGui::Button(a.c_str())) {
+          p.goUniqueId = gameObjects[i]->uniqueId;
+        }
+        count++;
+      }
+    }
+    ImGui::EndChild();
+    if (count == 0) {
+      ImGui::Text("Currently no scripts in the project.");
+    }
+  } break;
   }
   ImGui::PopItemWidth();
   if (strlen(p.name)>0) {
@@ -953,6 +975,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   ImGui::Separator();
   ImGui::PushItemWidth(w);
   ImGui::Text("Filename");
+  DIALOGKEYSHERE();
   ImGui::InputText("##DIALOGLOADSAVEFILENAME",&fileNames[mode][0],NAMEMAXHERE);
   ImGui::PopItemWidth();
   ImGui::Separator();
@@ -1153,5 +1176,64 @@ void dialogCompactAndMove(bool openIt) {
     ImGui::CloseCurrentPopup();
   }
 
+  DIALOGEND()
+}
+
+
+char textBuffer1[STRINGMAX];
+char textBuffer2[STRINGMAX];
+int cursorPos = -1;
+int cursorPos2 = -1;
+
+int cursorCallback(ImGuiTextEditCallbackData *data) {
+  cursorPos = data->CursorPos;
+  return 0;
+}
+
+void dialogEditScript(bool openIt, class GameObject *object) {
+  static GameObject *o = NULL; if (object != NULL) {o = object; strcpy(textBuffer1,o->script.c_str());sprintf(textBuffer2,"");}
+  DIALOGSTART("Edit script")
+  if (o != NULL) {
+    int w = main_window_xres/2;
+    int h = main_window_yres/2;
+    ImGui::BeginChild("##DIALOGEDITSCRIPTCHILD",ImVec2(w,h));
+    int lineCount = 1;
+    char *tb = textBuffer2;
+    int focusY = -1;
+    for (int i = 0; i < strlen(textBuffer1)+1; i++) {
+      if (textBuffer1[i]=='\n'||textBuffer1[i]==0x00) {tb+=sprintf(tb,"%d\n",lineCount);lineCount++;}
+      if (i==cursorPos2) {focusY = ImGui::GetCursorPos().y+(lineCount-1)*13;}
+    }
+    ImVec2 t = ImGui::CalcTextSize(textBuffer2);
+    t.y += 16;
+    ImGui::Columns(2);
+    for (int l = 0; l < 2; l++) {
+      if (l == 0) {
+        ImVec2 p = ImGui::GetCursorPos();
+        p.y += 2;
+        ImGui::SetCursorPos(p);
+        ImGui::Text("%s",textBuffer2);
+      }
+      if (l == 1) {
+        ImGui::SetColumnOffset(l,ImGui::GetColumnOffset(l-1)+7*5);
+        DIALOGKEYSHERE();
+        if (ImGui::InputTextMultiline("##DIALOGEDITSCRIPTMULTI", textBuffer1, STRINGMAX, ImVec2(w-ImGui::GetColumnOffset(l)-24,t.y),ImGuiInputTextFlags_CallbackAlways,cursorCallback));
+        static int lastCursorPos = -1;
+        cursorPos2 = (cursorPos != lastCursorPos) ? cursorPos : -1;
+        lastCursorPos = cursorPos;
+      }
+      ImGui::NextColumn();
+    }
+    if (focusY >= 0) {
+      ImGui::SetScrollFromPosY(focusY);
+    }
+    ImGui::EndChild();
+  }
+  ImGui::Text("Press escape to discard changes.");
+  if (ImGui::Button("Close##DIALOGEDITSCRIPTCLOSE")) {
+    o->script = textBuffer1;
+    o = NULL;
+    ImGui::CloseCurrentPopup();
+  }
   DIALOGEND()
 }

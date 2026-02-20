@@ -46,7 +46,8 @@ enum GAMEOBJECTTYPE {
   GAMEOBJECT_LINK = 8,
   GAMEOBJECT_POINT = 9,
   GAMEOBJECT_TEXTUREGRID = 10,
-  GAMEOBJECT_COUNT = 11
+  GAMEOBJECT_SCRIPT = 11,
+  GAMEOBJECT_COUNT = 12
 };
 extern const char *gameObjectTypeNames[GAMEOBJECT_COUNT];
 
@@ -59,7 +60,8 @@ enum GAMEOBJECTPROPERTY {
   GAMEOBJECTPROPERTY_TEXT = 5,
   GAMEOBJECTPROPERTY_COLOR = 6,
   GAMEOBJECTPROPERTY_LINKS = 7,
-  GAMEOBJECTPROPERTY_COUNT = 8
+  GAMEOBJECTPROPERTY_SCRIPT = 8,
+  GAMEOBJECTPROPERTY_COUNT = 9
 };
 extern const char *propertyTypeNames[GAMEOBJECTPROPERTY_COUNT];
 
@@ -79,6 +81,7 @@ public:
     int goInt;
     bool goBool;
     unsigned int goColor;
+    unsigned int goUniqueId;
   };
   Array<unsigned int> goLinks;
   void setName(const char *name);
@@ -97,6 +100,7 @@ public:
   case GAMEOBJECTPROPERTY_TEXT: {S_NAME("goText",(__o__)->goText);} break;\
   case GAMEOBJECTPROPERTY_COLOR: {S_UINT("goColor",(__o__)->goColor);} break;\
   case GAMEOBJECTPROPERTY_LINKS: {S_ARRAY("goLinks",(__o__)->goLinks,S_UINT(NULL,(__o__)->goLinks[i]));} break;\
+  case GAMEOBJECTPROPERTY_SCRIPT: {S_UINT("goUniqueId",(__o__)->goUniqueId);} break;\
   }\
   S_OBJECT_CLOSE();
 
@@ -196,6 +200,7 @@ public:
     billBoardTX1 = 0;
     billBoardTY1 = 0;
     showStructure = false;
+    script = "";
   }
 
   unsigned int layers;
@@ -235,6 +240,7 @@ public:
   Array<GameObjectProperty> properties;
   Array<unsigned int> uniqueLinkIds;
   Camera camera;
+  String script;
 
   GameObject *setName(const char *name);
   GameObject *setType(unsigned int type);
@@ -297,6 +303,7 @@ public:
   S_ARRAY("uniqueLinkIds",(__o__)->uniqueLinkIds,S_UINT(NULL,(__o__)->uniqueLinkIds[i]));\
   S_ARRAY("properties",(__o__)->properties,S_GAMEOBJECTPROPERTY(NULL,&((__o__)->properties[i])));\
   S_CAMERA("camera",&(__o__)->camera);\
+  S_STRING("script",(__o__)->script);\
   S_OBJECT_CLOSE();
 
 extern HashMap<unsigned int, const char*> iconNameForGameObjectType;

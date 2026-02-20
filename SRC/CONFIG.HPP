@@ -34,6 +34,7 @@
 #define FROZENWINDOW (ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoTitleBar)
 #define NAMEMAX 16
 #define FILENAMEMAX 512
+#define STRINGMAX 3000 // We have a limit in ImGui currently
 #define NONAME "<no name>"
 #define ERRORCOLOR ImVec4(1,0,0,1)
 #define UNUSED(__p__) (void)(__p__)

@@ -128,6 +128,7 @@ void loadBaseSVGs() {
   ADDICON("link","PLUS.SVG");
   ADDICON("point","MOVE.SVG");
   ADDICON("texturegrid","PAUSE.SVG");
+  ADDICON("script","EDIT.SVG");
   ADDICON("appicon","3D.SVG");
 
   colorIcon("appicon",0x00ffffff);

@@ -98,8 +98,7 @@ bool propsButton(const String &name,int k) {
 bool editProperty(GameObjectProperty *p, int i) {
   char buffer[64];
   sprintf(buffer,"##PROPERTYEDIT%d",i);
-  ImGui::Text(" %s",strlen(p->name)==0?NONAME:p->name);
-  ImGui::Text("  "); ImGui::SameLine();
+  ImGui::Text("%s",strlen(p->name)==0?NONAME:p->name);
   ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.9,0.9,0.9,1));
   ImGui::PushStyleColor(ImGuiCol_CheckMark,ImVec4(0.0,0.5,0.5,1));
    switch(p->type) {
@@ -131,7 +130,7 @@ bool editProperty(GameObjectProperty *p, int i) {
           }
         }
         if (!found) {
-          ImGui::Text(" <deleted>");
+          ImGui::Text(" <not found>");
           ImGui::SameLine();
           sprintf(buffer,"##PROPERTYEDIT%d_x2%d",i,i2);
           ImGui::PushID(buffer);
@@ -144,6 +143,20 @@ bool editProperty(GameObjectProperty *p, int i) {
         }
       }
     } break;
+  case GAMEOBJECTPROPERTY_SCRIPT: {
+      ImGui::Text("Script:");
+      bool found = false;
+      for (int j = 0; j < gameObjects.size(); j++) {
+        if (gameObjects[j]->uniqueId == p->goUniqueId) {
+          ImGui::Text("%d\"%s\"",j,gameObjects[j]->name);
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        ImGui::Text("<not found>");
+      }
+    } break;
   }
   ImGui::SameLine();
   SVG *svg = &svgs["delete"];
@@ -154,7 +167,7 @@ bool editProperty(GameObjectProperty *p, int i) {
   bool ret = ImGui::ImageButton((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h));
   ImGui::PopID();
   ImGui::PopStyleColor();
-   ImGui::PopStyleColor();
+  ImGui::PopStyleColor();
  return ret;
 }
 
@@ -579,6 +592,23 @@ void showTextureGridProperties(GameObject *object) {
   }
 }
 
+void showScriptProperties(GameObject *object) {
+  ImGui::Text("Script");
+  ImGui::SameLine();
+  if (propsButton("Load##SCRIPTPROPLOADSCRIPT",strlen("Load")+4)) {dialogLoadSaveSetFileNameAndPath = ""; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADSCRIPT); renderingUpdated = true;}
+  if (!object->script.empty()) {
+    ImGui::SameLine();
+    if (propsButton("Save##SCRIPTPROPSAVESCRIPT",strlen("Save")+2+strlen("Load")+4)) {dialogLoadSaveSetFileNameAndPath = ""; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_SAVESCRIPT); renderingUpdated = true;}
+  }
+  if (propsButton("Edit##SCRIPTPROPEDIFSCRIPT",strlen("Edit")+4)) {dialogEditScript(true, object); renderingUpdated = true;}
+  ImGui::Separator();
+  ImGui::Text("Script text:");
+  ImGui::BeginChild("##SCRIPTPROPCHILD",ImVec2(0,main_window_yres/2));
+  ImGui::TextWrapped("%s",object->script.c_str());
+  ImGui::EndChild();
+  ImGui::Separator();
+}
+
 
 void drawProperties() {
   int count = 0;
@@ -654,6 +684,7 @@ void drawProperties() {
       case GAMEOBJECT_BILLBOARD: {showBillboardProperties(first);} break;
       case GAMEOBJECT_POINT: {showPointProperties(first);} break;
       case GAMEOBJECT_TEXTUREGRID: {showTextureGridProperties(first);} break;
+      case GAMEOBJECT_SCRIPT: {showScriptProperties(first);} break;
       default:
         showMeshProperties(first);
       }
@@ -665,17 +696,19 @@ void drawProperties() {
     String visib_ = "visible";
     for(int i2 = 0; i2 < gameObjects.size(); i2++) {
       if (gameObjects[i2]->selected && gameObjects[i2]->type != GAMEOBJECT_SECTION) {
-        if (count>1) ImGui::Text("%d\"%s\"",i2,gameObjects[i2]->name);
-        if (filter.empty()||(visib_.findFirst(filter)>=0)) if (ImGui::Checkbox(IDINDEXED("Visible##PROPERTIESGAMEOBJECTVISIBLE",i2),&gameObjects[i2]->visible2)) {renderingUpdated = true;}
+        if (count>1) ImGui::Text(" %d\"%s\"",i2,gameObjects[i2]->name);
+        if (filter.empty()||(visib_.findFirst(filter)>=0)) {ImGui::Separator();if (ImGui::Checkbox(IDINDEXED("Visible##PROPERTIESGAMEOBJECTVISIBLE",i2),&gameObjects[i2]->visible2)) {renderingUpdated = true;}}
         for (int j = 0; j < gameObjects[i2]->properties.size(); j++) {
           if (!(filter.empty()||(toLower(String(gameObjects[i2]->properties[j].name)).findFirst(filter)>=0))) continue;
           if (editProperty(&gameObjects[i2]->properties[j], i2 + j * 32768)) {
             gameObjects[i2]->properties.erase(j,1); j--;
           }
+          ImGui::Separator();
         }
         if (filter.empty() && propsButton(IDINDEXED("Add property##",i2),strlen("Add property")+6)) {
           dialogAddProperty(true, gameObjects[i2]);
         }
+        ImGui::Separator();
         ImGui::Separator();
       }
     }
