@@ -34,7 +34,7 @@ HashMap<unsigned int, const char*> iconNameForGameObjectType;
 Grid grids[MAXGRIDS];
 
 const char *gameObjectTypeNames[GAMEOBJECT_COUNT] = {"undefined", "mesh", "camera", "skybox", "path", "billboard","section","trigger","link","point","texturegrid","script"};
-const char *propertyTypeNames[GAMEOBJECTPROPERTY_COUNT] = {"undefined", "bool", "int", "float", "float4", "text", "color","links","script"};
+const char *propertyTypeNames[GAMEOBJECTPROPERTY_COUNT] = {"undefined", "bool", "int", "float", "float4", "text", "color","links","script","repeat"};
 
 void GameObjectProperty::setName(const char *name) {
   sprintf(this->name,"%s",name);
@@ -42,6 +42,10 @@ void GameObjectProperty::setName(const char *name) {
 
 void GameObjectProperty::clearValue() {
   memset(goText,0,sizeof(goText));
+  goLinks.clear();
+  goMove.set(1,0,0);
+  goScale.set(1,1,1);
+  goRotate = Quaternion();
 }
 
 unsigned int currentUniqueGameObjectId = 1;

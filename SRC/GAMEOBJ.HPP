@@ -61,7 +61,8 @@ enum GAMEOBJECTPROPERTY {
   GAMEOBJECTPROPERTY_COLOR = 6,
   GAMEOBJECTPROPERTY_LINKS = 7,
   GAMEOBJECTPROPERTY_SCRIPT = 8,
-  GAMEOBJECTPROPERTY_COUNT = 9
+  GAMEOBJECTPROPERTY_REPEAT = 9,
+  GAMEOBJECTPROPERTY_COUNT = 10
 };
 extern const char *propertyTypeNames[GAMEOBJECTPROPERTY_COUNT];
 
@@ -82,8 +83,12 @@ public:
     bool goBool;
     unsigned int goColor;
     unsigned int goUniqueId;
+    int goRepeat;
   };
   Array<unsigned int> goLinks;
+  Vector goMove;
+  Vector goScale;
+  Quaternion goRotate;
   void setName(const char *name);
   void clearValue();
 };
@@ -101,6 +106,7 @@ public:
   case GAMEOBJECTPROPERTY_COLOR: {S_UINT("goColor",(__o__)->goColor);} break;\
   case GAMEOBJECTPROPERTY_LINKS: {S_ARRAY("goLinks",(__o__)->goLinks,S_UINT(NULL,(__o__)->goLinks[i]));} break;\
   case GAMEOBJECTPROPERTY_SCRIPT: {S_UINT("goUniqueId",(__o__)->goUniqueId);} break;\
+  case GAMEOBJECTPROPERTY_REPEAT: {S_INT("goRepeat",(__o__)->goRepeat);S_VECTOR("goMove",(__o__)->goMove);S_VECTOR("goScale",(__o__)->goScale);S_QUATERNION("goRotate",(__o__)->goRotate);} break;\
   }\
   S_OBJECT_CLOSE();
 

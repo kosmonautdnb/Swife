@@ -58,11 +58,47 @@ bool vectorInput(const String &name,Vector *v, const String &dcl) {
   return ret;
 }
 
+bool vectorInput2(const String &name,Vector *v, const String &dcl) {
+  bool ret = false;
+  ImGui::Text("%s",name.c_str());
+  ImGui::SameLine();
+  ImGui::PushItemWidth(32);
+  float k;
+  String dcl2;
+  dcl2 = dcl + "x"; k = v->x; if (ImGui::InputFloat(dcl2.c_str(),&k)) {ret = true;} v->x = k; 
+  ImGui::SameLine();
+  dcl2 = dcl + "y"; k = v->y; if (ImGui::InputFloat(dcl2.c_str(),&k)) {ret = true;} v->y = k; 
+  ImGui::SameLine();                                                                                
+  dcl2 = dcl + "z"; k = v->z; if (ImGui::InputFloat(dcl2.c_str(),&k)) {ret = true;} v->z = k; 
+  ImGui::PopItemWidth();
+  return ret;
+}
+
 bool quaternionInput(const char *name,Quaternion *q, const String &dcl) {
   bool ret = false;
   ImGui::Text("%s",name);
   ImGui::SameLine();
   ImGui::PushItemWidth(40);
+  float k;
+  String dcl2;
+  Vector v = q->getYawPitchRoll();
+  dcl2 = dcl + "a"; k = v.x * 180 / PI; if (ImGui::InputFloat(dcl2.c_str(),&k)) {ret = true;} v.x = k * PI / 180; 
+  ImGui::SameLine();
+  dcl2 = dcl + "b"; k = v.y * 180 / PI; if (ImGui::InputFloat(dcl2.c_str(),&k)) {ret = true;} v.y = k * PI / 180; 
+  ImGui::SameLine();                                                                                
+  dcl2 = dcl + "c"; k = v.z * 180 / PI; if (ImGui::InputFloat(dcl2.c_str(),&k)) {ret = true;} v.z = k * PI / 180; 
+  if (ret) {
+    q->yawPitchRoll(v.x,v.y,v.z);
+  }
+  ImGui::PopItemWidth();
+  return ret;
+}
+
+bool quaternionInput2(const char *name,Quaternion *q, const String &dcl) {
+  bool ret = false;
+  ImGui::Text("%s",name);
+  ImGui::SameLine();
+  ImGui::PushItemWidth(32);
   float k;
   String dcl2;
   Vector v = q->getYawPitchRoll();
@@ -102,24 +138,24 @@ bool editProperty(GameObjectProperty *p, int i) {
   ImGui::Text("%s",strlen(p->name)==0?NONAME:p->name);
   ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.9,0.9,0.9,1));
   ImGui::PushStyleColor(ImGuiCol_CheckMark,ImVec4(0.0,0.5,0.5,1));
-   switch(p->type) {
-  case GAMEOBJECTPROPERTY_BOOL: {ImGui::Checkbox(buffer,&p->goBool);} break;
-  case GAMEOBJECTPROPERTY_INT: {ImGui::InputInt(buffer,&p->goInt);} break;
-  case GAMEOBJECTPROPERTY_FLOAT: {ImGui::InputFloat(buffer,&p->goFloat);} break;
-  case GAMEOBJECTPROPERTY_FLOAT4: {
-    ImGui::PushItemWidth(3*7);
-    sprintf(buffer,"##PROPERTYEDIT%d0",i);ImGui::InputFloat(buffer,&p->goFloat4[0]);
-    ImGui::SameLine();
-    sprintf(buffer,"##PROPERTYEDIT%d1",i);ImGui::InputFloat(buffer,&p->goFloat4[1]);
-    ImGui::SameLine();
-    sprintf(buffer,"##PROPERTYEDIT%d2",i);ImGui::InputFloat(buffer,&p->goFloat4[2]);
-    ImGui::SameLine();
-    sprintf(buffer,"##PROPERTYEDIT%d3",i);ImGui::InputFloat(buffer,&p->goFloat4[3]);
-    ImGui::PopItemWidth();
-  } break;
-  case GAMEOBJECTPROPERTY_TEXT: {ImGui::InputText(buffer,p->goText,NAMEMAX);} break;
-  case GAMEOBJECTPROPERTY_COLOR: {colorItem("",buffer,&p->goColor, true);} break;
-  case GAMEOBJECTPROPERTY_LINKS: {
+  switch(p->type) {
+    case GAMEOBJECTPROPERTY_BOOL: {ImGui::Checkbox(buffer,&p->goBool);} break;
+    case GAMEOBJECTPROPERTY_INT: {ImGui::InputInt(buffer,&p->goInt);} break;
+    case GAMEOBJECTPROPERTY_FLOAT: {ImGui::InputFloat(buffer,&p->goFloat);} break;
+    case GAMEOBJECTPROPERTY_FLOAT4: {
+      ImGui::PushItemWidth(3*7);
+      sprintf(buffer,"##PROPERTYEDIT%d0",i);ImGui::InputFloat(buffer,&p->goFloat4[0]);
+      ImGui::SameLine();
+      sprintf(buffer,"##PROPERTYEDIT%d1",i);ImGui::InputFloat(buffer,&p->goFloat4[1]);
+      ImGui::SameLine();
+      sprintf(buffer,"##PROPERTYEDIT%d2",i);ImGui::InputFloat(buffer,&p->goFloat4[2]);
+      ImGui::SameLine();
+      sprintf(buffer,"##PROPERTYEDIT%d3",i);ImGui::InputFloat(buffer,&p->goFloat4[3]);
+      ImGui::PopItemWidth();
+    } break;
+    case GAMEOBJECTPROPERTY_TEXT: {ImGui::InputText(buffer,p->goText,NAMEMAX);} break;
+    case GAMEOBJECTPROPERTY_COLOR: {colorItem("",buffer,&p->goColor, true);} break;
+    case GAMEOBJECTPROPERTY_LINKS: {
       ImGui::Text("Linking to:");
       for (int i2 = 0; i2 < p->goLinks.size(); i2++) {
         bool found = false;
@@ -144,7 +180,7 @@ bool editProperty(GameObjectProperty *p, int i) {
         }
       }
     } break;
-  case GAMEOBJECTPROPERTY_SCRIPT: {
+    case GAMEOBJECTPROPERTY_SCRIPT: {
       ImGui::Text("Script:");
       bool found = false;
       for (int j = 0; j < gameObjects.size(); j++) {
@@ -157,6 +193,17 @@ bool editProperty(GameObjectProperty *p, int i) {
       if (!found) {
         ImGui::Text("<not found>");
       }
+    } break;
+    case GAMEOBJECTPROPERTY_REPEAT: {
+      ImGui::Text("Repeat");
+      ImGui::PushItemWidth(64);
+      ImGui::SameLine();sprintf(buffer,"##PROPERTYEDITx%d",i);if (ImGui::InputInt(buffer,&p->goRepeat,1,1)) {renderingUpdated=true;}
+      if (p->goRepeat<0) p->goRepeat=0;
+      if (p->goRepeat>100) p->goRepeat = 100;
+      sprintf(buffer,"##PROPERTYEDITm%d",i);if (vectorInput2("P",&p->goMove,buffer)) {renderingUpdated=true;}
+      sprintf(buffer,"##PROPERTYEDITs%d",i);if (vectorInput2("S",&p->goScale,buffer)) {renderingUpdated=true;}
+      sprintf(buffer,"##PROPERTYEDITr%d",i);if (quaternionInput2("R",&p->goRotate,buffer)) {renderingUpdated=true;}
+      ImGui::PopItemWidth();
     } break;
   }
   ImGui::SameLine();
@@ -700,12 +747,13 @@ void drawProperties() {
     ImGui::Text("Properties");
     SVG *svg = &svgs["search"];ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h));ImGui::SameLine();ImGui::InputText("##PROPERTIESFILTER",properties_filter,NAMEMAX);
     ImGui::Separator();
+    ImGui::Separator();
     String filter = toLower(String(properties_filter));
     String visib_ = "visible";
     for(int i2 = 0; i2 < gameObjects.size(); i2++) {
       if (gameObjects[i2]->selected && gameObjects[i2]->type != GAMEOBJECT_SECTION) {
         if (count>1) ImGui::Text(" %d\"%s\"",i2,gameObjects[i2]->name);
-        if (filter.empty()||(visib_.findFirst(filter)>=0)) {ImGui::Separator();if (ImGui::Checkbox(IDINDEXED("Visible##PROPERTIESGAMEOBJECTVISIBLE",i2),&gameObjects[i2]->visible2)) {renderingUpdated = true;}}
+        if (filter.empty()||(visib_.findFirst(filter)>=0)) {if (ImGui::Checkbox(IDINDEXED("Visible##PROPERTIESGAMEOBJECTVISIBLE",i2),&gameObjects[i2]->visible2)) {renderingUpdated = true;}ImGui::Separator();}
         for (int j = 0; j < gameObjects[i2]->properties.size(); j++) {
           if (!(filter.empty()||(toLower(String(gameObjects[i2]->properties[j].name)).findFirst(filter)>=0))) continue;
           if (editProperty(&gameObjects[i2]->properties[j], i2 + j * 32768)) {

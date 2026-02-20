@@ -127,6 +127,7 @@ unsigned int renderedTriangles = 0;
 
 bool renderingUpdated = false;
 bool renderingUpdated2 = false;
+int frameRenderTick = 0;
 
 void Camera::applyToGL() {
   glMatrixMode(GL_PROJECTION);
@@ -281,7 +282,7 @@ void blitFrameBuffer(bool tiny) {
   glDisable(GL_TEXTURE_2D);
 }
 
-void paintSimpleGameObject(GameObject *o, bool showModificators) {
+void paintRawGameObject(GameObject *o, bool showModificators) {
   switch(o->type) {
   case GAMEOBJECT_MESH: {paintMesh(o,showModificators);} break;
   case GAMEOBJECT_CAMERA: {paintCamera(o);} break;
@@ -291,6 +292,49 @@ void paintSimpleGameObject(GameObject *o, bool showModificators) {
   case GAMEOBJECT_POINT: {paintPoint(o,showModificators);} break;
   case GAMEOBJECT_TEXTUREGRID: {paintTextureGrid(o,showModificators);} break;
   }
+}
+
+void paintSimpleGameObject(GameObject *o, bool showModificators) {
+
+  Matrix restore = o->parentTransform;
+
+  static Array<Matrix> transforms;
+  transforms.clear();
+  transforms.push_back(restore);
+
+  for (int j = 0; j < o->properties.size(); j++) {
+    switch(o->properties[j].type) {
+      case GAMEOBJECTPROPERTY_REPEAT: {
+        Matrix rm = normalize(o->properties[j].goRotate).rotationMatrix();
+        const Vector &s = o->properties[j].goScale;
+        const Vector &p = o->properties[j].goMove;
+        Matrix update;
+        update.translate(p);
+        update.scale3(s);
+        update = rm * update;
+        int repeat = o->properties[j].goRepeat;
+        int k = transforms.size();
+        for (int i = 0; i < k; i++) {
+          const Matrix &m = transforms[i];
+          Matrix m2;
+          for (int l = 0; l < repeat; l++) {
+            m2 = update * m2;
+            if (transforms.size() < MAXREPEATEDOBJECTSATONCE) {
+              transforms.push_back(m2*m);
+            }
+          }
+        }
+      } break;
+    }
+  }
+
+  for (int i = 0; i < transforms.size(); i++) {
+    o->parentTransform = transforms[i];
+    paintRawGameObject(o,i==0?showModificators:false);
+  }
+
+  o->parentTransform = restore;
+
 }
 
 void drawGameObject(GameObject *o) {
@@ -819,6 +863,7 @@ void drawScene() {
     if (hitTestOn) handleHitTest();
 
     glFastTexturing = f;
+    frameRenderTick++;
   }
 
   cameras[currentCamera].applyToGL(); handleTool();

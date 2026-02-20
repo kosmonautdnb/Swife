@@ -92,13 +92,15 @@ void drawInfo() {
     ImVec2 cursor = ImGui::GetCursorScreenPos();
     int sceneTriangles = 0;
     for (int j = 0; j < gameObjects.size(); j++) { Array<BakedVertex> *k = gameObjects[j]->getBakedTriangles(); if (k != NULL) sceneTriangles += k->size()/3; }
+    static int lastFrameRenderTick = 0;
     for (int i = 0; i < 2; i++) {
       ImGui::SetCursorScreenPos(cursor);
-      ImGui::TextWrapped("FPS:%0.2f Mem:%0.2fmb Tris:%d RTris:%d %s %s", fps, (double)getAdditionalMemoryFreeBytes()/1024.0/1024.0, sceneTriangles, renderedTriangles, renderingUpdated||renderingUpdated2?"rendering":"",infoString.c_str());
+      ImGui::TextWrapped("FPS:%0.2f Mem:%0.2fmb Tris:%d RTris:%d %s %s", fps, (double)getAdditionalMemoryFreeBytes()/1024.0/1024.0, sceneTriangles, renderedTriangles, frameRenderTick!=lastFrameRenderTick?"rendering":"",infoString.c_str());
       cursor.y += 1;
       ImGui::PopStyleColor();
       ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(1,1,1,1));
     }
+    lastFrameRenderTick = frameRenderTick;
     ImGui::PopStyleColor();
     ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0.25,0.25,0.25,1));
   }

@@ -79,6 +79,7 @@ extern unsigned int renderedTriangles;
 
 extern bool renderingUpdated;
 extern bool renderingUpdated2; // for continuos / animation
+extern int frameRenderTick;
 extern unsigned int selectionCounter; // for objects on same depth when hittest
 extern int drawProblems;
 extern bool lightOn;
