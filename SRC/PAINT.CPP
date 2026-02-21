@@ -978,4 +978,39 @@ void paintPath(class GameObject *o, bool showModificators) {
   }
   glEnd();
   glLineWidth(1);
+
+  if (points.size()>0) {
+    Vector p;
+    glPointSize(o->lineWidth+2);
+    float s = o->sliderPos;
+    if (s < 0) s = 0;
+    if (s >= points.size()) s = points.size()-0.001f;
+    int i2 = (int)floor(s);
+    float between = s - (float)i2;
+    int i0 = i2;
+    int i1 = (i2+1) % points.size();
+    Vector p0 = gameObjects[points[i0]]->getRenderTransform() * Vector(0,0,0);
+    Vector p1 = gameObjects[points[i1]]->getRenderTransform() * Vector(0,0,0);
+    if (p0.w != 0) {p0 /= p0.w; p0.w = 1;}
+    if (p1.w != 0) {p1 /= p1.w; p1.w = 1;}
+    if (o->interpolationType == INTERPOLATION_LINEAR || o->interpolationType == INTERPOLATION_STEP) {
+      p = (p1 - p0) * between + p0;
+    }
+    if (o->interpolationType == INTERPOLATION_CATMULROM) {
+      int im = o->isLooping ? ((i2 + points.size()-1) % points.size()) : ((i2==0) ? 0 : i2 - 1);
+      int ip = o->isLooping ? ((i2 + 2) % points.size()) : (((i2 + 2) > points.size()-1) ? points.size()-1 : i + 2);
+      Vector pm = gameObjects[points[im]]->getRenderTransform() * Vector(0,0,0);
+      Vector pp = gameObjects[points[ip]]->getRenderTransform() * Vector(0,0,0);
+      if (pm.w != 0) {pm /= pm.w; pm.w = 1;}
+      if (pp.w != 0) {pp /= pp.w; pp.w = 1;}
+      double alpha = o->interpolationParam;
+      p = catmulrom(pm,p0,p1,pp,between,alpha);
+    }
+  
+    glBegin(GL_POINTS);
+    glColor4f(0,0,0,1);
+    glVertex3dv(&p.x);
+    glEnd();
+    glPointSize(1);
+  }
 }

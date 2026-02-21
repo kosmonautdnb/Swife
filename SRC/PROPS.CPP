@@ -720,7 +720,12 @@ void showSectionProperties(GameObject *object) {
     }
     ImGui::Text("Line thickness"); if (ImGui::InputFloat("##SECTIONPROPLINEWIDTH",&object->lineWidth,1,1)) {renderingUpdated = true;}
     colorItem("C.","##SECTIONPROPCOLOR",&object->color, true);
-    ImGui::Text("Slider Position"); if (ImGui::InputFloat("##SECTIONPROPLINESLIDERPOS",&object->sliderPos)) {renderingUpdated = true;}
+    float k = particles.size();
+    if (k>1) {
+      if (!object->isLooping) k -= 1;
+      if (k < 0.001) k = 0.001;
+      ImGui::Text("Slider Position"); if (ImGui::SliderFloat("##SECTIONPROPLINESLIDERPOS",&object->sliderPos,0,k)) {renderingUpdated2 = true;}
+    }
   }
   ImGui::Separator();
   if (ImGui::Checkbox("Visible##SECTIONPROPVISIBLE",&object->sectionVisible)) {renderingUpdated = true;}
