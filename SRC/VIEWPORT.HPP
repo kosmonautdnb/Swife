@@ -25,6 +25,7 @@
 #define __VIEWPORT_HPP__
 
 #include "STL/VECTOR.HPP"
+#include "STL/QUATERNN.HPP"
 #include "STL/ARRAY.HPP"
 #include "STL/STRING.HPP"
 
@@ -39,7 +40,7 @@ extern bool toolOn;
 extern bool showOverlays;
 extern Array<Overlay> overlays;
 extern Vector cursor;
-extern Vector cursorNormal;
+extern Quaternion cursorOrientation;
 extern bool placeCursor;
 
 void setOrthoLookTo(double x, double y, double z);

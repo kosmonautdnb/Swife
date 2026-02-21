@@ -43,7 +43,7 @@ bool toolOn = false;
 bool showOverlays = true;
 Array<Overlay> overlays;
 Vector cursor(0,0,0);
-Vector cursorNormal(0,1,0);
+Quaternion cursorOrientation;
 bool placeCursor = true;
 
 float minScale = 0.0001;
@@ -330,8 +330,8 @@ void drawViewport() {
       ImGui::Text2("Background"); ImGui::SameLine();
       colorItem("","##VIEWPORTBACKGROUND", &clearColor, true);
       ImGui::PopItemWidth();
-      ImGui::Text2("Cursor"); ImGui::SameLine(); if (vectorInput("",&cursor,"##VIEWPORTCURSOR")) {renderingUpdated = true; cursorNormal.set(0,1,0);} 
-      ImGui::SameLine(); bool isUp = cursorNormal == Vector(0,1,0); ImGui::Text2("Cursor up"); ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTCURSORNORMALUP",&isUp)) {if (isUp) {cursorNormal.set(0,1,0); renderingUpdated = true;}}
+      ImGui::Text2("Cursor"); ImGui::SameLine(); if (vectorInput("",&cursor,"##VIEWPORTCURSOR")) {renderingUpdated = true; cursorOrientation = Quaternion();} 
+      ImGui::SameLine(); bool isUp = cursorOrientation == Quaternion(); ImGui::Text2("Cursor up"); ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTCURSORNORMALUP",&isUp)) {if (isUp) {cursorOrientation = Quaternion(); renderingUpdated = true;}}
       if (mode == MODE_SELECT) {
         ImGui::SameLine(); ImGui::Text2("Place cursor"); 
         ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTPLACECURSOR",&placeCursor)) {renderingUpdated = true;}

@@ -779,7 +779,8 @@ void paintTextureGrid(class GameObject *o, bool showModificators) {
               h.toolId = HITTESTTOOL_TEXTUREGRIDPAINT;
               h.index = x + z * binding->textureGridWidth;
               h.index2 = x+(((k-1)&3)/2) + (z+k/2) * (binding->textureGridWidth+1);
-              h.normal = normalize(inverse(transpose(inverse(cameraMatrix)*modelView))*n);
+              Vector normal = normalize(inverse(transpose(inverse(cameraMatrix)*modelView))*n);
+              h.pointOrientation = normalize(rotationMatrixToQuaternion(rotationMatrixFromNormal(normal)));
               hits.push_back(h);
             }
             Hit h2;
@@ -787,7 +788,8 @@ void paintTextureGrid(class GameObject *o, bool showModificators) {
             h2.point = collisionPoint;
             h2.object = o;
             h2.toolId = HITTESTTOOL_NONE;
-            h2.normal = normalize(inverse(transpose(inverse(cameraMatrix)*modelView))*n);
+            Vector normal = normalize(inverse(transpose(inverse(cameraMatrix)*modelView))*n);
+            h2.pointOrientation = normalize(rotationMatrixToQuaternion(rotationMatrixFromNormal(normal)));
             hits.push_back(h2);
           }
         }
@@ -925,21 +927,6 @@ Vector catmulrom(const Vector &p0, const Vector &p1, const Vector &p2, const Vec
   return divi(t2-t,t2-t1)*b1+divi(t-t1,t2-t1)*b2;
 }
 
-Hit *splinePart(class GameObject *o, const Vector &p0, const Vector &p1, int index, double t0, double t1) {
-  glVertex3dv(&p0.x);
-  glVertex3dv(&p1.x);
-  Hit *p = addScreenSpaceLineMouseHit(o, HITTESTTOOL_SPLINEPART, p0, p1, o->lineWidth);
-  if (p != NULL) {
-    p->index = index;
-    p->t0 = t0;
-    p->t1 = t1;
-    p->p0 = p0;
-    p->p1 = p1;
-    p->normal = normalize(p1-p0);
-  }
-  return p;
-}
-
 Vector splineAt(GameObject *o,  double slider, Matrix *rotation) {
   static Array<unsigned int> points; points.clear();
   collectSection(o, &points, GAMEOBJECT_POINT);
@@ -998,6 +985,20 @@ void getSpline(class GameObject *o, double slider, class Vector *position, class
   r.setColumn(2,z2);
   if (rotation != NULL) *rotation = r;
   if (position != NULL) *position = p;
+}
+
+Hit *splinePart(class GameObject *o, const Vector &p0, const Vector &p1, int index, double t0, double t1) {
+  glVertex3dv(&p0.x);
+  glVertex3dv(&p1.x);
+  Hit *p = addScreenSpaceLineMouseHit(o, HITTESTTOOL_SPLINEPART, p0, p1, o->lineWidth);
+  if (p != NULL) {
+    p->index = index;                                                                                                                                                                                                               
+    p->t0 = t0;
+    p->t1 = t1;
+    p->p0 = p0;
+    p->p1 = p1;
+  }
+  return p;
 }
 
 void paintPath(class GameObject *o, bool showModificators) {

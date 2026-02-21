@@ -27,6 +27,7 @@
 #include "STL/ARRAY.HPP"
 #include "STL/VECTOR.HPP"
 #include "STL/MATRIX.HPP"
+#include "STL/QUATERNN.HPP"
 #include "SERIALZE.HPP"
 
 enum TOOLID {
@@ -60,7 +61,6 @@ public:
     toolId = 0;
     depth = 0;
     point.set(0,0,0);
-    normal.set(0,1,0);
     index = -1;
     index2 = -1;
     t0 = 0;
@@ -76,7 +76,7 @@ public:
   Vector p0,p1;
   double t0,t1;
   Vector point; 
-  Vector normal;
+  Quaternion pointOrientation;
 };
 
 extern Array<Hit> hits;

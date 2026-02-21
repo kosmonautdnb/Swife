@@ -165,7 +165,8 @@ void addHitTestCube(class GameObject *o, int toolId, const Vector &minB, const V
       int maxAxis = 0;
       if (fabs(k[1])>fabs(k[maxAxis])) maxAxis = 1;
       if (fabs(k[2])>fabs(k[maxAxis])) maxAxis = 2;
-      h.normal.set(maxAxis==0?(delta.x<0?-1:1):0,maxAxis==1?(delta.y<0?-1:1):0,maxAxis==2?(delta.z<0?-1:1):0);
+      Vector normal(maxAxis==0?(delta.x<0?-1:1):0,maxAxis==1?(delta.y<0?-1:1):0,maxAxis==2?(delta.z<0?-1:1):0);
+      h.pointOrientation = rotationMatrixToQuaternion(rotationMatrixFromNormal(normal));
       hits.push_back(h);
     }
   }
@@ -231,7 +232,8 @@ void addHitTestTriangles(class GameObject *o, int toolId, Array<BakedVertex> *tr
           h.point = collisionPoint;
           h.object = o;
           h.toolId = toolId;
-          h.normal = normalize(cross(t1-t0,t2-t0)); 
+          Vector normal = normalize(cross(t1-t0,t2-t0));
+          h.pointOrientation = rotationMatrixToQuaternion(rotationMatrixFromNormal(normal));
           hits.push_back(h);
         }
       }

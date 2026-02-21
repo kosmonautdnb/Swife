@@ -131,7 +131,7 @@ void setScalingXZ(GameObject *o, float x, float z) {
 
 void getTransformForGameObjectFromCursor(GameObject *o) {
   o->translation = cursor;
-  o->rotation = rotationMatrixToQuaternion(rotationMatrixFromNormal(cursorNormal));
+  o->rotation = cursorOrientation;
 }
 
 void reconfigurePath(GameObject *o) {

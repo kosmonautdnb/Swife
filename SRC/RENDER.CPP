@@ -522,7 +522,7 @@ void handleHitTest() {
   switch(mode) {
     case MODE_SELECT: {
       if (h != NULL) {
-        if (placeCursor) {cursor = h->point; cursorNormal = h->normal;}
+        if (placeCursor) {cursor = h->point; cursorOrientation = h->pointOrientation;}
         if (shift) h->object->selected = true;
         else
         if (ctrl) h->object->selected = false;
@@ -556,7 +556,11 @@ void handleHitTest() {
             double a = length(h2->p1 - h2->p0);
             if (a != 0) d /= a;
             o->sliderPos = d*(h2->t1-h2->t0)+h2->t0+h2->index;
-            if (placeCursor) {cursor = h->point; cursorNormal = h->normal;}
+            if (placeCursor) {
+              cursor = h->point; 
+              Matrix rotation; getSpline(h2->object,o->sliderPos,NULL,&rotation);
+              cursorOrientation = rotationMatrixToQuaternion(rotation);
+            }
           } break;
         }
       }
