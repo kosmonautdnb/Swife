@@ -390,6 +390,7 @@ void showTriggerProperties(GameObject *object) {
 
 void showCameraProperties(GameObject *object) {
   ImGui::Text("Camera");
+  int cameraHere = CAMERA_USER;
   for (int i = 1; i < CAMERA_COUNT; i++) { // not user camera (0)
     ImGui::Text(" Camera %d",i); ImGui::SameLine(); if (ImGui::Checkbox(("##CAMERAPROPISCAMERA"+String::fromInt(i)).c_str(),&object->isCamera[i])) {
       if (object->isCamera[i]) {
@@ -399,21 +400,92 @@ void showCameraProperties(GameObject *object) {
         }
         object->isCamera[i] = true;
       }
+      renderingUpdated = true;
     }
-    renderingUpdated = true;
+    if (object->isCamera[i]) cameraHere = i;
   }
-  ImGui::Text("     View"); ImGui::SameLine();
-  if (propsButton("Get##CAMERAPROPGET",strlen("Get")+4+5)) {object->setCamera(&cameras[currentCamera]); renderingUpdated = true;}
-  ImGui::SameLine();
-  if (propsButton("Put##CAMERAPROPPUT",strlen("Put")+4)) {cameras[currentCamera] = object->camera; renderingUpdated = true;}
+  if (object->uniqueLinkIds.empty())  {
+    ImGui::Text("     View"); ImGui::SameLine();
+    if (propsButton("Get##CAMERAPROPGET",strlen("Get")+4+5)) {object->setCamera(&cameras[currentCamera]); renderingUpdated = true;}
+    ImGui::SameLine();
+    if (propsButton("Put##CAMERAPROPPUT",strlen("Put")+4)) {cameras[currentCamera] = object->camera; renderingUpdated = true;}
+  }
   ImGui::Separator();
-  if (vectorInput("P.",&object->camera.position,"##CAMERAPROPTRANSLATION")) {renderingUpdated = true;}
-  if (quaternionInput("R.",&object->camera.rotation,"##CAMERAPROPROTATION")) {renderingUpdated = true;}
   ImGui::PushItemWidth(9*7);
   ImGui::Text("Size"); ImGui::SameLine(); float k = object->scaling.x; if (ImGui::InputFloat("##CAMERAPROPSCALE",&k)) {renderingUpdated = true;} if (k<0.001) k = 0.001; object->scaling = clampScale(Vector(k,k,k)); 
+  GameObject *followObject = NULL;
+  if (object->uniqueLinkIds.size() != 1) {
+    if (vectorInput("P.",&object->camera.position,"##CAMERAPROPTRANSLATION")) {renderingUpdated = true;}
+    if (quaternionInput("R.",&object->camera.rotation,"##CAMERAPROPROTATION")) {renderingUpdated = true;}
+  } else {
+    ImGui::Text("P.%0.2f %0.2f %0.2f",object->camera.position.x,object->camera.position.y,object->camera.position.z);
+    Vector v = object->camera.rotation.getYawPitchRoll()*180.0/PI;
+    ImGui::Text("R.%0.2f %0.2f %0.2f",v.x,v.y,v.z);
+    for (int i = 0; i < gameObjects.size(); i++) {
+      GameObject *o = gameObjects[i];
+      if (o->uniqueId == object->uniqueLinkIds[0]) {
+        followObject = o;
+        break;
+      }
+    }
+  }
+
   ImGui::Separator();
-  if (!object->camera.ortho) {ImGui::Text("Fov"); ImGui::SameLine(); if (ImGui::InputFloat("##CAMERAPROPFOV",&object->camera.fov)) {renderingUpdated = true;}
-  } else {ImGui::Text("Ortho scale"); ImGui::SameLine(); if (ImGui::InputFloat("##CAMERAPROPORTHOSCALE",&object->camera.orthoScale)) {renderingUpdated = true;}}
+  ImGui::Text("Available paths");
+  ImGui::BeginChild("##CAMERAPROPCHILDA",ImVec2(0,main_window_yres/5));
+
+  ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(1,1,1,1));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,ImVec4(0.8,0.8,0.8,1));
+  for (int i2 = 0; i2 < gameObjects.size(); i2++) {
+    GameObject *o = gameObjects[i2];
+    if (o->sectionIsPath) {
+      bool isThisHere = (!object->uniqueLinkIds.empty()) && object->uniqueLinkIds[0] == o->uniqueId;
+      String buttonName = (isThisHere?">":"") + String::fromInt(i2) + "\"" + o->name + "\"" + "##CAMERAPROPBUTTON" + String::fromInt(i2);
+      if (ImGui::Button(buttonName.c_str())) {
+        renderingUpdated = true;
+        if (isThisHere) {
+          object->uniqueLinkIds.clear();
+        } else {
+          object->uniqueLinkIds.clear();
+          object->uniqueLinkIds.push_back(o->uniqueId);
+        }
+      }
+    }
+  }
+  ImGui::PopStyleColor();
+  ImGui::PopStyleColor();
+
+  ImGui::EndChild();
+  ImGui::Separator();
+
+  if (followObject != NULL) {
+    static Array<unsigned int> particles; collectSection(followObject, &particles, GAMEOBJECT_POINT);
+    float k = particles.size();
+    if (k>1) {
+      if (!followObject->isLooping) k -= 1;
+      if (k < 0.001) k = 0.001;
+      ImGui::PushItemWidth(properties_width-24);
+      bool updated = false;
+      ImGui::Text("Path position"); if (ImGui::SliderFloat("##CAMERAPROPSLIDERPOS",&followObject->sliderPos,0,k)) {updated = true;}
+      ImGui::PopItemWidth();
+      if (ImGui::InputFloat("##CAMERAPROPSLIDERPOS2",&followObject->sliderPos)) {updated = true;}
+      if (followObject->sliderPos<0) followObject->sliderPos = 0;
+      if (followObject->sliderPos>k) followObject->sliderPos = k;
+      if (updated) {
+        Matrix r; Vector p; getSpline(followObject,followObject->sliderPos,&p,&r);
+        object->camera.position = p;
+        object->camera.rotation = rotationMatrixToQuaternion(r);
+        renderingUpdated2 = true;
+      }
+    }
+    ImGui::Separator();
+  }
+
+  if (!object->camera.ortho) {
+    ImGui::Text("Fov"); ImGui::SameLine(); if (ImGui::InputFloat("##CAMERAPROPFOV",&object->camera.fov)) {renderingUpdated = true;}
+  } else {
+    ImGui::Text("Ortho scale"); ImGui::SameLine(); if (ImGui::InputFloat("##CAMERAPROPORTHOSCALE",&object->camera.orthoScale)) {renderingUpdated = true;}
+  }
   ImGui::Text("Aspect ratio"); ImGui::SameLine(); if (ImGui::InputFloat("##CAMERAPROPASPECTRATIO",&object->camera.aspect)) {renderingUpdated = true;}
   ImGui::Text("Near plane"); ImGui::SameLine(); if (ImGui::InputFloat("##CAMERAPROPNEAR",&object->camera.nearPlane)) {renderingUpdated = true;}
   ImGui::Text("Far plane"); ImGui::SameLine(); if (ImGui::InputFloat("##CAMERAPROPFAR",&object->camera.farPlane)) {renderingUpdated = true;}
@@ -514,6 +586,9 @@ void showPointProperties(GameObject *object) {
   } else {
     showTransform(object,"##POINTPROPTRANSFORM");
   }
+  ImGui::Separator();
+  ImGui::Text("Point orientation");
+  if (vectorInput("",&object->additionalRotation,"##POINTPROPROTATION2")) {renderingUpdated = true;}
   ImGui::Separator();
 }
 
@@ -724,7 +799,12 @@ void showSectionProperties(GameObject *object) {
     if (k>1) {
       if (!object->isLooping) k -= 1;
       if (k < 0.001) k = 0.001;
-      ImGui::Text("Slider Position"); if (ImGui::SliderFloat("##SECTIONPROPLINESLIDERPOS",&object->sliderPos,0,k)) {renderingUpdated2 = true;}
+      ImGui::PushItemWidth(properties_width-24);
+      ImGui::Text("Path position"); if (ImGui::SliderFloat("##SECTIONPROPLINESLIDERPOS",&object->sliderPos,0,k)) {renderingUpdated2 = true;}
+      ImGui::PopItemWidth();
+      if (ImGui::InputFloat("##SECTIONPROPSLIDERPOS2",&object->sliderPos)) {renderingUpdated = true;}
+      if (object->sliderPos<0) object->sliderPos = 0;
+      if (object->sliderPos>k) object->sliderPos = k;
     }
   }
   ImGui::Separator();

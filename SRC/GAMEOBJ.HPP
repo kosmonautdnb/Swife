@@ -189,6 +189,7 @@ public:
     anchor.set(0,0,0);
     translation.set(0,0,0);
     scaling.set(1,1,1);
+    additionalRotation.set(0,0,0);
     color = 0xFFFFFFFF;
     sectionOn = true;
     sectionLength = -1;
@@ -251,6 +252,7 @@ public:
   int interpolationType;
   float interpolationParam;
   float sliderPos;
+  Vector additionalRotation;
   int gridId;
   unsigned int uniqueId;
   Vector boundingBoxMin;
@@ -321,6 +323,7 @@ public:
   S_INT("interpolationType",(__o__)->interpolationType);\
   S_FLOAT("interpolationParam",(__o__)->interpolationParam);\
   S_FLOAT("sliderPos",(__o__)->sliderPos);\
+  S_VECTOR("additionalRotation",(__o__)->additionalRotation);\
   S_BOOL("sectionIsPath", (__o__)->sectionIsPath);\
   S_BOOL("isLooping", (__o__)->isLooping);\
   S_INT("gridId", (__o__)->gridId);\

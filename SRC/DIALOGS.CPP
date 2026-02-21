@@ -469,6 +469,8 @@ void dialogControls(bool openIt) {
 void dialogTroubleShooting(bool openIt) {
   DIALOGSTART("Troubleshooting")
   ImGui::Text(
+    "Save often it is not guaranteed to be stable and maybe verify the saving.\n"
+    "\n"
     "Files:\n"
     "If you want to share your files, you need to have placed them\n"
     "directly from begin in the DATA folder. And that means\n"

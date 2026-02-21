@@ -45,7 +45,8 @@ void paintPath(class GameObject *o, bool showModificators);
 void paintBillBoardContents();
 
 void combineForNoRotation(class Matrix *modelViewMatrix, const class Matrix *modelViewMatrixToGetRotationFrom, bool maxScale);
-
+void getSpline(class GameObject *o, double slider, class Vector *position, class Matrix *rotation);
+                                                                                                                                                                                                        
 void paintIntoTextureGrid(class FileBinding *binding, int arrayPos, int toPaint);
 int getFromTextureGrid(class FileBinding *binding, int arrayPos);
 

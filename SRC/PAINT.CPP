@@ -940,6 +940,66 @@ Hit *splinePart(class GameObject *o, const Vector &p0, const Vector &p1, int ind
   return p;
 }
 
+Vector splineAt(GameObject *o,  double slider, Matrix *rotation) {
+  static Array<unsigned int> points; points.clear();
+  collectSection(o, &points, GAMEOBJECT_POINT);
+  if (points.empty()) return Vector(0,0,0);
+  double s = slider;
+  if (s >= points.size()) s = points.size()-0.001f;
+  if (s < 0) s = 0;
+  int i2 = (int)floor(s);
+  float between = s - (float)i2;
+  int i0 = i2;
+  int i1 = (i2+1) % points.size();
+  Vector p0 = gameObjects[points[i0]]->getRenderTransform() * Vector(0,0,0);
+  Vector p1 = gameObjects[points[i1]]->getRenderTransform() * Vector(0,0,0);
+  if (p0.w != 0) {p0 /= p0.w; p0.w = 1;}
+  if (p1.w != 0) {p1 /= p1.w; p1.w = 1;}
+  Vector p;
+  if (o->interpolationType == INTERPOLATION_LINEAR || o->interpolationType == INTERPOLATION_STEP) {
+    p = (p1 - p0) * between + p0;
+  }
+  if (o->interpolationType == INTERPOLATION_CATMULROM) {
+    int im = o->isLooping ? ((i2 + points.size()-1) % points.size()) : ((i2==0) ? 0 : i2 - 1);
+    int ip = o->isLooping ? ((i2 + 2) % points.size()) : (((i2 + 2) > points.size()-1) ? points.size()-1 : i2 + 2);
+    Vector pm = gameObjects[points[im]]->getRenderTransform() * Vector(0,0,0);
+    Vector pp = gameObjects[points[ip]]->getRenderTransform() * Vector(0,0,0);
+    if (pm.w != 0) {pm /= pm.w; pm.w = 1;}
+    if (pp.w != 0) {pp /= pp.w; pp.w = 1;}
+    double alpha = o->interpolationParam;
+    p = catmulrom(pm,p0,p1,pp,between,alpha);
+  }
+
+  if (rotation != NULL) {
+    Vector qv0 = gameObjects[points[i0]]->additionalRotation * PI / 180.0;
+    Vector qv1 = gameObjects[points[i1]]->additionalRotation * PI / 180.0;
+    Vector qvd = qv1-qv0;
+    Quaternion q;
+    q.yawPitchRoll(qvd.x*between+qv0.x,qvd.y*between+qv0.y,qvd.z*between+qv0.z); // no better idea for that,yet
+    *rotation = normalize(q).rotationMatrix();
+  }
+
+  return p;
+}
+
+void getSpline(class GameObject *o, double slider, class Vector *position, class Matrix *rotation) {
+  Matrix r2;
+  Vector p = splineAt(o,slider,&r2);     
+  Vector p_ = splineAt(o,slider+0.01,NULL);     
+  Matrix r = rotationMatrixFromNormal(normalize(p_-p))*r2;
+  Vector x = normalize(r.getColumn(0));
+  Vector y = normalize(r.getColumn(1));
+  Vector z = normalize(r.getColumn(2));
+  Vector x2 = x;
+  Vector y2 = z;
+  Vector z2 = y * -1;
+  r.setColumn(0,x2);
+  r.setColumn(1,y2);
+  r.setColumn(2,z2);
+  if (rotation != NULL) *rotation = r;
+  if (position != NULL) *position = p;
+}
+
 void paintPath(class GameObject *o, bool showModificators) {
   static Array<unsigned int> points; points.clear();
   collectSection(o, &points, GAMEOBJECT_POINT);
@@ -980,37 +1040,21 @@ void paintPath(class GameObject *o, bool showModificators) {
   glLineWidth(1);
 
   if (points.size()>0) {
-    Vector p;
+    Vector p; Matrix r; getSpline(o, o->sliderPos, &p, &r);
+ 
     glPointSize(o->lineWidth+2);
-    float s = o->sliderPos;
-    if (s < 0) s = 0;
-    if (s >= points.size()) s = points.size()-0.001f;
-    int i2 = (int)floor(s);
-    float between = s - (float)i2;
-    int i0 = i2;
-    int i1 = (i2+1) % points.size();
-    Vector p0 = gameObjects[points[i0]]->getRenderTransform() * Vector(0,0,0);
-    Vector p1 = gameObjects[points[i1]]->getRenderTransform() * Vector(0,0,0);
-    if (p0.w != 0) {p0 /= p0.w; p0.w = 1;}
-    if (p1.w != 0) {p1 /= p1.w; p1.w = 1;}
-    if (o->interpolationType == INTERPOLATION_LINEAR || o->interpolationType == INTERPOLATION_STEP) {
-      p = (p1 - p0) * between + p0;
-    }
-    if (o->interpolationType == INTERPOLATION_CATMULROM) {
-      int im = o->isLooping ? ((i2 + points.size()-1) % points.size()) : ((i2==0) ? 0 : i2 - 1);
-      int ip = o->isLooping ? ((i2 + 2) % points.size()) : (((i2 + 2) > points.size()-1) ? points.size()-1 : i + 2);
-      Vector pm = gameObjects[points[im]]->getRenderTransform() * Vector(0,0,0);
-      Vector pp = gameObjects[points[ip]]->getRenderTransform() * Vector(0,0,0);
-      if (pm.w != 0) {pm /= pm.w; pm.w = 1;}
-      if (pp.w != 0) {pp /= pp.w; pp.w = 1;}
-      double alpha = o->interpolationParam;
-      p = catmulrom(pm,p0,p1,pp,between,alpha);
-    }
-  
     glBegin(GL_POINTS);
     glColor4f(0,0,0,1);
     glVertex3dv(&p.x);
     glEnd();
     glPointSize(1);
+
+    glBegin(GL_LINES);
+    double l = 1;
+    Vector p2;
+    glColor4f(1,0,0,1); p2 = p + (r * Vector(1,0,0))*l; glVertex3dv(&p.x); glVertex3dv(&p2.x);
+    glColor4f(0,1,0,1); p2 = p + (r * Vector(0,1,0))*l; glVertex3dv(&p.x); glVertex3dv(&p2.x);
+    glColor4f(0,0,1,1); p2 = p + (r * Vector(0,0,1))*l; glVertex3dv(&p.x); glVertex3dv(&p2.x);
+    glEnd();
   }
 }
