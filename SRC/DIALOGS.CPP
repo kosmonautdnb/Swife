@@ -800,6 +800,12 @@ void dialogOverwrite(bool openIt) {
   DIALOGEND()
 }
 
+void resize2(String &s, int len) {
+  int a = s.length();
+  s.resize(len);
+  memset(&s[a],0,len-a);
+}
+
 void dialogLoadSave(bool openIt, int dialogMode) {
 
   static int mode = DIALOG_NONE; if (dialogMode != DIALOG_NONE) mode = dialogMode;
@@ -829,7 +835,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
     }
     for (int j = 0; j < DIALOG_COUNT; j++) {
       fileNames[j] = ""; // little bug
-      fileNames[j].resize(NAMEMAXHERE);
+      resize2(fileNames[j],NAMEMAXHERE);
     }
     scrollToHelper=0;
     if (!dialogLoadSaveSetFileNameAndPath.empty()) {
@@ -837,7 +843,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
       fileNames[mode] = getName(dialogLoadSaveSetFileNameAndPath) + getExtension(dialogLoadSaveSetFileNameAndPath);
       scrollToFileName = toLower(fileNames[mode]);
       scrollToHelper = 2;
-      fileNames[mode].resize(NAMEMAXHERE);
+      resize2(fileNames[mode],NAMEMAXHERE);
       paths[mode] = getPath(dialogLoadSaveSetFileNameAndPath);
       dialogLoadSaveSetFileNameAndPath = "";
     }
@@ -937,6 +943,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
               paths[mode] += files[i].name.name + files[i].name.extension + "/";
               paths[mode] = SHORTFILENAME(paths[mode]);
               fileNames[mode] = "";
+              resize2(fileNames[mode],NAMEMAXHERE);
               needsRescanFiles = true;
             }
             ImGui::PopStyleColor();
@@ -960,7 +967,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered,ImVec4(0,0,0,0));
             if (ImGui::Button((files[i].name.name+"##DIALOGLOADSAVEFILEBUTTON"+String::fromInt(i)).c_str())) {
               fileNames[mode] = files[i].name.name + files[i].name.extension;
-              fileNames[mode].resize(NAMEMAXHERE);
+              resize2(fileNames[mode],NAMEMAXHERE);
             }
             if (fullFileName==scrollToFileName) {ImGui::SetScrollHere();}
             ImGui::PopStyleColor();
@@ -1009,6 +1016,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
       loadSaveShortPath = paths[mode]; 
       loadSaveLongFileName = fileNames[mode];
       loadSaveLongFileName.resize(strlen(loadSaveLongFileName.c_str()));
+
       if (toLower(proceedButton[mode])=="save") {
         if (loadSaveLongFileName.find(".")<0) {loadSaveLongFileName += dialogDefaultExtension[mode];}
         dialogOverwrite(true);

@@ -285,7 +285,10 @@ void blitFrameBuffer(bool tiny) {
 void paintRawGameObject(GameObject *o, bool showModificators) {
   switch(o->type) {
   case GAMEOBJECT_MESH: {paintMesh(o,showModificators);} break;
-  case GAMEOBJECT_CAMERA: {paintCamera(o);} break;
+  case GAMEOBJECT_CAMERA: {
+    if (currentCamera==CAMERA_USER||(!o->isCamera[currentCamera]))
+      paintCamera(o);
+  } break;
   case GAMEOBJECT_PATH: {} break;
   case GAMEOBJECT_BILLBOARD: {paintBillBoard(o,showModificators);} break;
   case GAMEOBJECT_TRIGGER: {paintTrigger(o,showModificators);} break;
