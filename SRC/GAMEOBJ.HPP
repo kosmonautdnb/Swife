@@ -223,6 +223,7 @@ public:
     scriptFileName = "";
     interpolationType = INTERPOLATION_LINEAR;
     interpolationParam = 0.5f;
+    sliderPos = 0;
   }
 
   unsigned int layers;
@@ -249,6 +250,7 @@ public:
   float lineWidth;
   int interpolationType;
   float interpolationParam;
+  float sliderPos;
   int gridId;
   unsigned int uniqueId;
   Vector boundingBoxMin;
@@ -318,6 +320,7 @@ public:
   S_FLOAT("lineWidth",(__o__)->lineWidth);\
   S_INT("interpolationType",(__o__)->interpolationType);\
   S_FLOAT("interpolationParam",(__o__)->interpolationParam);\
+  S_FLOAT("sliderPos",(__o__)->sliderPos);\
   S_BOOL("sectionIsPath", (__o__)->sectionIsPath);\
   S_BOOL("isLooping", (__o__)->isLooping);\
   S_INT("gridId", (__o__)->gridId);\

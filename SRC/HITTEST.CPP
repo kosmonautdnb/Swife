@@ -157,6 +157,15 @@ void addHitTestCube(class GameObject *o, int toolId, const Vector &minB, const V
       h.point = collisionPoints[i];
       h.object = o;
       h.toolId = toolId;
+      Vector delta = collisionPoints[i] - center;
+      double k[3];
+      k[0] = delta.x;
+      k[1] = delta.y;
+      k[2] = delta.z;
+      int maxAxis = 0;
+      if (fabs(k[1])>fabs(k[maxAxis])) maxAxis = 1;
+      if (fabs(k[2])>fabs(k[maxAxis])) maxAxis = 2;
+      h.normal.set(maxAxis==0?(delta.x<0?-1:1):0,maxAxis==1?(delta.y<0?-1:1):0,maxAxis==2?(delta.z<0?-1:1):0);
       hits.push_back(h);
     }
   }
@@ -279,7 +288,7 @@ Hit *getNearestToolHit() {
 }
 
 #define CLIPNULL(__v0__,__v1__,__d__) ((__v1__)==0?((__v0__)==0?0:(__d__)):(__v0__)/(__v1__))
-void addScreenSpaceLineMouseHit(class GameObject *o, int toolId, const Vector &p0, const Vector &p1, double lineWidth) {
+Hit *addScreenSpaceLineMouseHit(class GameObject *o, int toolId, const Vector &p0, const Vector &p1, double lineWidth) {
   Matrix projection; glGetDoublev(GL_PROJECTION_MATRIX, projection.m);
   Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m);
   Vector t0 = projection*modelView*p0;
@@ -287,7 +296,7 @@ void addScreenSpaceLineMouseHit(class GameObject *o, int toolId, const Vector &p
   bool t0Inside = t0.z >= -t0.w;
   bool t1Inside = t1.z >= -t1.w;
   if ((!t0Inside)&&(!t1Inside))
-    return;
+    return NULL;
   if(t0Inside && (!t1Inside)) {
     double f = CLIPNULL((t0.w+t0.z) , ((t0.z-t1.z)+(t0.w-t1.w)), 1.0);
     t1 = (t1-t0)*f+t0;
@@ -303,14 +312,14 @@ void addScreenSpaceLineMouseHit(class GameObject *o, int toolId, const Vector &p
   double nx = dx;
   double ny = dy;
   double nl = sqrt(nx*nx+ny*ny);
-  if (nl == 0) return;
+  if (nl == 0) return NULL;
   nx /= nl; 
   ny /= nl;
   double tx = ny;
   double ty = -nx;
 
   int viewport[4]; glGetIntegerv(GL_VIEWPORT,viewport);
-  if (viewport[2]==0||viewport[3]==0) return;
+  if (viewport[2]==0||viewport[3]==0) return NULL;
   viewport[1] = main_window_yres - viewport[1] - viewport[3];
   viewport[2] = viewport[0] + viewport[2];
   viewport[3] = viewport[1] + viewport[3];
@@ -320,18 +329,21 @@ void addScreenSpaceLineMouseHit(class GameObject *o, int toolId, const Vector &p
 
   double mpx = mx - (t0.x+t1.x)*0.5;
   double mpy = my - (t0.y+t1.y)*0.5;
-  double distX = fabs(tx*mpx*(viewport[2]-viewport[0])*0.5 + ty*mpy*(viewport[3]-viewport[1])*0.5);
-  double distY = fabs(nx*mpx + ny*mpy);
-  if (distX <= lineWidth && distY <= nl*0.5) {
-    double f = distY / nl + 0.5;
-    Vector collisionPoint = hitTestInverseModelView*inverse(projection)*((t1-t0)*f+t0);
+  double distX = tx*mpx*(viewport[2]-viewport[0])*0.5 + ty*mpy*(viewport[3]-viewport[1])*0.5;
+  double distY = nx*mpx + ny*mpy;
+  if (fabs(distX) <= lineWidth && fabs(distY) <= nl*0.5) {
+    double f = distY / (nl!=0?nl:1) + 0.5;
+    Vector collisionPoint = hitTestInverseModelView*modelView*inverse(modelView)*inverse(projection)*((t1-t0)*f+t0);
+    if (collisionPoint.w!=0) {collisionPoint/=collisionPoint.w;collisionPoint.w=1;}
     Hit h;
     h.depth = length(collisionPoint - mouseHitStart);
     h.point = collisionPoint;
     h.object = o;
     h.toolId = toolId;
     hits.push_back(h);
+    return &hits.back();
   }
+  return NULL;
 }
 
 void hitTestLine(class GameObject *o, int toolId, const Vector &p0, const Vector &p1, unsigned int color) {

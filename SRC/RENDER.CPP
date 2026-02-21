@@ -536,19 +536,29 @@ void handleHitTest() {
       }
       renderingUpdated = true;
 
-      switch(h2->toolId) {
-        case HITTESTTOOL_TEXTUREGRIDPAINT: {
-          GameObject *o = h2->object;
-          FileBinding *b = getBindingById(o->fileBindingId);
-          if (b != NULL) {
-            b->index = h2->index;
-            b->index2 = h2->index2;
-            if (alt) {
-              if (ImGui::IsMouseDown(0)) paintIntoTextureGrid(b,b->index,b->selected);
-              if (ImGui::IsMouseDown(1)) b->selected = getFromTextureGrid(b,b->index);
+      if (h2 != NULL) {
+        switch(h2->toolId) {
+          case HITTESTTOOL_TEXTUREGRIDPAINT: {
+            GameObject *o = h2->object;
+            FileBinding *b = getBindingById(o->fileBindingId);
+            if (b != NULL) {
+              b->index = h2->index;
+              b->index2 = h2->index2;
+              if (alt) {
+                if (ImGui::IsMouseDown(0)) paintIntoTextureGrid(b,b->index,b->selected);
+                if (ImGui::IsMouseDown(1)) b->selected = getFromTextureGrid(b,b->index);
+              }
             }
-          }
-        } break;
+          } break;
+          case HITTESTTOOL_SPLINEPART: {
+            GameObject *o = h2->object;
+            double d = length(h2->point - h2->p0);
+            double a = length(h2->p1 - h2->p0);
+            if (a != 0) d /= a;
+            o->sliderPos = d*(h2->t1-h2->t0)+h2->t0+h2->index;
+            if (placeCursor) {cursor = h->point; cursorNormal = h->normal;}
+          } break;
+        }
       }
     } break;
   }

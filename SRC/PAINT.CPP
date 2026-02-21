@@ -925,6 +925,21 @@ Vector catmulrom(const Vector &p0, const Vector &p1, const Vector &p2, const Vec
   return divi(t2-t,t2-t1)*b1+divi(t-t1,t2-t1)*b2;
 }
 
+Hit *splinePart(class GameObject *o, const Vector &p0, const Vector &p1, int index, double t0, double t1) {
+  glVertex3dv(&p0.x);
+  glVertex3dv(&p1.x);
+  Hit *p = addScreenSpaceLineMouseHit(o, HITTESTTOOL_SPLINEPART, p0, p1, o->lineWidth);
+  if (p != NULL) {
+    p->index = index;
+    p->t0 = t0;
+    p->t1 = t1;
+    p->p0 = p0;
+    p->p1 = p1;
+    p->normal = normalize(p1-p0);
+  }
+  return p;
+}
+
 void paintPath(class GameObject *o, bool showModificators) {
   static Array<unsigned int> points; points.clear();
   collectSection(o, &points, GAMEOBJECT_POINT);
@@ -941,8 +956,7 @@ void paintPath(class GameObject *o, bool showModificators) {
     if (p0.w != 0) {p0 /= p0.w; p0.w = 1;}
     if (p1.w != 0) {p1 /= p1.w; p1.w = 1;}
     if (o->interpolationType == INTERPOLATION_LINEAR || o->interpolationType == INTERPOLATION_STEP) {
-      glVertex3dv(&p0.x);
-      glVertex3dv(&p1.x);
+      splinePart(o,p0,p1,i,0,1);
     }
     if (o->interpolationType == INTERPOLATION_CATMULROM) {
       int im = o->isLooping ? ((i + points.size()-1) % points.size()) : ((i==0) ? 0 : i - 1);
@@ -958,8 +972,7 @@ void paintPath(class GameObject *o, bool showModificators) {
         double t1 = (double)(j+1) / steps;
         Vector l0 = catmulrom(pm,p0,p1,pp,t0,alpha);
         Vector l1 = catmulrom(pm,p0,p1,pp,t1,alpha);
-        glVertex3dv(&l0.x);
-        glVertex3dv(&l1.x);
+        splinePart(o,l0,l1,i,t0,t1);
       }
     }
   }
