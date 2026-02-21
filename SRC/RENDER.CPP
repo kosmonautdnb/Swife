@@ -61,7 +61,7 @@ void Camera::wasdControls() {
   bool rightMousePressed = mouseB & 2;
   double mouseDeltaXHere = mouseDX;
   double mouseDeltaYHere = mouseDY;
-  double walkSpeed = cameraSpeed <= 0 ? 0 : pow(2.0,cameraSpeed) * 20.0;
+  double walkSpeed = cameraSpeed <= 0 ? 0 : (pow(2.0,cameraSpeed)-1.0) * 20.0;
   double mouseRotationSpeed = 0.01;
   double mouseWalkSpeed = 0.01;
   double rotationSpeedKeyboard = 200.0;
