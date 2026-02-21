@@ -59,7 +59,9 @@ static String timeDescString() {
 
 void drawMenuBar() {
   bool on = false;
-  bool one = false; for (int i2 = 0; i2 < gameObjects.size(); i2++) if (gameObjects[i2]->selected) {one=true; break;}
+  GameObject *first = NULL;
+  int count = 0;
+  bool one = false; for (int i2 = 0; i2 < gameObjects.size(); i2++) if (gameObjects[i2]->selected) {first = gameObjects[i2]; one=true; count++;}
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10,1));
   ImGui::PushStyleColor(ImGuiCol_MenuBarBg,ImVec4(0.f,0.f,0.f,1.f));
   ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(1.f,1.f,1.f,1.f));
@@ -140,6 +142,7 @@ void drawMenuBar() {
       ImGui::Separator();
       if (ImGui::MenuItem("Duplicate",NULL,false,one)) {duplicate();}
       if (ImGui::MenuItem("Delete",NULL,false,one)) {dialogDeleteGameObjects(true);}
+      if (ImGui::MenuItem("Cursor to object","",false, count==1)) {cursorToObject(first); renderingUpdated = true;}
       ImGui::Separator();
       if (ImGui::MenuItem("Select by property")) {dialogSelectByProperty(true);}
       if (ImGui::MenuItem("Select by layer")) {dialogSelectByLayer(true);}

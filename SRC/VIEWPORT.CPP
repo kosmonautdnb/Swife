@@ -46,6 +46,11 @@ Vector cursor(0,0,0);
 Quaternion cursorOrientation;
 bool placeCursor = true;
 
+void cursorToObject(GameObject *o) {
+  cursor = o->translation;
+  cursorOrientation = o->rotation;
+}
+
 float minScale = 0.0001;
 Vector moveV(0,0,0); bool move_negate = false;
 Vector scaleV(1,1,1); bool scale_negate = false;

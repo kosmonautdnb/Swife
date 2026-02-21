@@ -96,7 +96,7 @@ void drawInfo() {
     static int lastFrameRenderTick = 0;
     for (int i = 0; i < 2; i++) {
       ImGui::SetCursorScreenPos(cursor);
-      ImGui::TextWrapped("FPS:%0.2f Mem:%0.2fmb Tris:%d RTris:%d %s %s", (double)getAdditionalMemoryFreeBytes()/1024.0/1024.0, sceneTriangles, renderedTriangles, frameRenderTick!=lastFrameRenderTick?"rendering":"",infoString.c_str());
+      ImGui::TextWrapped("FPS:%0.2f Mem:%0.2fmb Tris:%d RTris:%d %s %s", (float)fps, (double)getAdditionalMemoryFreeBytes()/1024.0/1024.0, sceneTriangles, renderedTriangles, frameRenderTick!=lastFrameRenderTick?"rendering":"",infoString.c_str());
       cursor.y += 1;
       ImGui::PopStyleColor();
       ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(1,1,1,1));
