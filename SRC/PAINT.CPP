@@ -901,6 +901,30 @@ void paintCursor() {
   glEnd();
 }
 
+double catmulromT(double t, double alpha, const Vector &p0, const Vector &p1)  {
+  if (alpha < 0.0001) alpha = 0.0001;
+  Vector d = p1 - p0;
+  return pow(dot(d,d),alpha*0.5) + t;
+}
+
+double divi(double a,double b) {
+  return b == 0 ? 0.5 : a/b;
+}
+
+Vector catmulrom(const Vector &p0, const Vector &p1, const Vector &p2, const Vector &p3, double t, double alpha) {
+  double t0 = 0;
+  double t1 = catmulromT(t0,alpha,p0,p1);
+  double t2 = catmulromT(t1,alpha,p1,p2);
+  double t3 = catmulromT(t2,alpha,p2,p3);
+  t = (t2-t1)*t+t1;
+  Vector a1 = divi(t1-t,t1-t0)*p0 + divi(t-t0,t1-t0)*p1;
+  Vector a2 = divi(t2-t,t2-t1)*p1 + divi(t-t1,t2-t1)*p2;
+  Vector a3 = divi(t3-t,t3-t2)*p2 + divi(t-t2,t3-t2)*p3;
+  Vector b1 = divi(t2-t,t2-t0)*a1 + divi(t-t0,t2-t0)*a2;
+  Vector b2 = divi(t3-t,t3-t1)*a2 + divi(t-t1,t3-t1)*a3;
+  return divi(t2-t,t2-t1)*b1+divi(t-t1,t2-t1)*b2;
+}
+
 void paintPath(class GameObject *o, bool showModificators) {
   static Array<unsigned int> points; points.clear();
   collectSection(o, &points, GAMEOBJECT_POINT);
@@ -916,8 +940,28 @@ void paintPath(class GameObject *o, bool showModificators) {
     Vector p1 = gameObjects[points[i1]]->getRenderTransform() * Vector(0,0,0);
     if (p0.w != 0) {p0 /= p0.w; p0.w = 1;}
     if (p1.w != 0) {p1 /= p1.w; p1.w = 1;}
-    glVertex3dv(&p0.x);
-    glVertex3dv(&p1.x);
+    if (o->interpolationType == INTERPOLATION_LINEAR || o->interpolationType == INTERPOLATION_STEP) {
+      glVertex3dv(&p0.x);
+      glVertex3dv(&p1.x);
+    }
+    if (o->interpolationType == INTERPOLATION_CATMULROM) {
+      int im = o->isLooping ? ((i + points.size()-1) % points.size()) : ((i==0) ? 0 : i - 1);
+      int ip = o->isLooping ? ((i + 2) % points.size()) : (((i + 2) > points.size()-1) ? points.size()-1 : i + 2);
+      Vector pm = gameObjects[points[im]]->getRenderTransform() * Vector(0,0,0);
+      Vector pp = gameObjects[points[ip]]->getRenderTransform() * Vector(0,0,0);
+      if (pm.w != 0) {pm /= pm.w; pm.w = 1;}
+      if (pp.w != 0) {pp /= pp.w; pp.w = 1;}
+      int steps = 10;
+      double alpha = o->interpolationParam;
+      for (int j = 0; j < steps; j++) {
+        double t0 = (double)j / steps;
+        double t1 = (double)(j+1) / steps;
+        Vector l0 = catmulrom(pm,p0,p1,pp,t0,alpha);
+        Vector l1 = catmulrom(pm,p0,p1,pp,t1,alpha);
+        glVertex3dv(&l0.x);
+        glVertex3dv(&l1.x);
+      }
+    }
   }
   glEnd();
   glLineWidth(1);

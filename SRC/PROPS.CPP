@@ -713,6 +713,11 @@ void showSectionProperties(GameObject *object) {
   ImGui::Separator();
   if (object->sectionIsPath) {
     ImGui::Text("Interpolation"); if (ImGui::Combo("##SECTIONPROPINTERPOLATION",(int*)&object->interpolationType, interpolationNames, INTERPOLATION_COUNT)) {renderingUpdated = true;}
+    if (object->interpolationType == INTERPOLATION_CATMULROM) {
+      ImGui::Text("Catmulrom alpha"); if (ImGui::InputFloat("##SECTIONPROPCATMULROMALPHA",&object->interpolationParam)) {renderingUpdated = true;}
+      if (object->interpolationParam < 0.0001) object->interpolationParam = 0.0001;
+      if (object->interpolationParam > 1) object->interpolationParam = 1;
+    }
     ImGui::Text("Line thickness"); if (ImGui::InputFloat("##SECTIONPROPLINEWIDTH",&object->lineWidth,1,1)) {renderingUpdated = true;}
     colorItem("C.","##SECTIONPROPCOLOR",&object->color, true);
   }
