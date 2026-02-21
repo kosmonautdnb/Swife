@@ -134,6 +134,13 @@ void getTransformForGameObjectFromCursor(GameObject *o) {
   o->rotation = rotationMatrixToQuaternion(rotationMatrixFromNormal(cursorNormal));
 }
 
+void reconfigurePath(GameObject *o) {
+  if (o->type == GAMEOBJECT_PATH) {
+    o->type = GAMEOBJECT_SECTION;
+    o->sectionIsPath = true;
+  }
+}
+
 void dialogAddObject(bool openIt, unsigned int type) {
   static char name[NAMEMAX];
   static char title[NAMEMAX];
@@ -166,6 +173,7 @@ void dialogAddObject(bool openIt, unsigned int type) {
       o->layers = outlinerLayers;
       getTransformForGameObjectFromCursor(o);
       if (t == GAMEOBJECT_TEXTUREGRID) setScalingXZ(o,sizeX,sizeZ);
+      if (t == GAMEOBJECT_PATH) reconfigurePath(o);
       for (int i = 0; i < gameObjects.size(); i++) gameObjects[i]->selected = false;
       gameObjects.insert(o,pos);
       unsigned int k = DIALOG_NONE;
@@ -189,6 +197,7 @@ void dialogAddObject(bool openIt, unsigned int type) {
     o->layers = outlinerLayers;
     getTransformForGameObjectFromCursor(o);
     if (t == GAMEOBJECT_TEXTUREGRID) setScalingXZ(o,sizeX,sizeZ);
+    if (t == GAMEOBJECT_PATH) reconfigurePath(o);
     for (int i = 0; i < gameObjects.size(); i++) gameObjects[i]->selected = false;
     gameObjects.insert(o,pos);
     if (t == GAMEOBJECT_CAMERA) o->setCamera(&cameras[currentCamera]);

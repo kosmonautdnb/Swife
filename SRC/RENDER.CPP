@@ -291,6 +291,7 @@ void paintRawGameObject(GameObject *o, bool showModificators) {
   case GAMEOBJECT_TRIGGER: {paintTrigger(o,showModificators);} break;
   case GAMEOBJECT_POINT: {paintPoint(o,showModificators);} break;
   case GAMEOBJECT_TEXTUREGRID: {paintTextureGrid(o,showModificators);} break;
+  case GAMEOBJECT_SECTION: {if (o->sectionIsPath && o->sectionVisible) paintPath(o,showModificators);} break;
   }
 }
 

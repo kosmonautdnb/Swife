@@ -25,6 +25,7 @@
 #define __PROPS_HPP__
 
 #include "STL/STRING.HPP"
+#include "STL/ARRAY.HPP"
 
 extern int properties_width;
 
@@ -32,6 +33,8 @@ extern unsigned int uniqueIdOfSingleDisplayedObject;
 
 bool vectorInput(const String &name,class Vector *v, const String &dcl);
 bool quaternionInput(const String &name,class Quaternion *q, const String &dcl);
+
+void collectSection(class GameObject *object, Array<unsigned int> *arr, int specificType);
 
 void drawProperties();
 

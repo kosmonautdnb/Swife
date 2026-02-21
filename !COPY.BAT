@@ -51,5 +51,6 @@ copy /Y c:\_STL_\IMGUI.H SRC\IMGUI\
 copy /Y c:\_STL_\IMGUI.CPP SRC\IMGUI\
 copy /Y c:\_STL_\IMGUIGL.HPP SRC\IMGUI\
 copy /Y c:\_STL_\IMGUIGL.CPP SRC\IMGUI\
+copy /Y c:\_STL_\LICENSE.GUI SRC\IMGUI\
 
 copy /Y c:\_VCODE_\VCODE.EXE

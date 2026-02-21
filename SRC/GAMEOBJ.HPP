@@ -47,7 +47,7 @@ enum GAMEOBJECTTYPE {
   GAMEOBJECT_POINT = 9,
   GAMEOBJECT_TEXTUREGRID = 10,
   GAMEOBJECT_SCRIPT = 11,
-  GAMEOBJECT_COUNT = 12
+  GAMEOBJECT_COUNT = 13
 };
 extern const char *gameObjectTypeNames[GAMEOBJECT_COUNT];
 
@@ -170,6 +170,14 @@ public:
 extern Grid grids[MAXGRIDS];
 void applyGrid(Grid *grid, Vector *t, Vector *s, Quaternion *r);
 
+enum INTERPOLATIONTYPE {
+  INTERPOLATION_STEP = 0,
+  INTERPOLATION_LINEAR = 1,
+  INTERPOLATION_CATMULROM = 2,
+  INTERPOLATION_COUNT = 3
+};
+extern const char *interpolationNames[INTERPOLATION_COUNT];
+
 class GameObject { // not virtual (clone wouldn't work)
 public:
   GameObject() {
@@ -185,12 +193,15 @@ public:
     sectionOn = true;
     sectionLength = -1;
     sectionVisible = true;
+    sectionIsPath = false;
+    isLooping = false;
     showLinks = false;
     visible1 = true;
     visible2 = true;
     uniqueId = currentUniqueGameObjectId++;
     useGrid = false;
     pointHasTransform = false;
+    lineWidth = 1;
     gridId = 0;
     hasDrawProblem = false;
     parentTransform.identity();
@@ -210,6 +221,7 @@ public:
     showStructure = false;
     script = "";
     scriptFileName = "";
+    interpolationType = INTERPOLATION_LINEAR;
   }
 
   unsigned int layers;
@@ -226,11 +238,15 @@ public:
   int sectionLength;
   bool showLinks;
   bool sectionVisible;
+  bool sectionIsPath;
+  bool isLooping;
   bool visible1;
   bool visible2;
   bool hasDrawProblem;
   bool useGrid;
   bool pointHasTransform;
+  float lineWidth;
+  int interpolationType;
   int gridId;
   unsigned int uniqueId;
   Vector boundingBoxMin;
@@ -297,6 +313,10 @@ public:
   S_BOOL("hasDrawProblem",(__o__)->hasDrawProblem);\
   S_BOOL("useGrid", (__o__)->useGrid);\
   S_BOOL("pointHasTransform", (__o__)->pointHasTransform);\
+  S_FLOAT("lineWidth",(__o__)->lineWidth);\
+  S_INT("interpolationType",(__o__)->interpolationType);\
+  S_BOOL("sectionIsPath", (__o__)->sectionIsPath);\
+  S_BOOL("isLooping", (__o__)->isLooping);\
   S_INT("gridId", (__o__)->gridId);\
   S_UINT("uniqueId", (__o__)->uniqueId);\
   S_VECTOR("boundingBoxMin",(__o__)->boundingBoxMin);\

@@ -34,6 +34,7 @@
 #include "SERIALZE.HPP"
 #include "VIEWPORT.HPP"
 #include "TOOLBAR.HPP"
+#include "PROPS.HPP"
 #include "STL/SPRTEOBJ.HPP"
 #include <math.h>
 
@@ -898,4 +899,26 @@ void paintCursor() {
   glColor4f(1,1,1,1);
   glVertex3dv(&pos.x);
   glEnd();
+}
+
+void paintPath(class GameObject *o, bool showModificators) {
+  static Array<unsigned int> points; points.clear();
+  collectSection(o, &points, GAMEOBJECT_POINT);
+  if (points.size()<2) return;
+  glLineWidth(o->lineWidth);
+  glBegin(GL_LINES);
+  unsigned int col = o->color;
+  glColor4f((col & 255)/255.f,((col>>8) & 255)/255.f,((col>>16) & 255)/255.f,((col>>24) & 255)/255.f);
+  for (int i = 0; i < (points.size()-1 + (o->isLooping ? 1 : 0)); i++) {
+    int i0 = i;
+    int i1 = (i+1) % points.size();
+    Vector p0 = gameObjects[points[i0]]->getRenderTransform() * Vector(0,0,0);
+    Vector p1 = gameObjects[points[i1]]->getRenderTransform() * Vector(0,0,0);
+    if (p0.w != 0) {p0 /= p0.w; p0.w = 1;}
+    if (p1.w != 0) {p1 /= p1.w; p1.w = 1;}
+    glVertex3dv(&p0.x);
+    glVertex3dv(&p1.x);
+  }
+  glEnd();
+  glLineWidth(1);
 }

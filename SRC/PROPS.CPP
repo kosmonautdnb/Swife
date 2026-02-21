@@ -669,19 +669,57 @@ void showScriptProperties(GameObject *object) {
   ImGui::Separator();
 }
 
+void collectSection(GameObject *object, Array<unsigned int> *arr, int specificType) {
+  arr->clear(); int start = -1; for (int i = 0; i < gameObjects.size(); i++) if (gameObjects[i] == object) {start = i; break;}
+  if (start >= 0) {
+    int counter = object->sectionLength;
+    for (int j = start+1; j < gameObjects.size(); j++) {
+      if (counter >= 0) {
+        counter--;
+        if (counter < 0) break;
+      }
+      GameObject *o = gameObjects[j];
+      if (o->type == GAMEOBJECT_SECTION) break;
+      if (specificType == -1 || o->type == specificType) arr->push_back(j);
+    }
+  }
+}
+
 void showSectionProperties(GameObject *object) {
-  ImGui::Text("Section");
-  ImGui::SameLine();
-  if (propsButton(IDCOMBINED((object->sectionLength>=0)?"Pure":"With length","##SECTIONPROPWITHLENGTH"),strlen("With length")+2)) {object->sectionLength = (object->sectionLength>=0) ? -1:1; renderingUpdated = true;}
+  ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.9,0.9,0.9,1));
+  ImGui::Text(object->sectionIsPath?"Path":"Section");
+  static Array<unsigned int> particles;
+  collectSection(object, &particles, object->sectionIsPath ? GAMEOBJECT_POINT : -1);
+  if (!object->sectionIsPath) {
+    ImGui::SameLine();
+    if (propsButton(IDCOMBINED((object->sectionLength>=0)?"Pure":"With length","##SECTIONPROPWITHLENGTH"),strlen("With length")+2)) {object->sectionLength = (object->sectionLength>=0) ? -1:1; renderingUpdated = true;}
+  }
   if (object->sectionLength>=0) {
     ImGui::PushItemWidth(64);
-    ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.9,0.9,0.9,1));
-    ImGui::Text("Length"); ImGui::SameLine(); if (ImGui::InputInt("##SECTIONPROPSECTIONLENGTH",&object->sectionLength,1,1)) {renderingUpdated = true;}
-    ImGui::PopStyleColor();
+    ImGui::Text("Item count"); 
+    if (ImGui::InputInt("##SECTIONPROPSECTIONLENGTH",&object->sectionLength,1,1)) {renderingUpdated = true;}
+    if (object->sectionIsPath && !particles.empty()) {ImGui::Text("Looping"); ImGui::SameLine(); if (ImGui::Checkbox("##SECTIONPROPISLOOPING",&object->isLooping)) {renderingUpdated = true;};}
     ImGui::PopItemWidth();
   }
-
+  if (object->sectionIsPath) if (object->sectionLength<0) object->sectionLength = 0;
   ImGui::Separator();
+  ImGui::Text(object->sectionIsPath ? "Points" : "Objects");
+  ImGui::BeginChild("##SECTIONPROPCHILD",ImVec2(0,main_window_yres/3));
+  for (int i = 0; i < particles.size(); i++) {
+    GameObject *o = gameObjects[particles[i]];
+    ImGui::Text("%d\"%s\"",particles[i],o->name);
+  }
+  ImGui::EndChild();
+  ImGui::Separator();
+  if (object->sectionIsPath) {
+    ImGui::Text("Interpolation"); if (ImGui::Combo("##SECTIONPROPINTERPOLATION",(int*)&object->interpolationType, interpolationNames, INTERPOLATION_COUNT)) {renderingUpdated = true;}
+    ImGui::Text("Line thickness"); if (ImGui::InputFloat("##SECTIONPROPLINEWIDTH",&object->lineWidth,1,1)) {renderingUpdated = true;}
+    colorItem("C.","##SECTIONPROPCOLOR",&object->color, true);
+  }
+  ImGui::Separator();
+  if (ImGui::Checkbox("Visible##SECTIONPROPVISIBLE",&object->sectionVisible)) {renderingUpdated = true;}
+  if (ImGui::Checkbox("Expanded##SECTIONPROPSECTIONON",&object->sectionOn)) {renderingUpdated = true;}
+  ImGui::PopStyleColor();
 }
 
 
