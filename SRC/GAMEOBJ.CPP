@@ -45,6 +45,7 @@ void GameObjectProperty::setName(const char *name) {
 void GameObjectProperty::clearValue() {
   memset(goText,0,sizeof(goText));
   goLinks.clear();
+  goAnchor.set(0,0,0);
   goMove.set(1,0,0);
   goScale.set(1,1,1);
   goRotate = Quaternion();

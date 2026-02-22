@@ -200,9 +200,10 @@ bool editProperty(GameObjectProperty *p, int i) {
       ImGui::SameLine();sprintf(buffer,"##PROPERTYEDITx%d",i);if (ImGui::InputInt(buffer,&p->goRepeat,1,1)) {renderingUpdated=true;}
       if (p->goRepeat<0) p->goRepeat=0;
       if (p->goRepeat>100) p->goRepeat = 100;
-      sprintf(buffer,"##PROPERTYEDITm%d",i);if (vectorInput2("P",&p->goMove,buffer)) {renderingUpdated=true;}
+      sprintf(buffer,"##PROPERTYEDITm%d",i);if (vectorInput2("M",&p->goMove,buffer)) {renderingUpdated=true;}
       sprintf(buffer,"##PROPERTYEDITs%d",i);if (vectorInput2("S",&p->goScale,buffer)) {renderingUpdated=true;}
       sprintf(buffer,"##PROPERTYEDITr%d",i);if (quaternionInput2("R",&p->goRotate,buffer)) {renderingUpdated=true;}
+      sprintf(buffer,"##PROPERTYEDITa%d",i);if (vectorInput2("A",&p->goAnchor,buffer)) {renderingUpdated=true;}
       ImGui::PopItemWidth();
     } break;
   }

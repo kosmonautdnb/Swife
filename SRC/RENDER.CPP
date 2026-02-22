@@ -310,8 +310,10 @@ void paintSimpleGameObject(GameObject *o, bool showModificators) {
     switch(o->properties[j].type) {
       case GAMEOBJECTPROPERTY_REPEAT: {
         Matrix rm = normalize(o->properties[j].goRotate).rotationMatrix();
+        const Vector &a = o->properties[j].goAnchor;
         const Vector &s = o->properties[j].goScale;
         const Vector &p = o->properties[j].goMove;
+        Matrix anchor; anchor.translate(a); Matrix invAnchor = inverse(anchor);
         Matrix update;
         update.translate(p);
         update.scale3(s);
@@ -319,12 +321,11 @@ void paintSimpleGameObject(GameObject *o, bool showModificators) {
         int repeat = o->properties[j].goRepeat;
         int k = transforms.size();
         for (int i = 0; i < k; i++) {
-          const Matrix &m = transforms[i];
-          Matrix m2;
+          Matrix m2 = transforms[i] * anchor;
           for (int l = 0; l < repeat; l++) {
             m2 = update * m2;
             if (transforms.size() < MAXREPEATEDOBJECTSATONCE) {
-              transforms.push_back(m2*m);
+              transforms.push_back(invAnchor*m2);
             }
           }
         }
@@ -332,8 +333,9 @@ void paintSimpleGameObject(GameObject *o, bool showModificators) {
     }
   }
 
+  Matrix mt = o->getObjectTransform(); Matrix invmt = inverse(mt);
   for (int i = 0; i < transforms.size(); i++) {
-    o->parentTransform = restore * transforms[i];
+    o->parentTransform = restore * mt * transforms[i] * invmt;
     paintRawGameObject(o,i==0?showModificators:false);
   }
 
