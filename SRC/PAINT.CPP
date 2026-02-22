@@ -973,13 +973,16 @@ void getSpline(class GameObject *o, double slider, class Vector *position, class
   Matrix r2;
   Vector p = splineAt(o,slider,&r2);     
   Vector p_ = splineAt(o,slider+0.01,NULL);     
-  Matrix r = rotationMatrixFromNormal(normalize(p_-p))*r2;
+  Vector _p = splineAt(o,slider-0.01,NULL);     
+  Vector n = length(p_-p)>0.0001?p_-p:p-_p;
+  Matrix r = rotationMatrixFromNormal(normalize(n))*r2;
   Vector x = normalize(r.getColumn(0));
   Vector y = normalize(r.getColumn(1));
   Vector z = normalize(r.getColumn(2));
   Vector x2 = x;
   Vector y2 = z;
   Vector z2 = y * -1;
+  x2.w = y2.w = z2.w = 0;
   r.setColumn(0,x2);
   r.setColumn(1,y2);
   r.setColumn(2,z2);

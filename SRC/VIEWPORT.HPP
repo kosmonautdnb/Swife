@@ -43,6 +43,7 @@ extern Vector cursor;
 extern Quaternion cursorOrientation;
 extern bool placeCursor;
 void cursorToObject(class GameObject *o);
+void putToCursor(class GameObject *o);
 
 void setOrthoLookTo(double x, double y, double z);
 void centerSelection();

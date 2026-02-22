@@ -98,6 +98,8 @@ void drawMenuBar() {
       selected = moveToolWorldSpace; if (ImGui::MenuItem("Movetool is in worldspace","",&selected)) {moveToolWorldSpace = !moveToolWorldSpace; renderingUpdated = true;}
       ImGui::Separator();
       selected = placeCursor; if (ImGui::MenuItem("Place cursor","",&selected, mode == MODE_SELECT)) {placeCursor = !placeCursor; renderingUpdated = true;}
+      if (ImGui::MenuItem("Cursor to object","",false, count==1)) {cursorToObject(first); renderingUpdated = true;}
+      if (ImGui::MenuItem("Put to cursor","",false, count==1)) {putToCursor(first); renderingUpdated = true;}
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("View")) {
@@ -142,7 +144,6 @@ void drawMenuBar() {
       ImGui::Separator();
       if (ImGui::MenuItem("Duplicate",NULL,false,one)) {duplicate();}
       if (ImGui::MenuItem("Delete",NULL,false,one)) {dialogDeleteGameObjects(true);}
-      if (ImGui::MenuItem("Cursor to object","",false, count==1)) {cursorToObject(first); renderingUpdated = true;}
       ImGui::Separator();
       if (ImGui::MenuItem("Select by property")) {dialogSelectByProperty(true);}
       if (ImGui::MenuItem("Select by layer")) {dialogSelectByLayer(true);}

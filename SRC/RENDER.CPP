@@ -306,26 +306,55 @@ void paintSimpleGameObject(GameObject *o, bool showModificators) {
   transforms.clear();
   transforms.push_back(Matrix());
 
+  Matrix mt = o->getObjectTransform(); Matrix invmt = inverse(mt);
+  Matrix rt = mt.rotationMatrix3x3(); Matrix invrt = inverse(rt);
+
   for (int j = 0; j < o->properties.size(); j++) {
     switch(o->properties[j].type) {
       case GAMEOBJECTPROPERTY_REPEAT: {
-        Matrix rm = normalize(o->properties[j].goRotate).rotationMatrix();
-        const Vector &a = o->properties[j].goAnchor;
-        const Vector &s = o->properties[j].goScale;
-        const Vector &p = o->properties[j].goMove;
-        Matrix anchor; anchor.translate(a); Matrix invAnchor = inverse(anchor);
-        Matrix update;
-        update.translate(p);
-        update.scale3(s);
-        update = rm * update;
-        int repeat = o->properties[j].goRepeat;
-        int k = transforms.size();
-        for (int i = 0; i < k; i++) {
-          Matrix m2 = transforms[i] * anchor;
-          for (int l = 0; l < repeat; l++) {
-            m2 = update * m2;
-            if (transforms.size() < MAXREPEATEDOBJECTSATONCE) {
-              transforms.push_back(invAnchor*m2);
+        if (!o->properties[j].goCheck1) { // not a path object
+          Matrix rm = normalize(o->properties[j].goRotate).rotationMatrix();
+          const Vector &a = o->properties[j].goAnchor;
+          const Vector &s = o->properties[j].goScale;
+          const Vector &p = o->properties[j].goMove;
+          Matrix anchor; anchor.translate(a); Matrix invAnchor = inverse(anchor);
+          Matrix update;
+          update.translate(p);
+          update.scale3(s);
+          update = rm * update;
+          int repeat = o->properties[j].goRepeat;
+          int k = transforms.size();
+          for (int i = 0; i < k; i++) {
+            Matrix m2 = transforms[i] * anchor;
+            for (int l = 0; l < repeat; l++) {
+              if (transforms.size() < MAXREPEATEDOBJECTSATONCE) {
+                m2 = update * m2;
+                transforms.push_back(invAnchor*m2);
+              }
+            }
+          }
+        }
+        if (o->properties[j].goCheck1) { // a path object
+          int repeat = o->properties[j].goRepeat;
+          if (repeat<=0) break;
+          GameObject *path = getObjectByUniqueId(o->properties[j].goLinks.empty()?0:o->properties[j].goLinks[0]);
+          if (path == NULL) break;
+          static Array<unsigned int> points; points.clear(); collectSection(path, &points, GAMEOBJECT_POINT);
+          if (points.size()<2) break;
+          int splinePointCount = (int)points.size()-(path->isLooping?0:1);
+          if (splinePointCount<1) break;
+          Matrix invOrigin,origin; Matrix pathRotation; Vector pathOrigin; getSpline(path,0,&pathOrigin,&pathRotation); 
+          origin.translate(pathOrigin); origin = origin * pathRotation; invOrigin = inverse(origin);
+          int k = transforms.size();
+          for (int i = 0; i < k; i++) {
+            Matrix m2 = transforms[i];
+            for (int l = 1; l < repeat+1; l++) {
+              if (transforms.size() < MAXREPEATEDOBJECTSATONCE) {
+                Matrix r; Vector p; getSpline(path,(double)(l*splinePointCount)/repeat,&p,&r);
+                Matrix pm; pm.translate(p);
+                Matrix spline; spline = invOrigin*pm*r;
+                transforms.push_back(pathRotation*spline * m2);
+              }
             }
           }
         }
@@ -333,7 +362,6 @@ void paintSimpleGameObject(GameObject *o, bool showModificators) {
     }
   }
 
-  Matrix mt = o->getObjectTransform(); Matrix invmt = inverse(mt);
   for (int i = 0; i < transforms.size(); i++) {
     o->parentTransform = restore * mt * transforms[i] * invmt;
     paintRawGameObject(o,i==0?showModificators:false);

@@ -210,7 +210,7 @@ bool editProperty(GameObjectProperty *p, int i) {
         sprintf(buffer,"##PROPERTYEDITa%d",i);if (vectorInput2("A",&p->goAnchor,buffer)) {renderingUpdated=true;}
       }
       if (p->goCheck1) {   
-        int id = p->goLinks.empty() ? -1 : p->goLinks[0];
+        int id = p->goLinks.empty() ? 0 : p->goLinks[0];
         ImGui::Separator();
         ImGui::Text("Available paths");
         ImGui::BeginChild("##PROPERTYEDITCHILDA",ImVec2(0,main_window_yres/5));
@@ -244,9 +244,6 @@ bool editProperty(GameObjectProperty *p, int i) {
         if (o == NULL) {
           ImGui::Text("<not found>");
         } else {
-          ImGui::Text("Use path origin");ImGui::SameLine();if (ImGui::Checkbox(IDINDEXED("##PROPERTYEDITSPLINEORIGIN",i),&p->goCheck2)) {renderingUpdated=true;}
-          ImGui::Text("Count");ImGui::SameLine();if (ImGui::InputInt(IDINDEXED("##PROPERTYEDITSPLINECOUNT",i),&p->goCounter,1,1)) {renderingUpdated=true;}
-          if (p->goCounter < 0) p->goCounter = 0;
         }
       }
       ImGui::PopItemWidth();
@@ -955,6 +952,7 @@ void drawProperties() {
           if (!(filter.empty()||(toLower(String(gameObjects[i2]->properties[j].name)).findFirst(filter)>=0))) continue;
           if (editProperty(&gameObjects[i2]->properties[j], i2 + j * 32768)) {
             gameObjects[i2]->properties.erase(j,1); j--;
+            renderingUpdated = true;
           }
           ImGui::Separator();
         }

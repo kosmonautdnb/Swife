@@ -110,7 +110,7 @@ public:
   case GAMEOBJECTPROPERTY_COLOR: {S_UINT("goColor",(__o__)->goColor);} break;\
   case GAMEOBJECTPROPERTY_LINKS: {S_ARRAY("goLinks",(__o__)->goLinks,S_UINT(NULL,(__o__)->goLinks[i]));} break;\
   case GAMEOBJECTPROPERTY_SCRIPT: {S_UINT("goUniqueId",(__o__)->goUniqueId);} break;\
-  case GAMEOBJECTPROPERTY_REPEAT: {S_BOOL("goCheck1",(__o__)->goCheck1);S_BOOL("goCheck2",(__o__)->goCheck2);S_INT("goCounter",(__o__)->goCounter);S_INT("goRepeat",(__o__)->goRepeat);S_VECTOR("goAnchor",(__o__)->goAnchor);S_VECTOR("goMove",(__o__)->goMove);S_VECTOR("goScale",(__o__)->goScale);S_QUATERNION("goRotate",(__o__)->goRotate);} break;\
+  case GAMEOBJECTPROPERTY_REPEAT: {S_BOOL("goCheck1",(__o__)->goCheck1);S_INT("goRepeat",(__o__)->goRepeat);S_VECTOR("goAnchor",(__o__)->goAnchor);S_VECTOR("goMove",(__o__)->goMove);S_VECTOR("goScale",(__o__)->goScale);S_QUATERNION("goRotate",(__o__)->goRotate);S_ARRAY("goLinks",(__o__)->goLinks,S_UINT(NULL,(__o__)->goLinks[i]));} break;\
   }\
   S_OBJECT_CLOSE();
 

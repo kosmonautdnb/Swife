@@ -422,6 +422,7 @@ Matrix rotationMatrixFromNormal(const Vector &a) {
     x = normalize(cross(z,y));
     z = normalize(cross(y,x));
     y = normalize(cross(z,x));
+    x.w =  z.w = y.w = 0;
     ret.setColumn(0,x);
     ret.setColumn(1,y);
     ret.setColumn(2,z);
@@ -433,6 +434,7 @@ Matrix rotationMatrixFromNormal(const Vector &a) {
     x = normalize(cross(z,y));
     z = normalize(cross(y,x));
     y = normalize(cross(z,x));
+    x.w =  z.w = y.w = 0;
     ret.setColumn(0,x);
     ret.setColumn(1,y);
     ret.setColumn(2,z);
