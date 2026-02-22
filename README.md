@@ -1,5 +1,5 @@
 # Swife
-A tiny fastcoded DOS based 3D level editor (in the making). 
+A tiny and fastcoded DOS based 3D level editor (in the making). 
 
 It is created with WatcomC++ 11.0 (from 1997), but can also be compiled with OpenWatcom and DJGPP.
 
