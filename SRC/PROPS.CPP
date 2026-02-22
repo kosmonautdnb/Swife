@@ -198,12 +198,57 @@ bool editProperty(GameObjectProperty *p, int i) {
       ImGui::Text("Repeat");
       ImGui::PushItemWidth(64);
       ImGui::SameLine();sprintf(buffer,"##PROPERTYEDITx%d",i);if (ImGui::InputInt(buffer,&p->goRepeat,1,1)) {renderingUpdated=true;}
+      if (propsButton(IDINDEXED(!p->goCheck1 ? "Use path##PROPERTYEDITUSESPLINE" : "Simple##PROPERTYEDITUSESPLINE",i),strlen("Use path")+4)) {
+        p->goCheck1 = !p->goCheck1;
+        renderingUpdated = true;
+      }
       if (p->goRepeat<0) p->goRepeat=0;
-      if (p->goRepeat>100) p->goRepeat = 100;
-      sprintf(buffer,"##PROPERTYEDITm%d",i);if (vectorInput2("M",&p->goMove,buffer)) {renderingUpdated=true;}
-      sprintf(buffer,"##PROPERTYEDITs%d",i);if (vectorInput2("S",&p->goScale,buffer)) {renderingUpdated=true;}
-      sprintf(buffer,"##PROPERTYEDITr%d",i);if (quaternionInput2("R",&p->goRotate,buffer)) {renderingUpdated=true;}
-      sprintf(buffer,"##PROPERTYEDITa%d",i);if (vectorInput2("A",&p->goAnchor,buffer)) {renderingUpdated=true;}
+      if (!p->goCheck1) {   
+        sprintf(buffer,"##PROPERTYEDITm%d",i);if (vectorInput2("M",&p->goMove,buffer)) {renderingUpdated=true;}
+        sprintf(buffer,"##PROPERTYEDITs%d",i);if (vectorInput2("S",&p->goScale,buffer)) {renderingUpdated=true;}
+        sprintf(buffer,"##PROPERTYEDITr%d",i);if (quaternionInput2("R",&p->goRotate,buffer)) {renderingUpdated=true;}
+        sprintf(buffer,"##PROPERTYEDITa%d",i);if (vectorInput2("A",&p->goAnchor,buffer)) {renderingUpdated=true;}
+      }
+      if (p->goCheck1) {   
+        int id = p->goLinks.empty() ? -1 : p->goLinks[0];
+        ImGui::Separator();
+        ImGui::Text("Available paths");
+        ImGui::BeginChild("##PROPERTYEDITCHILDA",ImVec2(0,main_window_yres/5));
+      
+        ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(1,1,1,1));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered,ImVec4(0.8,0.8,0.8,1));
+        for (int i2 = 0; i2 < gameObjects.size(); i2++) {
+          GameObject *o = gameObjects[i2];
+          if (o->sectionIsPath) {
+            bool isThisHere = id == o->uniqueId;
+            String buttonName = (isThisHere?">":"") + String::fromInt(i2) + "\"" + o->name + "\"" + "##PROPERTYEDITXBUTTON" + String::fromInt(i2) + "_" + String::fromInt(i);
+            if (ImGui::Button(buttonName.c_str())) {
+              renderingUpdated = true;
+              if (isThisHere) {
+                p->goLinks.clear();
+              } else {
+                p->goLinks.clear();
+                p->goLinks.push_back(o->uniqueId);
+              }
+            }
+          }
+        }
+        ImGui::PopStyleColor();
+        ImGui::PopStyleColor();
+      
+        ImGui::EndChild();
+        ImGui::Separator();
+
+        GameObject *o = getObjectByUniqueId(id);
+
+        if (o == NULL) {
+          ImGui::Text("<not found>");
+        } else {
+          ImGui::Text("Use path origin");ImGui::SameLine();if (ImGui::Checkbox(IDINDEXED("##PROPERTYEDITSPLINEORIGIN",i),&p->goCheck2)) {renderingUpdated=true;}
+          ImGui::Text("Count");ImGui::SameLine();if (ImGui::InputInt(IDINDEXED("##PROPERTYEDITSPLINECOUNT",i),&p->goCounter,1,1)) {renderingUpdated=true;}
+          if (p->goCounter < 0) p->goCounter = 0;
+        }
+      }
       ImGui::PopItemWidth();
     } break;
   }
@@ -343,7 +388,7 @@ void showLinkProperties(GameObject *object) {
   int count = 0;
   int countMissing = 0;
   for (int i = 0; i < object->uniqueLinkIds.size(); i++) {
-    int j = getObjectIdByUniqueId(object->uniqueLinkIds[i]);
+    int j = getObjectsIndexByUniqueId(object->uniqueLinkIds[i]);
     if (j >= 0) {
       GameObject *o = gameObjects[j];
       ImGui::Text("%d\"%s\"",j ,o->name);
@@ -356,7 +401,7 @@ void showLinkProperties(GameObject *object) {
   
   if (countMissing > 0 && propsButton("Remove <deleted>s##LINKPROPDELETE1",strlen("Remove <deleted>s")+4)) {
     for (int i = 0; i < object->uniqueLinkIds.size(); i++) {
-      int j = getObjectIdByUniqueId(object->uniqueLinkIds[i]);
+      int j = getObjectsIndexByUniqueId(object->uniqueLinkIds[i]);
       if (j < 0) {
         object->uniqueLinkIds.erase(i,1);
         i--;
@@ -368,7 +413,7 @@ void showLinkProperties(GameObject *object) {
     for (int j = 0; j < gameObjects.size(); j++) gameObjects[j]->selected = false;
     bool first = true;
     for (int i = 0; i < object->uniqueLinkIds.size(); i++) {
-      int j = getObjectIdByUniqueId(object->uniqueLinkIds[i]);
+      int j = getObjectsIndexByUniqueId(object->uniqueLinkIds[i]);
       if (j >= 0) {
         GameObject *o = gameObjects[j];
         o->selected = true;
@@ -851,7 +896,7 @@ void drawProperties() {
   ImGui::Separator();
   if (getSelectionStartId!=0) { // LINK SELECTION COLLECT
     if (propsButton("Get selection end##LINKPROPCOLLECT2",strlen("Get selection end")+4)) {
-      int j = getObjectIdByUniqueId(getSelectionStartId);
+      int j = getObjectsIndexByUniqueId(getSelectionStartId);
       if (j >= 0) {
         collectLinkIds(gameObjects[j]);
         for (int i = 0; i < gameObjects.size(); i++) gameObjects[i]->selected = false;

@@ -86,6 +86,9 @@ public:
     int goRepeat;
   };
   Array<unsigned int> goLinks;
+  bool goCheck1;
+  bool goCheck2;
+  int goCounter;
   Vector goAnchor;
   Vector goMove;
   Vector goScale;
@@ -107,7 +110,7 @@ public:
   case GAMEOBJECTPROPERTY_COLOR: {S_UINT("goColor",(__o__)->goColor);} break;\
   case GAMEOBJECTPROPERTY_LINKS: {S_ARRAY("goLinks",(__o__)->goLinks,S_UINT(NULL,(__o__)->goLinks[i]));} break;\
   case GAMEOBJECTPROPERTY_SCRIPT: {S_UINT("goUniqueId",(__o__)->goUniqueId);} break;\
-  case GAMEOBJECTPROPERTY_REPEAT: {S_INT("goRepeat",(__o__)->goRepeat);S_VECTOR("goAnchor",(__o__)->goAnchor);S_VECTOR("goMove",(__o__)->goMove);S_VECTOR("goScale",(__o__)->goScale);S_QUATERNION("goRotate",(__o__)->goRotate);} break;\
+  case GAMEOBJECTPROPERTY_REPEAT: {S_BOOL("goCheck1",(__o__)->goCheck1);S_BOOL("goCheck2",(__o__)->goCheck2);S_INT("goCounter",(__o__)->goCounter);S_INT("goRepeat",(__o__)->goRepeat);S_VECTOR("goAnchor",(__o__)->goAnchor);S_VECTOR("goMove",(__o__)->goMove);S_VECTOR("goScale",(__o__)->goScale);S_QUATERNION("goRotate",(__o__)->goRotate);} break;\
   }\
   S_OBJECT_CLOSE();
 
@@ -361,6 +364,7 @@ void freeGameObjects();
 
 void cloneName(char *destName, const char *originalName);
 
-int getObjectIdByUniqueId(unsigned int uniqueId);
+int getObjectsIndexByUniqueId(unsigned int uniqueId);
+GameObject *getObjectByUniqueId(unsigned int uniqueId);
 
 #endif //__GAMEOBJ_HPP__

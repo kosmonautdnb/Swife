@@ -49,6 +49,9 @@ void GameObjectProperty::clearValue() {
   goMove.set(1,0,0);
   goScale.set(1,1,1);
   goRotate = Quaternion();
+  goCounter = 0;
+  goCheck1 = false;
+  goCheck2 = false;
 }
 
 unsigned int currentUniqueGameObjectId = 1;
@@ -332,8 +335,13 @@ void cloneName(char *destName, const char *originalName) {
   destName[0]='_';
 }
 
-int getObjectIdByUniqueId(unsigned int uniqueId) {
+int getObjectsIndexByUniqueId(unsigned int uniqueId) {
   int ret = -1;
   for (int i = 0; i < gameObjects.size(); i++) if (gameObjects[i]->uniqueId == uniqueId) return i;
   return ret;
+}
+
+GameObject *getObjectByUniqueId(unsigned int uniqueId) {
+  int k = getObjectsIndexByUniqueId(uniqueId);
+  return k < 0 ? NULL : gameObjects[k];
 }

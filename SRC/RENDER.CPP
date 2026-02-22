@@ -366,7 +366,7 @@ void drawGameObject(GameObject *o) {
       Set<GameObject*> *c = circular.back(); circular.pop_back();
       l->hasDrawProblem = false;
       for (int i = 0; i < l->uniqueLinkIds.size(); i++) {
-        int j = getObjectIdByUniqueId(l->uniqueLinkIds[i]);
+        int j = getObjectsIndexByUniqueId(l->uniqueLinkIds[i]);
         if (j >= 0) {
           GameObject *o = gameObjects[j];
           Matrix m = parentMatrix * o->getObjectTransform();

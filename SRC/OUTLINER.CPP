@@ -123,7 +123,7 @@ void objectSelect(unsigned int i) {
     } else {
       GameObject *object = gameObjects[i];
       for (int i = 0; i < object->uniqueLinkIds.size(); i++) {
-        int j = getObjectIdByUniqueId(object->uniqueLinkIds[i]);
+        int j = getObjectsIndexByUniqueId(object->uniqueLinkIds[i]);
         if (j >= 0) {
           GameObject *o = gameObjects[j];
           ImGui::Text("%d\"%s\"",j ,o->name);

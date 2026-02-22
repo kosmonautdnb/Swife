@@ -868,7 +868,7 @@ void loadSkyBoxForObject(class GameObject *o, const char *fileName) {
 }
 
 void loadSkyBox(const char *path, const char *fileName) {
-  int j = getObjectIdByUniqueId(dialogLoadSaveGameObjectUniqueId);
+  int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
   loadSkyBoxForObject(o,shortFileName(String(path)+String(fileName)).c_str());
@@ -884,7 +884,7 @@ void loadMeshForObject(class GameObject *o, const char *fileName) {
 }
 
 void loadMesh(const char *path, const char *fileName) {
-  int j = getObjectIdByUniqueId(dialogLoadSaveGameObjectUniqueId);
+  int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
   loadMeshForObject(o,shortFileName(String(path)+String(fileName)).c_str());
@@ -909,7 +909,7 @@ void loadBillBoardForObject(class GameObject *o, const char *fileName) {
 }
 
 void loadBillBoard(const char *path, const char *fileName) {
-  int j = getObjectIdByUniqueId(dialogLoadSaveGameObjectUniqueId);
+  int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
   loadBillBoardForObject(o,shortFileName(String(path)+String(fileName)).c_str());
@@ -925,14 +925,14 @@ void loadTextureGridForObject(class GameObject *o, const char *fileName) {
 }
 
 void loadTextureGrid(const char *path, const char *fileName) {
-  int j = getObjectIdByUniqueId(dialogLoadSaveGameObjectUniqueId);
+  int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
   loadTextureGridForObject(o,shortFileName(String(path)+String(fileName)).c_str());
 }
 
 void loadTextureGridCSV(const char *path, const char *fileName) {
-  int j = getObjectIdByUniqueId(dialogLoadSaveGameObjectUniqueId);
+  int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
 
   String fullName = String(path) + fileName;
@@ -985,7 +985,7 @@ void loadTextureGridCSV(const char *path, const char *fileName) {
 }
 
 void saveTextureGridCSV(const char *path, const char *fileName) {
-  int j = getObjectIdByUniqueId(dialogLoadSaveGameObjectUniqueId);
+  int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
   FileBinding *binding = getBindingById(o->fileBindingId);
@@ -1021,7 +1021,7 @@ void saveTextureGridCSV(const char *path, const char *fileName) {
 }
 
 void loadScript(const char *path, const char *fileName) {
-  int j = getObjectIdByUniqueId(dialogLoadSaveGameObjectUniqueId);
+  int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
   String fullName = String(path) + fileName;
@@ -1035,7 +1035,7 @@ void loadScript(const char *path, const char *fileName) {
 }
 
 void saveScript(const char *path, const char *fileName) {
-  int j = getObjectIdByUniqueId(dialogLoadSaveGameObjectUniqueId);
+  int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
   FILE *out = createTempFile(path);
