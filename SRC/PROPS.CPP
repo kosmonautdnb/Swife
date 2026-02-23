@@ -658,19 +658,21 @@ void displayTextureGridBinding(GameObject *object, FileBinding *binding) {
       ImGui::Text("Original width:%d",binding->originalWidth);
       ImGui::Text("Original height:%d",binding->originalHeight);
       ImGui::Text("");
-      ImGui::Text("Map");
-      ImGui::Text(" Count X:%d Y:%d",binding->textureGridWidth,binding->textureGridHeight);
-      if (binding->textureGridWidth<=0||binding->textureGridHeight<=0) ImGui::TextColored(ERRORCOLOR,"  Resize map!");
-      static int resizeX = 0; static int resizeY = 0;
-      static int offsetX = 0; static int offsetY = 0;
-      ImGui::Text("  Resize to X"); ImGui::SameLine(); if (ImGui::InputInt("##TEXTUREGRIDPROPRELOADRESIZEX",&resizeX,0,0));
-      ImGui::Text("  Resize to Y"); ImGui::SameLine(); if (ImGui::InputInt("##TEXTUREGRIDPROPRELOADRESIZEY",&resizeY,0,0));
-      ImGui::Text("  With offset X"); ImGui::SameLine(); if (ImGui::InputInt("##TEXTUREGRIDPROPRELOADOFFSETX",&offsetX,0,0));
-      ImGui::Text("  With offset Y"); ImGui::SameLine(); if (ImGui::InputInt("##TEXTUREGRIDPROPRELOADOFFSETY",&offsetY,0,0));
-      if (resizeX < 0) resizeX = 0; if (resizeX > 1024) resizeX = 1024;
-      if (resizeY < 0) resizeY = 0; if (resizeY > 1024) resizeY = 1024;
-      if (propsButton("Resize map##TEXTUREGRIDPROPRESIZEMAP",strlen("Resize map")+4)) {binding->resizeTextureGrid(offsetX,offsetY,resizeX,resizeY); renderingUpdated = true;}
-      ImGui::Text("");
+      if (binding->type == FILETYPE_TEXTUREGRID) {
+        ImGui::Text("Map");
+        ImGui::Text(" Count X:%d Y:%d",binding->textureGridWidth,binding->textureGridHeight);
+        if (binding->textureGridWidth<=0||binding->textureGridHeight<=0) ImGui::TextColored(ERRORCOLOR,"  Resize map!");
+        static int resizeX = 0; static int resizeY = 0;
+        static int offsetX = 0; static int offsetY = 0;
+        ImGui::Text("  Resize to X"); ImGui::SameLine(); if (ImGui::InputInt("##TEXTUREGRIDPROPRELOADRESIZEX",&resizeX,0,0));
+        ImGui::Text("  Resize to Y"); ImGui::SameLine(); if (ImGui::InputInt("##TEXTUREGRIDPROPRELOADRESIZEY",&resizeY,0,0));
+        ImGui::Text("  With offset X"); ImGui::SameLine(); if (ImGui::InputInt("##TEXTUREGRIDPROPRELOADOFFSETX",&offsetX,0,0));
+        ImGui::Text("  With offset Y"); ImGui::SameLine(); if (ImGui::InputInt("##TEXTUREGRIDPROPRELOADOFFSETY",&offsetY,0,0));
+        if (resizeX < 0) resizeX = 0; if (resizeX > 1024) resizeX = 1024;
+        if (resizeY < 0) resizeY = 0; if (resizeY > 1024) resizeY = 1024;
+        if (propsButton("Resize map##TEXTUREGRIDPROPRESIZEMAP",strlen("Resize map")+4)) {binding->resizeTextureGrid(offsetX,offsetY,resizeX,resizeY); renderingUpdated = true;}
+        ImGui::Text("");
+      }
       ImGui::Text("Texture atlas");
       if (binding->textureAtlasTileWidth<=0||binding->textureAtlasTileHeight<=0||binding->textureAtlasTileCountX<=0||binding->textureAtlasTileCountY<=0) ImGui::TextColored(ERRORCOLOR," Enter values!");
       ImGui::PushItemWidth(40);
@@ -723,7 +725,7 @@ void displayTextureGridSelect(GameObject *object, FileBinding *binding) {
     static bool x2 = false; ImGui::Text("X2"); ImGui::SameLine(); ImGui::Checkbox("##TEXTUREGRIDPROPLOADX2",&x2);
     ImGui::SameLine();
     float tx0=0,ty0=0,tx1=0,ty1=0;
-    if (binding->selected>=0&&binding->textureAtlasTileCountX>0&&binding->originalWidth>0&&binding->originalHeight>0) {
+    if (binding->selected>=0&&binding->textureAtlasTileCountX>0&&binding->originalWidth>0&&binding->originalHeight>0&&binding->textureAtlasTileWidth>0) {
       int tx = binding->selected % binding->textureAtlasTileCountX;
       int ty = binding->selected / binding->textureAtlasTileCountX;
       tx0 = ((float)tx * binding->textureAtlasTileWidth) / binding->originalWidth;
@@ -732,7 +734,8 @@ void displayTextureGridSelect(GameObject *object, FileBinding *binding) {
       ty1 = ((float)(ty+1) * binding->textureAtlasTileHeight) / binding->originalHeight;
       ImGui::PushID("##TEXTUREGRIDPROPBIGTILE");
       float w = 64;
-      ImGui::ImageButton((ImTextureID)binding->textureIds[0],ImVec2(w,w*aspectRatio*main_window_yres/main_window_xres),ImVec2(tx0,ty0),ImVec2(tx1,ty1),-1,ImVec4(0,0,0,1));
+      float h = w*binding->textureAtlasTileHeight/binding->textureAtlasTileWidth;
+      ImGui::ImageButton((ImTextureID)binding->textureIds[0],ImVec2(w,h*aspectRatio*main_window_yres/main_window_xres),ImVec2(tx0,ty0),ImVec2(tx1,ty1),-1,ImVec4(0,0,0,1));
       ImGui::PopID();
     }
     ImGui::Separator();
@@ -742,6 +745,8 @@ void displayTextureGridSelect(GameObject *object, FileBinding *binding) {
     static double t = 0; t += timeDelta;
     int modulo = x2 ? 4 : 8;
     int w = x2 ? 32 : 16;
+    int h = w;
+    if (binding->textureAtlasTileWidth>0) h = h * binding->textureAtlasTileHeight / binding->textureAtlasTileWidth;
     static int lastFocused = -1;
     int focusOnElement = lastFocused != binding->selected ? binding->selected : -1;
     for (int i = 0; i < tileCount; i++)  {
@@ -764,7 +769,7 @@ void displayTextureGridSelect(GameObject *object, FileBinding *binding) {
         ty1 = ((float)(ty+1) * binding->textureAtlasTileHeight) / binding->originalHeight;
       }
       if (focusOnElement==i) ImGui::SetScrollHere();
-      if (textureAtlasButton(IDINDEXED("##TEXTUREGRIDPROPBTN",i),binding->textureIds[0],w,w*aspectRatio*main_window_yres/main_window_xres,tx0,ty0,tx1,ty1,r,g,b,a)) {
+      if (textureAtlasButton(IDINDEXED("##TEXTUREGRIDPROPBTN",i),binding->textureIds[0],w,h*aspectRatio*main_window_yres/main_window_xres,tx0,ty0,tx1,ty1,r,g,b,a)) {
         binding->selected = i;
       }
     }

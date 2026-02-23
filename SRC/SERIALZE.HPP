@@ -35,7 +35,8 @@ enum FILETYPE {
   FILETYPE_MESH = 2,
   FILETYPE_BILLBOARD = 3,
   FILETYPE_TEXTUREGRID = 4,
-  FILETYPE_COUNT = 5
+  FILETYPE_TEXTUREATLAS = 5,
+  FILETYPE_COUNT = 6
 };
 extern const char *fileTypeNames[FILETYPE_COUNT];
 
@@ -150,6 +151,8 @@ void loadBillBoardForObject(class GameObject *o, const char *fileName);
 void loadBillBoard(const char *path, const char *fileName);
 void loadTextureGridForObject(class GameObject *o, const char *fileName);
 void loadTextureGrid(const char *path, const char *fileName);
+void loadTextureAtlasForObject(class GameObject *o, const char *fileName);
+void loadTextureAtlas(const char *path, const char *fileName);
 void loadTextureGridCSV(const char *path, const char *fileName);
 void saveTextureGridCSV(const char *path, const char *fileName);
 void loadScript(const char *path, const char *fileName);

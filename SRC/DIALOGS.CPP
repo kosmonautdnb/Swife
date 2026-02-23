@@ -50,7 +50,7 @@ const char *dialogCaption[DIALOG_COUNT] = {"NO MODE","Load a scene","Save a scen
 const char *proceedButton[DIALOG_COUNT] = {"<button>", "Load", "Save","Load","Load","Load","Load","Load","Save","Load","Save","Load","Save","Load","Save"};
 const char *dialogFileTypes[DIALOG_COUNT] = {"",".sfs",".sfs",images,meshes,imagesAndMeshes,images,csv,csv,all,sf0,sf0,images,".png"};
 const char *dialogDefaultExtension[DIALOG_COUNT] = {"",".SFS",".SFS","","","","",".CSV",".CSV","","",".SF0",".SF0","",".PNG"};
-LOADSAVEFUNC funcs[DIALOG_COUNT] = {NULL, loadScene, saveScene, loadSkyBox, loadMesh, loadBillBoard,loadTextureGrid,loadTextureGridCSV,saveTextureGridCSV,loadScript,saveScript,loadGameObjects,saveGameObjects,loadTextureGrid,saveImage};
+LOADSAVEFUNC funcs[DIALOG_COUNT] = {NULL, loadScene, saveScene, loadSkyBox, loadMesh, loadBillBoard,loadTextureGrid,loadTextureGridCSV,saveTextureGridCSV,loadScript,saveScript,loadGameObjects,saveGameObjects,loadTextureAtlas,saveImage};
 
 
 #define DIALOGSTART(__name__) static int keyboardFocusNew = 0; static bool openItNextTime = false;  if (openIt) {openItNextTime = true; keyboardFocusNew = 2; return;}  if (openItNextTime) {openItNextTime = false; ImGui::OpenPopup(__name__); } ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0,0,0,1)); ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(1,1,1,1); if (ImGui::BeginPopupModal(__name__,NULL,ImGuiWindowFlags_AlwaysAutoResize)) { ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(0,0,0,1); ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.4,0.4,0.4,1));disableRenderMouseClicks();

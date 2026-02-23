@@ -47,7 +47,7 @@
 
 int version = 103;
 
-const char *fileTypeNames[FILETYPE_COUNT] = {"none","skybox","mesh","billboard","texturegrid"};
+const char *fileTypeNames[FILETYPE_COUNT] = {"none","skybox","mesh","billboard","texturegrid","textureatlas"};
 
 enum JSONTYPE {
   JSONTYPE_NULL = 0,
@@ -704,6 +704,7 @@ bool FileBinding::reload() {
       dialogMessage(true,nm.c_str()); 
       return false;
     } //break;
+    case FILETYPE_TEXTUREATLAS:
     case FILETYPE_TEXTUREGRID: {
       RGBAImage s = RGBAImage::fromFile(dosFileName(fileName).c_str());
       if (s.data == NULL) {String nm = String("Couldn't load file:<")+fileName+">";dialogMessage(true,nm.c_str()); return false;}
@@ -936,6 +937,27 @@ void loadTextureGrid(const char *path, const char *fileName) {
   if (j<0) return;
   GameObject *o = gameObjects[j];
   loadTextureGridForObject(o,shortFileName(String(path)+String(fileName)).c_str());
+}
+
+void loadTextureAtlasForObject(class GameObject *o, const char *fileName) {
+  FileBinding *binding = getBindingByFileName(fileName, FILETYPE_TEXTUREATLAS);
+  if (binding == NULL) {
+    binding = newBinding();
+    binding->load(fileName, FILETYPE_TEXTUREATLAS);
+    binding->textureAtlasTileWidth = binding->originalWidth;
+    binding->textureAtlasTileHeight = binding->originalHeight;
+    binding->textureAtlasTileCountX = 1;
+    binding->textureAtlasTileCountY = 1;
+
+  }
+  o->fileBindingId = binding->uniqueId;
+}
+
+void loadTextureAtlas(const char *path, const char *fileName) {
+  int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
+  if (j<0) return;
+  GameObject *o = gameObjects[j];
+  loadTextureAtlasForObject(o,shortFileName(String(path)+String(fileName)).c_str());
 }
 
 void loadTextureGridCSV(const char *path, const char *fileName) {
