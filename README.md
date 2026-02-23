@@ -1,9 +1,11 @@
 # Swife
 A tiny and fastcoded DOS based 3D level editor (in development). 
 
-It is created with WatcomC++ 11.0 (from 1997), but can also be compiled with OpenWatcom and DJGPP. It's purely coded on a bare metal DOS system using VCode as text editor.
+## Compiling  
+It is created with WatcomC++ 11.0 (from 1997), but can also be compiled with OpenWatcom and DJGPP. It's purely coded on a bare metal DOS system using VCode as text editor.  
+You may compile it with the provided !make.bat but I will later additionally deliver a ".bat approach" for DJGPP and Watcom/OpenWatcom.
 
-## Disclaimer:  
+## Disclaimer  
 Don't try this with DosBOX or DosBOX-X this editor heavily uses floating point and by all means will be too slow in an emulation. You could install FreeDos on an USB stick using the application "Rufus". But be aware that USB sticks wear out if you do heavy/alot of saving. Better use a real (max 2TB) USB hard drive, you can use Rufus with it's "special" option enabled to do this (format 2TB and "burn" FreeDOS onto the hard drive). Also it's good to install SBEMUv1.0.0beta5 to have it's memory manager (DPMI host). FreeDOS doesn't run (easily) on UEFI Bios systems (you would need CSMWRAP for this). And it seems even if you run FreeDOS from an USB in seldom cases the Graphicsmode of Swife doesn't work. Ah and finally you need a good PC, I think a Pentium 200 may not do.
 
 ## What does "Swife" do?
