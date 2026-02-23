@@ -80,6 +80,86 @@ void fillImage(int x, int y, unsigned int color, unsigned int *pixels, int w, in
   for (int k = 0; k < w * h; k++) if (pixels[k]==found) pixels[k] = color;
 }
 
+double FXAA_REDUCE_MIN = 1.0/128.0;
+double FXAA_REDUCE_MUL = 1.0/(8.0*(1.0/2.0));
+double FXAA_SPAN_MAX = 8.0;
+
+double fxaaLuma(unsigned int rgba) {
+  return (double)((rgba & 255)*25+(float)((rgba>>8) & 255)*60+(float)((rgba>>16) & 255)*15)*(1.0/255.0/100.0);
+}
+
+unsigned int fxaaTex(unsigned int *source, int width, int height, double tx, double ty) {
+  int itx = (int)floor(tx);
+  int ity = (int)floor(ty);
+  double fx = tx - (double)itx;
+  double fy = ty - (double)ity;
+  int txf = (int)(fx * 256.0);
+  int tyf = (int)(fy * 256.0);
+  if (itx<0) itx = 0;
+  if (ity<0) ity = 0;
+  if (itx>=width-1) itx = width-2;
+  if (ity>=height-1) ity = height-2;
+  int p1v = ((256-txf)*(256-tyf))>>8; 
+  int p2v = ((txf)*(256-tyf))>>8; 
+  int p3v = ((txf)*(tyf))>>8; 
+  int p4v = ((256-txf)*(tyf))>>8;
+  unsigned int rgba00 = source[itx+ity*width];
+  unsigned int rgba10 = source[itx+1+ity*width];
+  unsigned int rgba01 = source[itx+(ity+1)*width];
+  unsigned int rgba11 = source[itx+1+(ity+1)*width];
+  unsigned int rgba1 = (rgba00 & 0x0000ff00)*p1v;
+  rgba1 += (rgba10 & 0x0000ff00)*p2v;
+  rgba1 += (rgba11 & 0x0000ff00)*p3v;
+  rgba1 += (rgba01 & 0x0000ff00)*p4v;
+  unsigned int rgba2 = (rgba00 & 0x00ff00ff)*p1v;
+  rgba2 += (rgba10 & 0x00ff00ff)*p2v;
+  rgba2 += (rgba11 & 0x00ff00ff)*p3v;
+  rgba2 += (rgba01 & 0x00ff00ff)*p4v;
+  return ((rgba1 & 0x00ff0000)+(rgba2 & 0xff00ff00))>>8;
+}
+
+
+#define _MIN(__a__,__b__) ((__a__)<(__b__)?(__a__):(__b__))
+#define _MAX(__a__,__b__) ((__a__)>(__b__)?(__a__):(__b__))
+
+unsigned int fxaa(int tx, int ty, unsigned int *sourceBuffer, int width, int height) {
+
+  double lumaM = fxaaLuma(fxaaTex(sourceBuffer,width,height,tx,ty));
+  double lumaNE = fxaaLuma(fxaaTex(sourceBuffer,width,height,tx+0.5,ty-0.5));
+  double lumaSE = fxaaLuma(fxaaTex(sourceBuffer,width,height,tx+0.5,ty+0.5));
+  double lumaNW = fxaaLuma(fxaaTex(sourceBuffer,width,height,tx-0.5,ty-0.5));
+  double lumaSW = fxaaLuma(fxaaTex(sourceBuffer,width,height,tx-0.5,ty+0.5));
+
+  double lumaMin = _MIN(lumaM, _MIN(_MIN(lumaNW, lumaNE), _MIN(lumaSW,lumaSE)));
+  double lumaMax = _MAX(lumaM, _MAX(_MAX(lumaNW, lumaNE), _MAX(lumaSW,lumaSE)));
+  double dx = -((lumaNW+lumaNE)-(lumaSW+lumaSE));
+  double dy = ((lumaNW+lumaSW)-(lumaNE+lumaSE));
+  double dirReduce = _MAX((lumaNW+lumaNE+lumaSW+lumaSE)*(0.25f*FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);
+  double rcpDirMin=1.0/(_MIN(fabs(dx),fabs(dy))+dirReduce);
+  double dirx = _MIN(FXAA_SPAN_MAX,_MAX(-FXAA_SPAN_MAX,dx*rcpDirMin));
+  double diry = _MIN(FXAA_SPAN_MAX,_MAX(-FXAA_SPAN_MAX,dy*rcpDirMin));
+
+  double da1 = 1.0/3.0-0.5;
+  double da2 = 2.0/3.0-0.5;
+  double db1 = 0.0/3.0-0.5;
+  double db2 = 3.0/3.0-0.5;
+  unsigned int rgbA0 = sourceBuffer[tx+ty*width];
+  unsigned int rgbA1 = fxaaTex(sourceBuffer,width,height,tx+dirx*da1,ty+diry*da1);
+  unsigned int rgbA2 = fxaaTex(sourceBuffer,width,height,tx+dirx*da2,ty+diry*da2);
+  unsigned int rgbB1 = fxaaTex(sourceBuffer,width,height,tx+dirx*db1,ty+diry*db1);
+  unsigned int rgbB2 = fxaaTex(sourceBuffer,width,height,tx+dirx*db2,ty+diry*db2);
+  unsigned int rgbA = ((rgbA1 & 0x00fefefe)+(rgbA2 & 0x00fefefe))>>1;
+  unsigned int rgbB = ((rgbA & 0x00fefefe)>>1)+(((rgbB1 & 0x00fcfcfc)+(rgbB2 & 0x00fcfcfc))>>2);
+  double lumaB = fxaaLuma(rgbB);
+  if ((lumaB<lumaMin)||(lumaB>lumaMax)) {
+    return (rgbA & 0x00ffffff)|(rgbA0 & 0xff000000);
+  }
+  return (rgbB & 0x00ffffff)|(rgbA0 & 0xff000000);
+}
+
+#undef _MIN
+#undef _MAX
+
 void applyPixel(int x, int y, unsigned int color, unsigned int *pixels, int w, int h) {
   if ((x >= 0) && (y >= 0) && (x < w) && (y < h)) {
     if (!paintBlended) 
@@ -439,6 +519,11 @@ void drawTexPaint() {
         if (!ImGui::GetIO().WantCaptureKeyboard && ImGui::IsKeyPressed('f')) {
           if (tx>=0&&ty>=0&&tx<tw&&ty<th) {
             fillImage(tx,ty,rgba,textureData,tw,th);
+          }
+        }
+        if (!ImGui::GetIO().WantCaptureKeyboard && ImGui::IsKeyDown('a')) {
+          if (tx>=0&&ty>=0&&tx<tw&&ty<th) {
+            textureData[tx+ty*tw] = fxaa(tx,ty,textureData,tw,th);
           }
         }
       }

@@ -164,7 +164,7 @@ void drawToolBar() {
     ImGui::SameLine();
     ImGui::Checkbox("##DRAWTOOLBARSTAMPON",&stampOn);
     ImGui::SameLine();
-    ImGui::Text("f = fill");
+    ImGui::Text("f=fill a=fxaa");
     ImGui::SameLine();
     if (binding != NULL && toolBarTextButton2("Save image##DRAWTOOLBARSAVEIMAGE",binding->updated)) {
       paintingSaveOn = true;
