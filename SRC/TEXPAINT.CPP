@@ -43,6 +43,9 @@ Vector imageMouse(0,0);
 int selectedTileIndex = -1;
 bool paintingSaveOn = false;
 bool paintBlended = false;
+bool paintFlipX = false;
+bool paintFlipY = false;
+bool paintRotate = false;
 
 bool stampOn = false;
 int stampX0=-1,stampY0=-1,stampX1=-1,stampY1=-1;
@@ -368,6 +371,70 @@ void drawTexPaint() {
           imageScroll.x = posX * zoom * w / binding->originalWidth;
           imageScroll.y = posY * zoom * h / binding->originalHeight;
           selectedTileIndex=-1;
+        }
+        if (useStamp&&paintFlipX) {
+          int sw = glGetTextureWidth(stampTexture);
+          int sh = glGetTextureHeight(stampTexture);
+          unsigned int *sd = glGetTexturePointer(stampTexture);
+          if (sd != NULL)
+          for (int y = 0; y < sh; y++) {
+            for (int x = 0; x < sw/2; x++) {
+              unsigned int r1 = sd[x+y*sw];
+              unsigned int r2 = sd[(sw-1-x)+y*sw];
+              sd[(sw-1-x)+y*sw] = r1;
+              sd[x+y*sw] = r2;
+            }
+          }
+          paintFlipX = false;
+        }
+        if (useStamp&&paintFlipY) {
+          int sw = glGetTextureWidth(stampTexture);
+          int sh = glGetTextureHeight(stampTexture);
+          unsigned int *sd = glGetTexturePointer(stampTexture);
+          if (sd != NULL)
+          for (int y = 0; y < sh/2; y++) {
+            for (int x = 0; x < sw; x++) {
+              unsigned int r1 = sd[x+y*sw];
+              unsigned int r2 = sd[x+(sh-1-y)*sw];
+              sd[x+(sh-1-y)*sw] = r1;
+              sd[x+y*sw] = r2;
+            }
+          }
+          paintFlipY = false;
+        }
+        if (useStamp&&paintRotate) {
+          int sw = glGetTextureWidth(stampTexture);
+          int sh = glGetTextureHeight(stampTexture);
+          unsigned int *sd = glGetTexturePointer(stampTexture);
+          if (sd != NULL) {
+            RGBAImage image;
+            image.width = sh;
+            image.height = sw;
+            image.data = (unsigned int*)malloc(image.width*image.height*sizeof(unsigned int));
+            int s;
+            s = stampX0; stampX0 = stampY0; stampY0 = s; // a little bit suboptimal
+            s = stampX1; stampX1 = stampY1; stampY1 = s;
+            for (int y = 0; y < image.height; y++) {
+              for (int x = 0; x < image.width; x++) {
+                unsigned int rgba = 0x00000000;
+                int sx = y;
+                int sy = sh-1-x;
+                if (sx >= 0 && sy >= 0 && sx < sw && sy < sh) rgba = sd[sx+sy*sw];
+                image.data[x+y*image.width] = rgba;
+              }
+            }
+            if (stampTexture != 0) glDeleteTextures(1,&stampTexture);
+            glGenTextures(1,&stampTexture);
+            glBindTexture(GL_TEXTURE_2D,stampTexture);
+            glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_BYTE, image.data);
+            image.free();
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glBindTexture(GL_TEXTURE_2D,0);
+          }
+          paintRotate = false;
         }
         if (!ImGui::GetIO().WantCaptureKeyboard && ImGui::IsKeyPressed('f')) {
           if (tx>=0&&ty>=0&&tx<tw&&ty<th) {

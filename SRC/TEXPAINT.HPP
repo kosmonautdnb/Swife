@@ -32,6 +32,9 @@ extern float imageZoom;
 extern bool paintingSaveOn;
 extern bool paintBlended;
 extern bool stampOn;
+extern bool paintFlipX;
+extern bool paintFlipY;
+extern bool paintRotate;
 
 void selectImageTile(int tileIndex);
 

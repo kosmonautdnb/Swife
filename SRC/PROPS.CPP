@@ -813,6 +813,13 @@ void showImageProperties(GameObject *object) {
   ImGui::PushItemWidth(40);
   ImGui::Text("Scroll"); ImGui::SameLine(); k = imageScroll.x; if (ImGui::InputFloat("##IMAGEPROPSCROLLX",&k)) {imageScroll.x = k;}
   ImGui::SameLine(); k = imageScroll.y; if (ImGui::InputFloat("##IMAGEPROPSCROLLY",&k)) {imageScroll.y = k;}
+  if (stampOn) {
+    if (propsButton("FlipY##IMAGEPROPFLIPY",strlen("FlipY")+4)) {paintFlipY = true;}
+    ImGui::SameLine();
+    if (propsButton("FlipX##IMAGEPROPFLIPX",strlen("FlipX")+2+strlen("FlipY")+4)) {paintFlipX = true;}
+    ImGui::SameLine();
+    if (propsButton("Circ##IMAGEPROPROT",strlen("Circ")+2+strlen("FlipX")+2+strlen("FlipY")+4)) {paintRotate = true;}
+  }
   ImGui::PopItemWidth();
   ImGui::Separator();
   for (int i = 0; i < MAX_PREVIOUS_COLORS; i++) {
