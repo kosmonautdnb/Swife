@@ -134,7 +134,7 @@ public:
 
 extern Array<FileBinding*> bindings;
 FileBinding *getBindingById(unsigned int uniqueId);
-FileBinding *getBindingByFileName(const char *fileName, unsigned int type);
+FileBinding *getBindingByFileName(class GameObject *o, const char *fileName, unsigned int type);
 FileBinding *newBinding();
 void clearAllUnusedBindings();
 void freeBindings();

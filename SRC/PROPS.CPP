@@ -735,6 +735,7 @@ void displayTextureGridSelect(GameObject *object, FileBinding *binding) {
       ImGui::PushID("##TEXTUREGRIDPROPBIGTILE");
       float w = 64;
       float h = w*binding->textureAtlasTileHeight/binding->textureAtlasTileWidth;
+      if (h > w * 4) h = w * 4;
       ImGui::ImageButton((ImTextureID)binding->textureIds[0],ImVec2(w,h*aspectRatio*main_window_yres/main_window_xres),ImVec2(tx0,ty0),ImVec2(tx1,ty1),-1,ImVec4(0,0,0,1));
       ImGui::PopID();
     }
@@ -747,6 +748,7 @@ void displayTextureGridSelect(GameObject *object, FileBinding *binding) {
     int w = x2 ? 32 : 16;
     int h = w;
     if (binding->textureAtlasTileWidth>0) h = h * binding->textureAtlasTileHeight / binding->textureAtlasTileWidth;
+    if (h > w * 4) h = w * 4;
     static int lastFocused = -1;
     int focusOnElement = lastFocused != binding->selected ? binding->selected : -1;
     for (int i = 0; i < tileCount; i++)  {

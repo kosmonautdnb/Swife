@@ -42,6 +42,7 @@ const char *appName = "SWIFE";
 uint32_t main_window_xres = 800;
 uint32_t main_window_yres = 600;
 double aspectRatio = 16.0/9.0;
+//double aspectRatio = 4.0/3.0;
 const char *logFileName = "SWIFE.LOG";
 
 String appFolder;

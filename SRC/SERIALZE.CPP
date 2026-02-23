@@ -793,11 +793,19 @@ FileBinding *getBindingById(unsigned int uniqueId) {
   return NULL;
 }
 
-FileBinding *getBindingByFileName(const char *fileName, unsigned int type) {
+FileBinding *getBindingByFileName(GameObject *o, const char *fileName, unsigned int type) {
+  int count = 0;
+  FileBinding *first = NULL;
   for (int i = 0; i < bindings.size(); i++) {
-    if (bindings[i]->fileName == fileName && bindings[i]->type == type) return bindings[i];
+    if (bindings[i]->fileName == fileName && bindings[i]->type == type) {
+      if (o != NULL && bindings[i]->uniqueId == o->fileBindingId) {
+        return bindings[i];
+      }
+      first = bindings[i]; 
+      count++; 
+    }
   }
-  return NULL;
+  return (count == 1) ? first : NULL;
 }
 
 FileBinding *newBinding() {
@@ -868,7 +876,7 @@ void saveScene(const char *path, const char *fileName) {
 }
 
 void loadSkyBoxForObject(class GameObject *o, const char *fileName) {
-  FileBinding *binding = getBindingByFileName(fileName, FILETYPE_SKYBOX);
+  FileBinding *binding = getBindingByFileName(o, fileName, FILETYPE_SKYBOX);
   if (binding == NULL) {
     binding = newBinding();
     binding->load(fileName, FILETYPE_SKYBOX);
@@ -884,7 +892,7 @@ void loadSkyBox(const char *path, const char *fileName) {
 }
 
 void loadMeshForObject(class GameObject *o, const char *fileName) {
-  FileBinding *binding = getBindingByFileName(fileName, FILETYPE_MESH);
+  FileBinding *binding = getBindingByFileName(o, fileName, FILETYPE_MESH);
   if (binding == NULL) {
     binding = newBinding();
     binding->load(fileName, FILETYPE_MESH);
@@ -900,7 +908,7 @@ void loadMesh(const char *path, const char *fileName) {
 }
 
 void loadBillBoardForObject(class GameObject *o, const char *fileName) {
-  FileBinding *binding = getBindingByFileName(fileName, FILETYPE_BILLBOARD);
+  FileBinding *binding = getBindingByFileName(o, fileName, FILETYPE_BILLBOARD);
   if (binding == NULL) {
     binding = newBinding();
     binding->load(fileName, FILETYPE_BILLBOARD);
@@ -925,7 +933,7 @@ void loadBillBoard(const char *path, const char *fileName) {
 }
 
 void loadTextureGridForObject(class GameObject *o, const char *fileName) {
-  FileBinding *binding = getBindingByFileName(fileName, FILETYPE_TEXTUREGRID);
+  FileBinding *binding = getBindingByFileName(o, fileName, FILETYPE_TEXTUREGRID);
   if (binding == NULL) {
     binding = newBinding();
     binding->load(fileName, FILETYPE_TEXTUREGRID);
@@ -946,7 +954,7 @@ void loadTextureGrid(const char *path, const char *fileName) {
 }
 
 void loadTextureAtlasForObject(class GameObject *o, const char *fileName) {
-  FileBinding *binding = getBindingByFileName(fileName, FILETYPE_TEXTUREATLAS);
+  FileBinding *binding = getBindingByFileName(o, fileName, FILETYPE_TEXTUREATLAS);
   if (binding == NULL) {
     binding = newBinding();
     binding->load(fileName, FILETYPE_TEXTUREATLAS);
