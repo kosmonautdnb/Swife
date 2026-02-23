@@ -140,6 +140,8 @@ void clearAllUnusedBindings();
 void freeBindings();
 void serializeAll(FILE *file, bool save);
 
+void reloadAll();
+
 void loadScene(const char *path, const char *fileName);
 void saveScene(const char *path, const char *fileName);
 

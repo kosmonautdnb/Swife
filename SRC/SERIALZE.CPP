@@ -827,6 +827,12 @@ void freeBindings() {
   bindings.clear();
 }
 
+void reloadAll() {
+  for (int i = 0; i < bindings.size(); i++) {
+    bindings[i]->reload();
+  }
+}
+
 void loadScene(const char *path, const char *fileName) {
   String fullName = String(path) + fileName;
   FILE *in = fopen(dosFileName(shortFileName(fullName)).c_str(),"rb");
