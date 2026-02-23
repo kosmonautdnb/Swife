@@ -108,17 +108,21 @@ void Camera::wasdControls() {
 }
 
 void updateCamera() {
-  if (currentCamera == CAMERA_USER) 
-    cameras[currentCamera].wasdControls();
-  else {
-    bool one = false;
-    for (int i = 0; i < gameObjects.size(); i++) {
-      if (gameObjects[i]->isCamera[currentCamera]) {
-        cameras[currentCamera] = gameObjects[i]->camera;
-        one = true;
+  int count = 0; GameObject *first = NULL; for (int ic = 0; ic < gameObjects.size(); ic++) {if (gameObjects[ic]->selected) {first = gameObjects[ic]; count++;}}
+  bool isOn =  (!(count == 1 && first->type == GAMEOBJECT_IMAGE));
+  if (isOn) {
+    if (currentCamera == CAMERA_USER) 
+      cameras[currentCamera].wasdControls();
+    else {
+      bool one = false;
+      for (int i = 0; i < gameObjects.size(); i++) {
+        if (gameObjects[i]->isCamera[currentCamera]) {
+          cameras[currentCamera] = gameObjects[i]->camera;
+          one = true;
+        }
       }
+      if (!one) {currentCamera = CAMERA_USER; renderingUpdated = true;}
     }
-    if (!one) {currentCamera = CAMERA_USER; renderingUpdated = true;}
   }
 }
 

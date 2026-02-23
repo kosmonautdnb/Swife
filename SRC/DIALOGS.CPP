@@ -494,6 +494,7 @@ void dialogControls(bool openIt) {
     "Right mouse to get pixel color.\n"
     "Left mouse and shift to set pixel color.\n"
     "Left mouse and ctrl to select stamp rectangle.\n"
+    "Left mouse and alt to paint a line.\n"
   );
   ImGui::Separator();
   if (ImGui::Button("Close##DIALOGCONTROLSCLOSE")) {

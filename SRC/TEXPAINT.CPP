@@ -129,10 +129,53 @@ void drawTexPaint() {
     FileBinding *binding = getBindingById(first->fileBindingId);
     if (binding != NULL && binding->textureIds.size()==1 && binding->originalWidth>0 && binding->originalHeight>0) {
 
+      int r = paintColor.x * 255.0;
+      int g = paintColor.y * 255.0;
+      int b = paintColor.z * 255.0;
+      int a = paintColor.w * 255.0;
+      if (r < 0) r = 0;
+      if (g < 0) g = 0;
+      if (b < 0) b = 0;
+      if (a < 0) a = 0;
+      if (r > 255) r = 255;
+      if (g > 255) g = 255;
+      if (b > 255) b = 255;
+      if (a > 255) a = 255;
+      unsigned int rgba = r|(g<<8)|(b<<16)|(a<<24);
+
+      int w = binding->originalWidth;
+      int h = binding->originalHeight * aspectRatio * main_window_yres / main_window_xres;
+
       unsigned int *textureData = glGetTexturePointer(binding->textureIds[0]);
       int tw = glGetTextureWidth(binding->textureIds[0]);
       int th = glGetTextureHeight(binding->textureIds[0]);
       bool valid = textureData != NULL && tw > 0 && th > 0;
+
+      ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+      cursorPos.x -= 1;
+      cursorPos.y -= 4;
+      ImVec2 sp;
+      sp.x = floor(cursorPos.x - imageScroll.x);
+      sp.y = floor(cursorPos.y - imageScroll.y);
+      ImGui::SetCursorScreenPos(sp);
+      float zoom = imageZoom>0 ? (pow(2.0,imageZoom)-1.0) : 0;
+      int imageWidth = (int)floor(w*zoom);
+      int imageHeight = (int)floor(h*zoom);
+      double txf = floor(ImGui::GetMousePos().x - floor(sp.x))*tw/imageWidth;
+      double tyf = floor(ImGui::GetMousePos().y - floor(sp.y))*th/imageHeight;
+      int tx = (int)floor(txf);
+      int ty = (int)floor(tyf);
+      imageMouse.x = tx;
+      imageMouse.y = ty;
+      imageMouse.z = -1;
+      if (tx<0||ty<0||tx>=tw||ty>=th) imageMouse.x=-1;
+
+      static bool lineOn = false;
+      bool useStamp = stampOn && stampX0>=0 && stampY0>=0 && stampX1>=0 && stampY1>=0;;
+      int stampPX0 = tx-(stampX1-stampX0)/2;
+      int stampPY0 = ty-(stampY1-stampY0)/2;
+      int stampPX1 = stampPX0 + stampX1-stampX0;
+      int stampPY1 = stampPY0 + stampY1-stampY0;
 
       if (!leftDown) {
         if (valid && lastXPos>=0&&lastYPos>=0&&lastXPos2>=0&&lastYPos2>=0&&abs(lastXPos2-lastXPos)>0&&abs(lastYPos2-lastYPos)>0) {
@@ -165,7 +208,43 @@ void drawTexPaint() {
           glBindTexture(GL_TEXTURE_2D,0);
           stampOn = true;
         }
+        if (lineOn && alt) {
+          binding->updated = true;
+          int deltaX = tx - lastXPos;
+          int deltaY = ty - lastYPos;
+          int d = abs(deltaX);
+          if (abs(deltaY)>d) d = abs(deltaY);              
+          d++;
+          double dxa = (double)deltaX/d;
+          double dya = (double)deltaY/d;
+          double xp = lastXPos;
+          double yp = lastYPos;
+          for (int i = 0; i < d+1; i++) {
+            int tx2 = (int)floor(xp);
+            int ty2 = (int)floor(yp);
+            int sw = glGetTextureWidth(stampTexture);
+            int sh = glGetTextureHeight(stampTexture);
+            unsigned int *sd = glGetTexturePointer(stampTexture);
+            if (useStamp&&sd!=NULL&&sw>0&&sh>0) {
+              for (int y = stampPY0; y < stampPY1; y++) {
+                for (int x = stampPX0; x < stampPX1; x++) {
+                  int sx = x - stampPX0;
+                  int sy = y - stampPY0;
+                  if (sx >= 0 && sy >= 0 && sx < sw && sy < sh) {
+                    unsigned int rgba2 = sd[sx+sy*sw];
+                    applyPixel(x-tx+tx2,y-ty+ty2,rgba2,textureData,tw,th);
+                  }
+                }
+              }
+            } else {
+              applyPixel(tx2,ty2,rgba,textureData,tw,th);
+            }
+            xp += dxa;
+            yp += dya;
+          }
+        }
         lastXPos = lastYPos = lastXPos2 = lastYPos2 = -1;
+        lineOn = false;
       }
 
       if (valid) {    
@@ -177,34 +256,9 @@ void drawTexPaint() {
           imageScroll.x -= mouseDX;
           imageScroll.y -= mouseDY;
         }
-        int w = binding->originalWidth;
-        int h = binding->originalHeight * aspectRatio * main_window_yres / main_window_xres;
-        ImVec2 cursorPos = ImGui::GetCursorScreenPos();
-        cursorPos.x -= 1;
-        cursorPos.y -= 4;
-        ImVec2 sp;
-        sp.x = floor(cursorPos.x - imageScroll.x);
-        sp.y = floor(cursorPos.y - imageScroll.y);
-        ImGui::SetCursorScreenPos(sp);
-        float zoom = imageZoom>0 ? (pow(2.0,imageZoom)-1.0) : 0;
-        int imageWidth = (int)floor(w*zoom);
-        int imageHeight = (int)floor(h*zoom);
-        double txf = floor(ImGui::GetMousePos().x - floor(sp.x))*tw/imageWidth;
-        double tyf = floor(ImGui::GetMousePos().y - floor(sp.y))*th/imageHeight;
-        int tx = (int)floor(txf);
-        int ty = (int)floor(tyf);
-        imageMouse.x = tx;
-        imageMouse.y = ty;
-        imageMouse.z = -1;
-        if (tx<0||ty<0||tx>=tw||ty>=th) imageMouse.x=-1;
 
         ImGui::Image((ImTextureID)binding->textureIds[0],ImVec2(imageWidth,imageHeight));
 
-        bool useStamp = stampOn && stampX0>=0 && stampY0>=0 && stampX1>=0 && stampY1>=0;;
-        int stampPX0 = tx-(stampX1-stampX0)/2;
-        int stampPY0 = ty-(stampY1-stampY0)/2;
-        int stampPX1 = stampPX0 + stampX1-stampX0;
-        int stampPY1 = stampPY0 + stampY1-stampY0;
         if (useStamp) {
           ImVec2 one = ImVec2(floor(sp.x)+floor(stampPX0*imageWidth/tw),floor(sp.y)+floor(stampPY0*imageHeight/th));
           ImVec2 zwo = ImVec2(floor(sp.x)+floor(stampPX1*imageWidth/tw),floor(sp.y)+floor(stampPY1*imageHeight/th));
@@ -236,19 +290,6 @@ void drawTexPaint() {
             addPreviousColor(paintColor);
           }
         }
-        int r = paintColor.x * 255.0;
-        int g = paintColor.y * 255.0;
-        int b = paintColor.z * 255.0;
-        int a = paintColor.w * 255.0;
-        if (r < 0) r = 0;
-        if (g < 0) g = 0;
-        if (b < 0) b = 0;
-        if (a < 0) a = 0;
-        if (r > 255) r = 255;
-        if (g > 255) g = 255;
-        if (b > 255) b = 255;
-        if (a > 255) a = 255;
-        unsigned int rgba = r|(g<<8)|(b<<16)|(a<<24);
         if (leftDown && shift) {
           if (tx>=0&&ty>=0&&tx<tw&&ty<th) {
             binding->updated = true;
@@ -289,6 +330,19 @@ void drawTexPaint() {
             lastXPos = tx; lastYPos = ty;
           }
         }
+        if (leftDown && alt && (!lineOn)) {
+          if (tx>=0&&ty>=0&&tx<tw&&ty<th) {
+            if (lastXPos<0||lastXPos>=tw) lastXPos = tx;
+            if (lastYPos<0||lastYPos>=th) lastYPos = ty;
+            lineOn = true;
+          }
+        }
+        if (leftDown && alt && lineOn) {
+          ImVec2 one = ImVec2(floor(sp.x)+floor((lastXPos+0.5)*imageWidth/tw),floor(sp.y)+floor((lastYPos+0.5)*imageHeight/th));
+          ImVec2 zwo = ImVec2(floor(sp.x)+floor((tx+0.5)*imageWidth/tw),floor(sp.y)+floor((ty+0.5)*imageHeight/th));
+          ImGui::GetWindowDrawList()->AddLine(one,zwo,0xff0000ff);
+        }
+
         if (leftDown && ctrl) {
           if (tx>=0&&ty>=0&&tx<tw&&ty<th) {
             if (lastXPos>=0&&lastYPos>=0) {
