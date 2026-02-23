@@ -256,103 +256,110 @@ namespace ImGui {
 }
 
 void drawViewport() {
+  int count = 0; GameObject *first = NULL; for (int ic = 0; ic < gameObjects.size(); ic++) {if (gameObjects[ic]->selected) {first = gameObjects[ic]; count++;}}
+  bool isOn =  (!(count == 1 && first->type == GAMEOBJECT_IMAGE));
+
   ImGui::PushStyleColor(ImGuiCol_WindowBg,ImVec4(0,0,0,0));
 
   ImGui::SetNextWindowPos(ImVec2(outliner_width,menuBar_height+toolBar_height));
   ImGui::Begin("VIEWPORT", NULL, ImVec2(main_window_xres-outliner_width-properties_width,main_window_yres-menuBar_height-toolBar_height-timeLine_height-info_height),1.0,FROZENWINDOW);
-  ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0.25,0.25,0.25,1));
-  ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.5,0.5,0.5,1));
-  bool one = false; for (int i2 = 0; i2 < gameObjects.size(); i2++) if (gameObjects[i2]->selected && gameObjects[i2]->type != GAMEOBJECT_SECTION) {one=true; break;}
-  if (one && mode != MODE_UNDEFINED && mode != MODE_SELECT) {
-    ImGui::Text2("Tool"); ImGui::SameLine();
-    if (ImGui::Checkbox("##VIEWPORTTOOLON",&toolOn)) {;}
-    if (toolOn) {
-      ImGui::PushItemWidth(15*7);
-      switch(mode) {
-      case MODE_MOVE: {
-        if (ImGui::Button("Clear##VIEWPORTMOVECLEAR")) {moveV.set(0,0,0); move_negate = false;}
-        ImGui::SameLine();ImGui::Text2("MoveXYZ"); ImGui::SameLine(); vectorInput("",&moveV,"##VIEWPORTMOVE");
-        if (ImGui::Button(!move_negate ? "Add##VIEWPORTMOVEAPPLY" : "Sub##VIEWPORTMOVEAPPLY")) {
-          moveBy(moveV.x,moveV.y,moveV.z, move_negate);
+  ImGui::SetWindowCollapsed(!isOn);
+  if (isOn) {
+
+    ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0.25,0.25,0.25,1));
+    ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.5,0.5,0.5,1));
+    bool one = false; for (int i2 = 0; i2 < gameObjects.size(); i2++) if (gameObjects[i2]->selected && gameObjects[i2]->type != GAMEOBJECT_SECTION) {one=true; break;}
+    if (one && mode != MODE_UNDEFINED && mode != MODE_SELECT) {
+      ImGui::Text2("Tool"); ImGui::SameLine();
+      if (ImGui::Checkbox("##VIEWPORTTOOLON",&toolOn)) {;}
+      if (toolOn) {
+        ImGui::PushItemWidth(15*7);
+        switch(mode) {
+        case MODE_MOVE: {
+          if (ImGui::Button("Clear##VIEWPORTMOVECLEAR")) {moveV.set(0,0,0); move_negate = false;}
+          ImGui::SameLine();ImGui::Text2("MoveXYZ"); ImGui::SameLine(); vectorInput("",&moveV,"##VIEWPORTMOVE");
+          if (ImGui::Button(!move_negate ? "Add##VIEWPORTMOVEAPPLY" : "Sub##VIEWPORTMOVEAPPLY")) {
+            moveBy(moveV.x,moveV.y,moveV.z, move_negate);
+          }
+          ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTMOVENEGATE", &move_negate)) {;}
+          ImGui::SameLine();
+          if (ImGui::Button("Duplicate")) {
+            duplicate();
+            moveBy(moveV.x,moveV.y,moveV.z, move_negate);
+          }
+        } break;
+        case MODE_SCALE: {
+          if (ImGui::Button("Clear##VIEWPORTSCALECLEAR")) {scaleV.set(1,1,1); scale_negate = false;}
+          ImGui::SameLine();ImGui::Text2("ScaleXYZ"); ImGui::SameLine(); vectorInput("",&scaleV,"##VIEWPORTSCALE");
+          if (scaleV.x < minScale) scaleV.x = minScale;
+          if (scaleV.y < minScale) scaleV.y = minScale; 
+          if (scaleV.z < minScale) scaleV.z = minScale;
+          if (ImGui::Button(!scale_negate ? "Add##VIEWPORTSCALEAPPLY" : "Sub##VIEWPORTSCALEAPPLY")) {
+            scaleBy(scaleV.x,scaleV.y,scaleV.z, scale_negate);
+          }
+          ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTSCALENEGATE", &scale_negate)) {;}
+        } break;
+        case MODE_ROTATE: {
+          if (ImGui::Button("Clear##VIEWPORTROTCLEAR")) {rotateV.set(0,0,0); rotate_negate = false;}
+          ImGui::SameLine();ImGui::Text2("RotABC"); ImGui::SameLine(); vectorInput("",&rotateV,"##VIEWPORTROT");
+          if (ImGui::Button(!rotate_negate ? "Add##VIEWPORTROTAPPLY" : "Sub##VIEWPORTROTAPPLY")) {
+            rotateBy(rotateV.x,rotateV.y,rotateV.z,rotate_negate);
+          }
+          ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTROTATENEGATE", &rotate_negate)) {;}
+        } break;
         }
-        ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTMOVENEGATE", &move_negate)) {;}
-        ImGui::SameLine();
-        if (ImGui::Button("Duplicate")) {
-          duplicate();
-          moveBy(moveV.x,moveV.y,moveV.z, move_negate);
-        }
-      } break;
-      case MODE_SCALE: {
-        if (ImGui::Button("Clear##VIEWPORTSCALECLEAR")) {scaleV.set(1,1,1); scale_negate = false;}
-        ImGui::SameLine();ImGui::Text2("ScaleXYZ"); ImGui::SameLine(); vectorInput("",&scaleV,"##VIEWPORTSCALE");
-        if (scaleV.x < minScale) scaleV.x = minScale;
-        if (scaleV.y < minScale) scaleV.y = minScale; 
-        if (scaleV.z < minScale) scaleV.z = minScale;
-        if (ImGui::Button(!scale_negate ? "Add##VIEWPORTSCALEAPPLY" : "Sub##VIEWPORTSCALEAPPLY")) {
-          scaleBy(scaleV.x,scaleV.y,scaleV.z, scale_negate);
-        }
-        ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTSCALENEGATE", &scale_negate)) {;}
-      } break;
-      case MODE_ROTATE: {
-        if (ImGui::Button("Clear##VIEWPORTROTCLEAR")) {rotateV.set(0,0,0); rotate_negate = false;}
-        ImGui::SameLine();ImGui::Text2("RotABC"); ImGui::SameLine(); vectorInput("",&rotateV,"##VIEWPORTROT");
-        if (ImGui::Button(!rotate_negate ? "Add##VIEWPORTROTAPPLY" : "Sub##VIEWPORTROTAPPLY")) {
-          rotateBy(rotateV.x,rotateV.y,rotateV.z,rotate_negate);
-        }
-        ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTROTATENEGATE", &rotate_negate)) {;}
-      } break;
+        ImGui::PopItemWidth();
       }
-      ImGui::PopItemWidth();
     }
-  }
-  drawCameraRotationGizmo();
-  if (currentCamera == CAMERA_USER) {
-    ImGui::Text2("Camera"); ImGui::SameLine();
-    if (ImGui::Checkbox("##VIEWPORTOVERLAYON",&viewportOn)) {;}
-    if (viewportOn) {
-      ImGui::BeginChild("VIEWPORTSETTING");
-      Camera *c = &cameras[currentCamera];
-      float k;
-      ImGui::PushItemWidth(15*7);
-       ImGui::Text2("PosXYZ"); ImGui::SameLine(); if (vectorInput("",&c->position,"##VIEWPORTCAM")) {renderingUpdated = true;}
-      Vector yawPitchRoll = c->rotation.getYawPitchRoll()*180/PI;
-       ImGui::Text2("RotABC"); ImGui::SameLine(); if (vectorInput("",&yawPitchRoll,"##VIEWPORTYAWPITCHROLL")) {
-        yawPitchRoll *= PI/180;
-        c->rotation.yawPitchRoll(yawPitchRoll.x,yawPitchRoll.y,yawPitchRoll.z);
-        renderingUpdated = true;
+    drawCameraRotationGizmo();
+    if (currentCamera == CAMERA_USER) {
+      ImGui::Text2("Camera"); ImGui::SameLine();
+      if (ImGui::Checkbox("##VIEWPORTOVERLAYON",&viewportOn)) {;}
+      if (viewportOn) {
+        ImGui::BeginChild("VIEWPORTSETTING");
+        Camera *c = &cameras[currentCamera];
+        float k;
+        ImGui::PushItemWidth(15*7);
+         ImGui::Text2("PosXYZ"); ImGui::SameLine(); if (vectorInput("",&c->position,"##VIEWPORTCAM")) {renderingUpdated = true;}
+        Vector yawPitchRoll = c->rotation.getYawPitchRoll()*180/PI;
+         ImGui::Text2("RotABC"); ImGui::SameLine(); if (vectorInput("",&yawPitchRoll,"##VIEWPORTYAWPITCHROLL")) {
+          yawPitchRoll *= PI/180;
+          c->rotation.yawPitchRoll(yawPitchRoll.x,yawPitchRoll.y,yawPitchRoll.z);
+          renderingUpdated = true;
+        }
+        if (!c->ortho) {
+          ImGui::Text2("Fov"); ImGui::SameLine(); if (ImGui::InputFloat("##VIEWPORTFOV",&c->fov,10,10)) {renderingUpdated = true;}
+        } else {
+          ImGui::Text2("Ortho scale"); ImGui::SameLine(); if (ImGui::InputFloat("##VIEWPORTORTHOSCALE",&c->orthoScale,10,10)) {renderingUpdated = true;}
+        }
+        if (c->orthoScale < 0) c->orthoScale = 0;
+        if (c->fov < 1) c->fov = 1; if (c->fov>180) c->fov = 180;
+        ImGui::Text2("Aspect ratio"); ImGui::SameLine();
+    
+        if (ImGui::InputFloat("##VIEWPORTASPECTRATIO",&c->aspect,0.1,0.1)) {renderingUpdated = true;}
+        ImGui::PopItemWidth();
+        ImGui::PushItemWidth(9*7);
+        ImGui::Text2("Near plane"); ImGui::SameLine();
+        if (ImGui::InputFloat("##VIEWPORTNEAR",&c->nearPlane)) {renderingUpdated = true;} if (c->nearPlane < 0.00001) c->nearPlane = 0.00001;
+        ImGui::Text2("Far plane"); ImGui::SameLine();
+        if (ImGui::InputFloat("##VIEWPORTFAR",&c->farPlane)) {renderingUpdated = true;} if (c->farPlane < c->nearPlane+0.00001) c->farPlane = c->nearPlane + 0.00001;
+        ImGui::Text2("Background"); ImGui::SameLine();
+        colorItem("","##VIEWPORTBACKGROUND", &clearColor, true);
+        ImGui::PopItemWidth();
+        ImGui::Text2("Cursor"); ImGui::SameLine(); if (vectorInput("",&cursor,"##VIEWPORTCURSOR")) {renderingUpdated = true; cursorOrientation = Quaternion();} 
+        ImGui::SameLine(); bool isUp = cursorOrientation == Quaternion(); ImGui::Text2("Cursor up"); ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTCURSORNORMALUP",&isUp)) {if (isUp) {cursorOrientation = Quaternion(); renderingUpdated = true;}}
+        if (mode == MODE_SELECT) {
+          ImGui::SameLine(); ImGui::Text2("Place cursor"); 
+          ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTPLACECURSOR",&placeCursor)) {renderingUpdated = true;}
+        }
+        ImGui::EndChild();
       }
-      if (!c->ortho) {
-        ImGui::Text2("Fov"); ImGui::SameLine(); if (ImGui::InputFloat("##VIEWPORTFOV",&c->fov,10,10)) {renderingUpdated = true;}
-      } else {
-        ImGui::Text2("Ortho scale"); ImGui::SameLine(); if (ImGui::InputFloat("##VIEWPORTORTHOSCALE",&c->orthoScale,10,10)) {renderingUpdated = true;}
-      }
-      if (c->orthoScale < 0) c->orthoScale = 0;
-      if (c->fov < 1) c->fov = 1; if (c->fov>180) c->fov = 180;
-      ImGui::Text2("Aspect ratio"); ImGui::SameLine();
-  
-      if (ImGui::InputFloat("##VIEWPORTASPECTRATIO",&c->aspect,0.1,0.1)) {renderingUpdated = true;}
-      ImGui::PopItemWidth();
-      ImGui::PushItemWidth(9*7);
-      ImGui::Text2("Near plane"); ImGui::SameLine();
-      if (ImGui::InputFloat("##VIEWPORTNEAR",&c->nearPlane)) {renderingUpdated = true;} if (c->nearPlane < 0.00001) c->nearPlane = 0.00001;
-      ImGui::Text2("Far plane"); ImGui::SameLine();
-      if (ImGui::InputFloat("##VIEWPORTFAR",&c->farPlane)) {renderingUpdated = true;} if (c->farPlane < c->nearPlane+0.00001) c->farPlane = c->nearPlane + 0.00001;
-      ImGui::Text2("Background"); ImGui::SameLine();
-      colorItem("","##VIEWPORTBACKGROUND", &clearColor, true);
-      ImGui::PopItemWidth();
-      ImGui::Text2("Cursor"); ImGui::SameLine(); if (vectorInput("",&cursor,"##VIEWPORTCURSOR")) {renderingUpdated = true; cursorOrientation = Quaternion();} 
-      ImGui::SameLine(); bool isUp = cursorOrientation == Quaternion(); ImGui::Text2("Cursor up"); ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTCURSORNORMALUP",&isUp)) {if (isUp) {cursorOrientation = Quaternion(); renderingUpdated = true;}}
-      if (mode == MODE_SELECT) {
-        ImGui::SameLine(); ImGui::Text2("Place cursor"); 
-        ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTPLACECURSOR",&placeCursor)) {renderingUpdated = true;}
-      }
-      ImGui::EndChild();
     }
+    ImGui::PopStyleColor();
+    ImGui::PopStyleColor();
+    if (ImGui::IsAnyItemHovered()) if (ImGui::IsMouseDown(0)) {disableRenderMouseClicks();}
+    paintOverlays();
   }
-  ImGui::PopStyleColor();
-  ImGui::PopStyleColor();
-  if (ImGui::IsAnyItemHovered()) if (ImGui::IsMouseDown(0)) {disableRenderMouseClicks();}
-  paintOverlays();
   ImGui::End();
 
   ImGui::PopStyleColor();

@@ -207,25 +207,7 @@ void drawOutliner() {
   bool one = false; for (int i2 = 0; i2 < gameObjects.size(); i2++) if (gameObjects[i2]->selected) {one=true; break;}
   ImGui::SetNextWindowPos(ImVec2(0,menuBar_height));
   ImGui::Begin("OUTLINER", NULL, ImVec2(outliner_width,main_window_yres-menuBar_height),1.0,FROZENWINDOW);
-  dialogQuit(false);
-  dialogAddObject(false,GAMEOBJECT_UNDEFINED);
-  dialogAddProperty(false,NULL);
-  dialogSelectByProperty(false);
-  dialogSelectByLayer(false);
-  dialogSelectInvisible(false);
-  dialogDeleteGameObjects(false);
-  dialogAbout(false);
-  dialogControls(false);
-  dialogColor(false,NULL);
-  dialogObjectTextures(false);
-  dialogLoadSave(false,DIALOG_NONE);
-  dialogViewBindings(false);
-  dialogMessage(false,NULL);
-  dialogGridSettings(false);
-  dialogOverwrite(false);
-  dialogCompactAndMove(false);
-  dialogTroubleShooting(false);
-  dialogEditScript(false,NULL);
+  drawDialogs();
   unsigned int outlinerLayersBefore = outlinerLayers;
   outlinerLayers = layerSelection(outlinerLayers,"OUTLLAY");
   if (outlinerLayers != outlinerLayersBefore) renderingUpdated = true;

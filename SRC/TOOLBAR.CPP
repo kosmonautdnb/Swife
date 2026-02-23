@@ -32,7 +32,10 @@
 #include "VIEWPORT.HPP"
 #include "PAINT.HPP"
 #include "GAMEOBJ.HPP"
+#include "DIALOGS.HPP"
+#include "TEXPAINT.HPP"
 #include "STL/ARRAY.HPP"
+#include <math.h>
 
 int mode = MODE_UNDEFINED;
 
@@ -113,59 +116,114 @@ unsigned int toolBarTextButton(unsigned int wasSet, unsigned int willBeSet, cons
   return wasSet;
 }
 
+bool toolBarTextButton2(const char *name, bool enabled) {
+  bool ret = false;
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(5,0));
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3);
+
+  ImGui::PushStyleColor(ImGuiCol_Button,enabled ? color_button_on_bg : color_button_off_bg);
+  ImGui::PushStyleColor(ImGuiCol_Text,enabled ? color_button_on_text : color_button_off_text);
+  if (ImGui::Button(name)) {ret = true; renderingUpdated=true;}
+  ImGui::PopStyleColor();
+  ImGui::PopStyleColor();
+
+  ImGui::PopStyleVar();
+  ImGui::PopStyleVar();
+  return ret;
+}
+
 void drawToolBar() {
+  int count = 0; GameObject *first = NULL; for (int ic = 0; ic < gameObjects.size(); ic++) {if (gameObjects[ic]->selected) {first = gameObjects[ic]; count++;}}
   ImGui::SetNextWindowPos(ImVec2(outliner_width,menuBar_height));
   ImGui::Begin("TOOLBAR", NULL, ImVec2(main_window_xres-outliner_width-properties_width,toolBar_height),1.0,FROZENWINDOW);
-  ImVec2 cursorScreen = ImGui::GetCursorScreenPos();
-  ImGui::SetCursorScreenPos(ImVec2(cursorScreen.x, cursorScreen.y + 2));
-  drawSeparator(-4,0,23);
-  ImGui::SameLine();
-  for (int i = 0; i < toolBarButtons.size(); i++) {
-    if (i != 0) ImGui::SameLine();
-    if (toolBarButtons[i].isSingle()) toolBarButtons[i].selected = mode == toolBarButtons[i].mode;
-    if (toolBarButtons[i].paint(IDINDEXED("##DRAWTOOLBARBUTTONID",i))) {
-      if (toolBarButtons[i].isSingle()) mode = toolBarButtons[i].mode;
+  if (count == 1 && first->type == GAMEOBJECT_IMAGE) {
+    FileBinding *binding = getBindingById(first->fileBindingId);
+    if (binding != NULL && toolBarTextButton2("Reload##DRAWTOOLBARRELOADIMAGE", binding->updated)) {
+      binding->reload();
     }
-  }
-  ImGui::SameLine();
-  if (currentCamera == CAMERA_USER) {
-    Camera *c = &cameras[currentCamera];
-    c->ortho = (bool)toolBarTextButton((unsigned int)c->ortho,(unsigned int)false,"Persp##ORTHO1");
     ImGui::SameLine();
-    c->ortho = (bool)toolBarTextButton((unsigned int)c->ortho,(unsigned int)true,"Ortho##ORTHO2");
-    ImGui::SameLine();
-    SVG *svg = &svgs["cameraspeed"];                        
-  
-    ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h));
-    ImGui::SameLine();
-    ImGui::PushItemWidth(70);
-    ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.9,0.9,0.9,1));
-    ImGui::InputFloat("##CAMERASPEED",&cameraSpeed,cameraSpeed>1?1:0.1,1,2);
-    if (cameraSpeed < 0) cameraSpeed = 0;
-    ImGui::PopStyleColor();
+    float imageZoomBefore = imageZoom;
+    if (imageZoomBefore<0) imageZoomBefore=0;
+    ImGui::PushItemWidth(64);
+    if (ImGui::SliderFloat("##DRAWTOOLBARIMAGEZOOM",&imageZoom,0,10.0)) {
+      if (imageZoom<0) imageZoom=0;
+      double zoomBefore = pow(2.0,imageZoomBefore)-1.0;
+      double zoom = pow(2.0,imageZoom)-1.0;
+      if (zoomBefore<0.0001) zoomBefore = 0.0001;
+      Vector oldPos = imageScroll;
+      Vector newPos = imageScroll * zoom / zoomBefore;
+      imageScroll += (newPos-oldPos);
+    }
     ImGui::PopItemWidth();
+    if (imageZoom<0) imageZoom=0;
+    if (imageZoom>10.0) imageZoom=10.0;  
     ImGui::SameLine();
-    drawSeparator(0,0,23);
+    if (toolBarTextButton2(paintBlended?"Solid##DRAWTOOLBARBLENDING":"Blending##DRAWTOOLBARBLENDING",true)) {paintBlended = !paintBlended;}
     ImGui::SameLine();
-  } else {
-    int found = -1;
-    for (int i = 0; i < gameObjects.size(); i++) {
-      if (gameObjects[i]->isCamera[currentCamera]) found = i;
+    ImGui::Text("Stamp");
+    ImGui::SameLine();
+    ImGui::Checkbox("##DRAWTOOLBARSTAMPON",&stampOn);
+    ImGui::SameLine();
+    ImGui::Text("f = fill");
+    ImGui::SameLine();
+    if (binding != NULL && toolBarTextButton2("Save image##DRAWTOOLBARSAVEIMAGE",binding->updated)) {
+      paintingSaveOn = true;
     }
-    if (found == -1)
-      ImGui::Text("Camera %d",currentCamera);
-    else
-      ImGui::Text("Camera %d %d\"%s\"",currentCamera,found,gameObjects[found]->name);
+    ImGui::SameLine();
+    if (imageMouse.z>=0) {ImGui::Text("%d %d",(int)floor(imageMouse.z),(int)floor(imageMouse.w));ImGui::SameLine();}
+    else if (imageMouse.x>=0) {ImGui::Text("%d %d",(int)floor(imageMouse.x),(int)floor(imageMouse.y));ImGui::SameLine();}
+  } else {
+    ImVec2 cursorScreen = ImGui::GetCursorScreenPos();
+    ImGui::SetCursorScreenPos(ImVec2(cursorScreen.x, cursorScreen.y + 2));
+    drawSeparator(-4,0,23);
+    ImGui::SameLine();
+    for (int i = 0; i < toolBarButtons.size(); i++) {
+      if (i != 0) ImGui::SameLine();
+      if (toolBarButtons[i].isSingle()) toolBarButtons[i].selected = mode == toolBarButtons[i].mode;
+      if (toolBarButtons[i].paint(IDINDEXED("##DRAWTOOLBARBUTTONID",i))) {
+        if (toolBarButtons[i].isSingle()) mode = toolBarButtons[i].mode;
+      }
+    }
+    ImGui::SameLine();
+    if (currentCamera == CAMERA_USER) {
+      Camera *c = &cameras[currentCamera];
+      c->ortho = (bool)toolBarTextButton((unsigned int)c->ortho,(unsigned int)false,"Persp##ORTHO1");
+      ImGui::SameLine();
+      c->ortho = (bool)toolBarTextButton((unsigned int)c->ortho,(unsigned int)true,"Ortho##ORTHO2");
+      ImGui::SameLine();
+      SVG *svg = &svgs["cameraspeed"];                        
+    
+      ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h));
+      ImGui::SameLine();
+      ImGui::PushItemWidth(70);
+      ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.9,0.9,0.9,1));
+      ImGui::InputFloat("##CAMERASPEED",&cameraSpeed,cameraSpeed>1?1:0.1,1,2);
+      if (cameraSpeed < 0) cameraSpeed = 0;
+      ImGui::PopStyleColor();
+      ImGui::PopItemWidth();
+      ImGui::SameLine();
+      drawSeparator(0,0,23);
+      ImGui::SameLine();
+    } else {
+      int found = -1;
+      for (int i = 0; i < gameObjects.size(); i++) {
+        if (gameObjects[i]->isCamera[currentCamera]) found = i;
+      }
+      if (found == -1)
+        ImGui::Text("Camera %d",currentCamera);
+      else
+        ImGui::Text("Camera %d %d\"%s\"",currentCamera,found,gameObjects[found]->name);
+      ImGui::SameLine();
+      drawSeparator(0,0,23);
+      ImGui::SameLine();
+    }
+    fullScreen = (bool)toolBarTextButton((unsigned int)fullScreen,(unsigned int)true,"View##EDITMODE1");
+    ImGui::SameLine();
+    fullScreen  = (bool)toolBarTextButton((unsigned int)fullScreen,(unsigned int)false,"Edit##EDITMODE2");
     ImGui::SameLine();
     drawSeparator(0,0,23);
     ImGui::SameLine();
+    if (ImGui::Checkbox("##DRAWBOUNDINGBOXES",&justDrawBoundingBoxes)) {renderingUpdated = true;}
   }
-  fullScreen = (bool)toolBarTextButton((unsigned int)fullScreen,(unsigned int)true,"View##EDITMODE1");
-  ImGui::SameLine();
-  fullScreen  = (bool)toolBarTextButton((unsigned int)fullScreen,(unsigned int)false,"Edit##EDITMODE2");
-  ImGui::SameLine();
-  drawSeparator(0,0,23);
-  ImGui::SameLine();
-  if (ImGui::Checkbox("##DRAWBOUNDINGBOXES",&justDrawBoundingBoxes)) {renderingUpdated = true;}
   ImGui::End();
 }

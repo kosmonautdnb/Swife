@@ -29,6 +29,7 @@
 extern bool quit;
 
 void initDialogs();
+void drawDialogs();
 
 void dialogDeleteGameObjects(bool openIt);
 void dialogQuit(bool openIt);
@@ -59,7 +60,9 @@ enum DIALOGMODE {
   DIALOG_SAVESCRIPT = 10,
   DIALOG_LOADANDINSERTGAMEOBJECTS = 11,
   DIALOG_SAVESELECTEDGAMEOBJECTS = 12,
-  DIALOG_COUNT = 13
+  DIALOG_LOADIMAGE = 13,
+  DIALOG_SAVEIMAGE = 14,
+  DIALOG_COUNT = 15
 };
 
 String longFileName(const String &a);
@@ -78,5 +81,7 @@ void dialogCompactAndMove(bool openIt);
 void getTransformForGameObjectFromCursor(GameObject *o);
 
 void dialogEditScript(bool openIt, class GameObject *object);
+
+bool displayColorWheel(class Vector *color, int width);
 
 #endif // __DIALOGS_HPP__

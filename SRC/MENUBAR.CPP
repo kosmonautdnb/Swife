@@ -70,12 +70,14 @@ void drawMenuBar() {
   if (ImGui::BeginMainMenuBar()) {
     SVG *svg = &svgs["appicon"];
     ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h));
+    if (ImGui::IsItemHovered()) {
+      ImGui::BeginTooltip();
+      ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0.0,0.0,0.0,1));
+      ImGui::Text("Swife v%d.%02d",version/100,version%100);
+      ImGui::PopStyleColor();
+      ImGui::EndTooltip();
+    }
     ImGui::SameLine();
-    
-    /*ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0.6,0.6,0.6,1));
-    ImGui::Text(appName); 
-    ImGui::PopStyleColor();
-    ImGui::SameLine();*/
 
     if (ImGui::BeginMenu("File")) {
       on = true;
@@ -137,6 +139,7 @@ void drawMenuBar() {
       if (ImGui::MenuItem("Add path")) {dialogAddObject(true,GAMEOBJECT_PATH);}
       if (ImGui::MenuItem("Add texture grid")) {dialogAddObject(true,GAMEOBJECT_TEXTUREGRID);}
       ImGui::Separator();
+      if (ImGui::MenuItem("Add image")) {dialogAddObject(true,GAMEOBJECT_IMAGE);}
       if (ImGui::MenuItem("Add script")) {dialogAddObject(true,GAMEOBJECT_SCRIPT);}
       ImGui::Separator();
       if (ImGui::MenuItem("Add link")) {dialogAddObject(true,GAMEOBJECT_LINK);}

@@ -32,6 +32,7 @@
 #include "TIMELINE.HPP"
 #include "PROPS.HPP"
 #include "RENDER.HPP"
+#include "TEXPAINT.HPP"
 #include "GAMEOBJ.HPP"
 #include "SVG.HPP"
 #include "DIALOGS.HPP"
@@ -68,6 +69,7 @@ bool initVideo() {
   ImGui::GetStyle().Colors[ImGuiCol_TitleBg] = ImVec4(0,0,0,1.f);
   ImGui::GetStyle().Colors[ImGuiCol_TitleBgActive] = ImVec4(0.2,0.2,0.2,1.f);
   ImGui::GetStyle().Colors[ImGuiCol_SliderGrab] = ImVec4(0.2,0.2,0.2,1.f);
+  ImGui::GetStyle().Colors[ImGuiCol_TooltipBg] = ImVec4(1,1,1,0.8);
   lastTime = glSeconds();
 
   return true;
@@ -102,6 +104,7 @@ void renderLoop() {
     updateCamera();
     drawToolBar();
     drawViewport();
+    drawTexPaint();
     if (!fullScreen) drawInfo();
     if (!fullScreen) drawTimeLine();
     if (!fullScreen) drawProperties();

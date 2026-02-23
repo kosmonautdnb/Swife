@@ -21,26 +21,20 @@
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 */
-#ifndef __PROPS_HPP__
-#define __PROPS_HPP__
+#ifndef __TEXPAINT_HPP__
+#define __TEXPAINT_HPP__
 
-#include "STL/STRING.HPP"
-#include "STL/ARRAY.HPP"
 #include "STL/VECTOR.HPP"
 
-extern int properties_width;
+extern Vector imageScroll;
+extern Vector imageMouse;
+extern float imageZoom;
+extern bool paintingSaveOn;
+extern bool paintBlended;
+extern bool stampOn;
 
-extern unsigned int uniqueIdOfSingleDisplayedObject;
-extern Vector paintColor;
-#define MAX_PREVIOUS_COLORS 4
-extern Vector previousPaintColors[MAX_PREVIOUS_COLORS];
-void addPreviousColor(const Vector &col);
+void selectImageTile(int tileIndex);
 
-bool vectorInput(const String &name,class Vector *v, const String &dcl);
-bool quaternionInput(const String &name,class Quaternion *q, const String &dcl);
+void drawTexPaint();
 
-void collectSection(class GameObject *object, Array<unsigned int> *arr, int specificType);
-
-void drawProperties();
-
-#endif //__PROPS_HPP__
+#endif // __TEXPAINT_HPP__

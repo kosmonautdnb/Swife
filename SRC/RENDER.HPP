@@ -87,8 +87,10 @@ extern bool texturedOn;
 extern bool twoSidedOn;
 extern bool showLinks;
 extern bool showGrids;
+extern int renderMouseClicksOff;
 
 void disableRenderMouseClicks();
+
 
 void updateCamera();
 

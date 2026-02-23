@@ -43,6 +43,7 @@
 #include "PAINT.HPP"
 #include "HITTEST.HPP"
 #include "PROPS.HPP"
+#include "TEXPAINT.HPP"
 
 int version = 103;
 
@@ -834,8 +835,9 @@ void loadScene(const char *path, const char *fileName) {
   renderingUpdated = true;
 }
 
+String tempName;
 FILE *createTempFile(const char *path) {
-  String tempName = String(path)+"TMP.TMP"; dosRemoveFile(tempName.c_str());
+  tempName = String(path)+"TMP.TMP"; dosRemoveFile(tempName.c_str());
   return fopen(dosFileName(tempName).c_str(),"w");
 }
 
@@ -920,6 +922,11 @@ void loadTextureGridForObject(class GameObject *o, const char *fileName) {
   if (binding == NULL) {
     binding = newBinding();
     binding->load(fileName, FILETYPE_TEXTUREGRID);
+    binding->textureAtlasTileWidth = binding->originalWidth;
+    binding->textureAtlasTileHeight = binding->originalHeight;
+    binding->textureAtlasTileCountX = 1;
+    binding->textureAtlasTileCountY = 1;
+
   }
   o->fileBindingId = binding->uniqueId;
 }
@@ -1178,5 +1185,27 @@ void saveGameObjects(const char *path, const char *fileName) {
   unsigned int b = bindingUniqueId;
   serializeObjects(true, out, _gameObjects2, _bindings2, a, b);
   fclose(out);
+  renameTempFile(path,fileName);
+}
+
+void saveImage(const char *path, const char *fileName) {
+  int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
+  if (j<0) return;
+  GameObject *o = gameObjects[j];
+  FileBinding *binding = getBindingById(o->fileBindingId);
+  if (binding==NULL) return;
+  if (binding->textureIds.size()!=1) return;
+
+  FILE *out = createTempFile(path);
+  if (out == NULL) return;
+  fclose(out);
+  RGBAImage image;
+  image.data = glGetTexturePointer(binding->textureIds[0]);
+  image.width = glGetTextureWidth(binding->textureIds[0]);
+  image.height = glGetTextureHeight(binding->textureIds[0]);
+  if (image.savePNG(tempName.c_str())) {
+    binding->fileName = String(path) + String(fileName);
+    binding->updated = false;
+  }
   renameTempFile(path,fileName);
 }

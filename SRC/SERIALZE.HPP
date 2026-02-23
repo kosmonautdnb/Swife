@@ -73,6 +73,7 @@ public:
     index2 = -1;
     forceTwoSided = false;
     fileName = "";
+    updated = false;
   }
   ~FileBinding();
   unsigned int type;
@@ -93,6 +94,7 @@ public:
   int index;
   int index2;
   bool forceTwoSided;
+  bool updated;
   Array<unsigned int> textureIds;
   Array<BakedVertex> triangles;
   Array<unsigned int> uintContent;
@@ -154,5 +156,6 @@ void loadScript(const char *path, const char *fileName);
 void saveScript(const char *path, const char *fileName);
 void loadGameObjects(const char *path, const char *fileName);
 void saveGameObjects(const char *path, const char *fileName);
+void saveImage(const char *path, const char *fileName);
 
 #endif //__SERIALZE_HPP__

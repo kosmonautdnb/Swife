@@ -45,11 +45,12 @@ const char *csv = ".csv";
 const char *sf0 = ".sf0";
 const char *all = "*.*";
 const char *imagesAndMeshes = ".png,.jpg,.tga,.bmp,.psd,.gif,.pic,.pnm,.hdr,.obj,.glb";
-const char *dialogCaption[DIALOG_COUNT] = {"NO MODE","Load a scene","Save a scene","Load a skybox","Load a mesh","Load a billboard texture","Load a texturegrid texture","Load a texturegrid CSV","Save a texturegrid CSV","Load a script","Save a script","Load and insert objects","Save selected objects"};
-const char *proceedButton[DIALOG_COUNT] = {"<button>", "Load", "Save","Load","Load","Load","Load","Load","Save","Load","Save","Load","Save"};
-const char *dialogFileTypes[DIALOG_COUNT] = {"",".sfs",".sfs",images,meshes,imagesAndMeshes,images,csv,csv,all,sf0,sf0};
-const char *dialogDefaultExtension[DIALOG_COUNT] = {"",".SFS",".SFS","","","","",".CSV",".CSV","","",".SF0",".SF0"};
-LOADSAVEFUNC funcs[DIALOG_COUNT] = {NULL, loadScene, saveScene, loadSkyBox, loadMesh, loadBillBoard,loadTextureGrid,loadTextureGridCSV,saveTextureGridCSV,loadScript,saveScript,loadGameObjects,saveGameObjects};
+
+const char *dialogCaption[DIALOG_COUNT] = {"NO MODE","Load a scene","Save a scene","Load a skybox","Load a mesh","Load a billboard texture","Load a texturegrid texture","Load a texturegrid CSV","Save a texturegrid CSV","Load a script","Save a script","Load and insert objects","Save selected objects","Load an image","Save this image"};
+const char *proceedButton[DIALOG_COUNT] = {"<button>", "Load", "Save","Load","Load","Load","Load","Load","Save","Load","Save","Load","Save","Load","Save"};
+const char *dialogFileTypes[DIALOG_COUNT] = {"",".sfs",".sfs",images,meshes,imagesAndMeshes,images,csv,csv,all,sf0,sf0,images,".png"};
+const char *dialogDefaultExtension[DIALOG_COUNT] = {"",".SFS",".SFS","","","","",".CSV",".CSV","","",".SF0",".SF0","",".PNG"};
+LOADSAVEFUNC funcs[DIALOG_COUNT] = {NULL, loadScene, saveScene, loadSkyBox, loadMesh, loadBillBoard,loadTextureGrid,loadTextureGridCSV,saveTextureGridCSV,loadScript,saveScript,loadGameObjects,saveGameObjects,loadTextureGrid,saveImage};
 
 
 #define DIALOGSTART(__name__) static int keyboardFocusNew = 0; static bool openItNextTime = false;  if (openIt) {openItNextTime = true; keyboardFocusNew = 2; return;}  if (openItNextTime) {openItNextTime = false; ImGui::OpenPopup(__name__); } ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0,0,0,1)); ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(1,1,1,1); if (ImGui::BeginPopupModal(__name__,NULL,ImGuiWindowFlags_AlwaysAutoResize)) { ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(0,0,0,1); ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.4,0.4,0.4,1));disableRenderMouseClicks();
@@ -70,6 +71,28 @@ void initDialogs() {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+}
+
+void drawDialogs() {
+  dialogQuit(false);
+  dialogAddObject(false,GAMEOBJECT_UNDEFINED);
+  dialogAddProperty(false,NULL);
+  dialogSelectByProperty(false);
+  dialogSelectByLayer(false);
+  dialogSelectInvisible(false);
+  dialogDeleteGameObjects(false);
+  dialogAbout(false);
+  dialogControls(false);
+  dialogColor(false,NULL);
+  dialogObjectTextures(false);
+  dialogLoadSave(false,DIALOG_NONE);
+  dialogViewBindings(false);
+  dialogMessage(false,NULL);
+  dialogGridSettings(false);
+  dialogOverwrite(false);
+  dialogCompactAndMove(false);
+  dialogTroubleShooting(false);
+  dialogEditScript(false,NULL);
 }
 
 void dialogDeleteGameObjects(bool openIt) {
@@ -163,7 +186,7 @@ void dialogAddObject(bool openIt, unsigned int type) {
     } break;
   }
 
-  if (t == GAMEOBJECT_MESH || t == GAMEOBJECT_BILLBOARD || t == GAMEOBJECT_TEXTUREGRID) {
+  if (t == GAMEOBJECT_MESH || t == GAMEOBJECT_BILLBOARD || t == GAMEOBJECT_TEXTUREGRID || t == GAMEOBJECT_IMAGE) {
     if (ImGui::Button("Load##DIALOGADDGAMEOBJECTLOAD")) {
       GameObject *o = new GameObject();
       o->setName(name);
@@ -180,6 +203,7 @@ void dialogAddObject(bool openIt, unsigned int type) {
       switch(t) {
         case GAMEOBJECT_MESH: {k = DIALOG_LOADMESH;} break;
         case GAMEOBJECT_BILLBOARD: {k = DIALOG_LOADBILLBOARD;} break;
+        case GAMEOBJECT_IMAGE: {k = DIALOG_LOADIMAGE;} break;
         case GAMEOBJECT_TEXTUREGRID: {k = DIALOG_LOADTEXTUREGRID;} break;
       }
       dialogLoadSaveSetFileNameAndPath = ""; dialogLoadSaveGameObjectUniqueId = o->uniqueId; dialogLoadSave(true, k);
@@ -430,10 +454,13 @@ void dialogAbout(bool openIt) {
 void dialogControls(bool openIt) {
   DIALOGSTART("Controls")
   ImGui::Text(
+    "Press ctrl on a slider to enter a value.\n"
+    "\n"
     "Outliner:\n"
     "Left mouse click for select.\n"
     "Use shift for multiselect.\n"
     "Use shift on sections for group select/deselect.\n"
+    "\n"
     "Keyboard:\n"
     "You can alter the move speed in the toolbar.\n"
     "Use W to move forward.\n"
@@ -445,19 +472,28 @@ void dialogControls(bool openIt) {
     "Use CURSOR keys to rotate camera.\n"
     "Use O and P to rotate view 90 degrees.\n"
     "Use shift and escape to quit.\n"
+    "\n"
     "Mouse:\n"
     "Right mouse button and mouse to rotate view.\n"
     "Right mouse button and ctrl and mouse to roll.\n"
     "Right mouse button and shift and mouse to pan.\n"
+    "\n"
     "Tool \"selection\":\n"
     "Left Mouse select this object\n"
     "Left Mouse and shift add to selection\n"
     "Left Mouse and ctrl remove from selection\n"
-    "Tool \"scale\"\n"
+    "\n"
+    "Tool \"scale\":\n"
     "Use shift to scale uniformly\n"
     "On texture grids (with Tool \"selection\"):\n"
     "Left Mouse and alt to paint on selected grid.\n"
     "Right Mouse and alt to get from selected grid.\n"
+    "\n"
+    "Image editor:\n"
+    "Right mouse and ctrl to pan the image.\n"
+    "Right mouse to get pixel color.\n"
+    "Left mouse and shift to set pixel color.\n"
+    "Left mouse and ctrl to select stamp rectangle.\n"
   );
   ImGui::Separator();
   if (ImGui::Button("Close##DIALOGCONTROLSCLOSE")) {
@@ -491,6 +527,8 @@ void dialogTroubleShooting(bool openIt) {
     "In GLTF/GLB format polygons without textures will not be displayed.\n"
     "\n"
     "If it gets too imperformat, maybe use billboard meshes instead of meshes.\n"
+    "\n"
+    "The image editor sadly has some precission/placing problems.\n"
   );
   ImGui::Separator();
   if (ImGui::Button("Close##DIALOGTROUBLESHOOTING")) {
@@ -610,7 +648,7 @@ void dialogColor(bool openIt, unsigned int *color) {
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered,ImVec4(0,0,0,0));
   ImGui::PushStyleColor(ImGuiCol_ButtonActive,ImVec4(0,0,0,0));
   ImVec2 cursorHere = ImGui::GetCursorScreenPos();
-  if (ImGui::ImageButton((ImTextureID)colorWheelTexture,ImVec2(colorWheelX,colorWheelY))) {
+  if (ImGui::ImageButton((ImTextureID)colorWheelTexture,ImVec2(colorWheelX,colorWheelY)) || (ImGui::IsItemHovered()&&ImGui::IsMouseDown(0))) {
     int mx = ImGui::GetMousePos().x-cursorHere.x;
     int my = ImGui::GetMousePos().y-cursorHere.y;
     bool update = updateColorWheel(h,mx,my,&h,&s,&l);
@@ -689,6 +727,57 @@ void colorItem(const String &name, const String &id, unsigned int *color, bool c
     *color = value;
   }
   ImGui::PopItemWidth();
+}
+
+bool displayColorWheel(Vector *color, int width) {
+  Vector &c = *color;
+  Vector before = c;
+  const char *id = "##COLORWHEEL";
+  float k;
+  ImGui::Text("A");ImGui::SameLine();k = c.w * 255.0; if (ImGui::SliderFloat(IDCOMBINED(id,"ALPHA"),&k,0,255)) {c.w = k/255.0;}
+  ImGui::Text("R");ImGui::SameLine();k = c.x * 255.0; if (ImGui::SliderFloat(IDCOMBINED(id,"RED"),&k,0,255)) {c.x = k/255.0;}
+  ImGui::Text("G");ImGui::SameLine();k = c.y * 255.0; if (ImGui::SliderFloat(IDCOMBINED(id,"GREEN"),&k,0,255)) {c.y = k/255.0;}
+  ImGui::Text("B");ImGui::SameLine();k = c.z * 255.0; if (ImGui::SliderFloat(IDCOMBINED(id,"BLUE"),&k,0,255)) {c.z = k/255.0;}
+  float h,s,l; getHsl(c,&h,&s,&l);
+  ImGui::Text("H");ImGui::SameLine();k = h*360.0;  if (ImGui::SliderFloat(IDCOMBINED(id,"HUE"),&k,0,360)) {double w = c.w; h = k/360.0; updateColorWheel(h,0,0,&h,&s,&l); c = hsl(h,s,l); c.w = w; getHsl(c,&h,&s,&l); updateColorWheel(h,0,0,NULL,NULL,NULL);}
+  ImGui::Text("S");ImGui::SameLine();k = s;  if (ImGui::SliderFloat(IDCOMBINED(id,"SAT"),&k,0,1)) {double w = c.w; s = k; c = hsl(h,s,l); c.w = w;}
+  ImGui::Text("L");ImGui::SameLine();k = l;  if (ImGui::SliderFloat(IDCOMBINED(id,"LIT"),&k,0,1)) {double w = c.w; l = k; c = hsl(h,s,l); c.w = w;}
+  ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0,0,0,0));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,ImVec4(0,0,0,0));
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive,ImVec4(0,0,0,0));
+  ImVec2 cursorHere = ImGui::GetCursorScreenPos();
+  if (ImGui::ImageButton((ImTextureID)colorWheelTexture,ImVec2(width,width*colorWheelY/colorWheelX)) || (ImGui::IsItemHovered()&&ImGui::IsMouseDown(0))) {
+    int mx = ImGui::GetMousePos().x-cursorHere.x;
+    int my = ImGui::GetMousePos().y-cursorHere.y;
+    bool update = updateColorWheel(h,mx*colorWheelX/width,my*colorWheelX/width,&h,&s,&l);
+    if (update) {double w = c.w; c = hsl(h,s,l); c.w = w; getHsl(c,&h,&s,&l); updateColorWheel(h,0,0,NULL,NULL,NULL); }
+  }
+  updateColorWheel(h,0,0,NULL,NULL,NULL); // somehow a bit superfluos
+  ImGui::PopStyleColor();
+  ImGui::PopStyleColor();
+  ImGui::PopStyleColor();
+  ImVec4 col(c.x,c.y,c.z,c.w);
+  ImGui::Text("Color");
+  ImGui::Image((ImTextureID)0, ImVec2(64,64), ImVec2(0,0), ImVec2(1,1), col);
+  int ri = c.x * 255.0;
+  int gi = c.y * 255.0;
+  int bi = c.z * 255.0;
+  int ai = c.w * 255.0;
+  if (ri < 0) ri = 0;
+  if (gi < 0) gi = 0;
+  if (bi < 0) bi = 0;
+  if (ai < 0) ai = 0;
+  if (ri > 255) ri = 255;
+  if (gi > 255) gi = 255;
+  if (bi > 255) bi = 255;
+  if (ai > 255) ai = 255;
+  unsigned int krgb = ri|(gi<<8)|(bi<<16)|(ai<<24);
+  unsigned int krgbBefore = krgb;
+  colorItem("",IDCOMBINED(id,"COLORCOLORHEX"),&krgb, false);
+  if (krgbBefore != krgb) {
+    c = Vector((krgb&255)/255.0,((krgb>>8)&255)/255.0,((krgb>>16)&255)/255.0,((krgb>>24)&255)/255.0);
+  }
+  return c != before;
 }
 
 void dialogObjectTextures(bool openIt) {

@@ -828,6 +828,9 @@ void lightSetup(bool on) {
 }
 
 void drawScene() {
+  int count = 0; GameObject *first = NULL; for (int ic = 0; ic < gameObjects.size(); ic++) {if (gameObjects[ic]->selected) {first = gameObjects[ic]; count++;}}
+  if (count == 1 && first->type == GAMEOBJECT_IMAGE) return;
+
   bool leftClicked = ImGui::IsMouseClicked(0);
   bool leftDown = ImGui::IsMouseDown(0);
   bool rightDown = ImGui::IsMouseDown(1);

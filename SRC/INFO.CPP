@@ -79,6 +79,8 @@ int getAdditionalMemoryFreeBytes() {
 }
 
 void drawInfo() {
+  int count = 0; GameObject *first = NULL; for (int ic = 0; ic < gameObjects.size(); ic++) {if (gameObjects[ic]->selected) {first = gameObjects[ic]; count++;}}
+  if (count == 1 && first->type == GAMEOBJECT_IMAGE) return;
 
   static bool infoOn = false;
 

@@ -33,6 +33,7 @@
 #include "RENDER.HPP"
 #include "PAINT.HPP"
 #include "TEXTURES.HPP"
+#include "TEXPAINT.HPP"
 #include "SERIALZE.HPP"
 #include "STL/DOS.HPP"
 #include <math.h>
@@ -41,6 +42,16 @@ int properties_width = 160;
 char properties_filter[NAMEMAX] = {0};
 
 unsigned int uniqueIdOfSingleDisplayedObject = 0;
+
+Vector paintColor(0.2,0.4,0.6,1);
+Vector previousPaintColors[MAX_PREVIOUS_COLORS];
+
+void addPreviousColor(const Vector &col) {
+  if (col != previousPaintColors[0]) {
+    for (int i = MAX_PREVIOUS_COLORS-2;i>=0;i--) previousPaintColors[i+1]=previousPaintColors[i];
+    previousPaintColors[0] = col;
+  }
+}
 
 bool vectorInput(const String &name,Vector *v, const String &dcl) {
   bool ret = false;
@@ -635,9 +646,7 @@ void showPointProperties(GameObject *object) {
   ImGui::Separator();
 }
 
-void showTextureGridProperties(GameObject *object) {
-  FileBinding *binding = getBindingById(object->fileBindingId);
-  showTransform(object,"##TEXTUREGRIDPROP");
+void displayTextureGridBinding(GameObject *object, FileBinding *binding) {
   ImGui::Text("Binding");
   if (binding != NULL) {
     bindingReloadAndMakeUnique(object,binding,"##TEXTUREGRIDPROP");
@@ -684,7 +693,7 @@ void showTextureGridProperties(GameObject *object) {
     ImGui::Text("%s",binding->fileName.last(19).c_str());
   }
   if (propsButton("Load##TEXTUREGRIDPROPLOAD",strlen("Load")+4)) {
-    dialogLoadSaveSetFileNameAndPath = binding == NULL ? "" : binding->fileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADTEXTUREGRID);
+    dialogLoadSaveSetFileNameAndPath = binding == NULL ? "" : binding->fileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, object->type == GAMEOBJECT_IMAGE ? DIALOG_LOADIMAGE : DIALOG_LOADTEXTUREGRID);
   }
   ImGui::Separator();
   if (binding != NULL) {
@@ -693,7 +702,9 @@ void showTextureGridProperties(GameObject *object) {
   }
   if (propsButton("import##TEXTUREGRIDPROPIMPORTCSV",strlen("import")+2+strlen("export")+4)) {dialogLoadSaveSetFileNameAndPath = ""; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADTEXTUREGRIDCSV); renderingUpdated = true;}
   ImGui::Separator();
+}
 
+void displayTextureGridSelect(GameObject *object, FileBinding *binding) {
   if (binding != NULL && binding->textureIds.size()==1) {
     if (binding->index2>=0&&binding->index2<binding->floatContent.size()) {
       ImGui::Text("Heightmap"); 
@@ -763,6 +774,13 @@ void showTextureGridProperties(GameObject *object) {
   }
 }
 
+void showTextureGridProperties(GameObject *object) {
+  FileBinding *binding = getBindingById(object->fileBindingId);
+  showTransform(object,"##TEXTUREGRIDPROP");
+  displayTextureGridBinding(object,binding);
+  displayTextureGridSelect(object,binding);
+}
+
 void showScriptProperties(GameObject *object) {
   ImGui::Text("Script");
   ImGui::SameLine();
@@ -784,6 +802,36 @@ void showScriptProperties(GameObject *object) {
   ImGui::BeginChild("##SCRIPTPROPCHILD",ImVec2(0,main_window_yres/2));
   ImGui::TextWrapped("%s",object->script.c_str());
   ImGui::EndChild();
+  ImGui::Separator();
+}
+
+void showImageProperties(GameObject *object) {
+  FileBinding *binding = getBindingById(object->fileBindingId);
+  ImGui::Text("Image");
+  ImGui::Separator();
+  float k;
+  ImGui::PushItemWidth(40);
+  ImGui::Text("Scroll"); ImGui::SameLine(); k = imageScroll.x; if (ImGui::InputFloat("##IMAGEPROPSCROLLX",&k)) {imageScroll.x = k;}
+  ImGui::SameLine(); k = imageScroll.y; if (ImGui::InputFloat("##IMAGEPROPSCROLLY",&k)) {imageScroll.y = k;}
+  ImGui::PopItemWidth();
+  ImGui::Separator();
+  for (int i = 0; i < MAX_PREVIOUS_COLORS; i++) {
+    if (i != 0) ImGui::SameLine();
+    ImVec4 col(previousPaintColors[i].x,previousPaintColors[i].y,previousPaintColors[i].z,previousPaintColors[i].w);
+    ImGui::PushID(IDINDEXED("##SHOWIMAGEPROPERTIESCOL",i));
+    static double kr = 0; kr += timeDelta; double r = sin(kr*5.0)*0.25+0.75;
+    if (ImGui::ImageButton((ImTextureID)0,ImVec2(24,12),ImVec2(0,0),ImVec2(1,1),-1,ImVec4(r,1,1,1),col) || (ImGui::IsItemHovered() && ImGui::IsMouseDown(1))) {
+      paintColor = previousPaintColors[i];
+    }
+    ImGui::PopID();
+  }
+  ImGui::Text("Paint color");
+  displayColorWheel(&paintColor, properties_width-30);
+  ImGui::Separator();
+  int before = 0; if (binding != NULL) before = binding->selected;
+  displayTextureGridSelect(object,binding);
+  if (binding != NULL && binding->selected != before) selectImageTile(binding->selected);
+  displayTextureGridBinding(object, binding);
   ImGui::Separator();
 }
 
@@ -934,6 +982,7 @@ void drawProperties() {
       case GAMEOBJECT_POINT: {showPointProperties(first);} break;
       case GAMEOBJECT_TEXTUREGRID: {showTextureGridProperties(first);} break;
       case GAMEOBJECT_SCRIPT: {showScriptProperties(first);} break;
+      case GAMEOBJECT_IMAGE: {showImageProperties(first);} break;
       default:
         showMeshProperties(first);
       }
