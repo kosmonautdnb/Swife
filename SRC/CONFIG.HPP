@@ -31,7 +31,7 @@
 #define PI 3.14159265358979323846
 #endif // PI
 
-#define FROZENWINDOW (ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoTitleBar)
+#define FROZENWINDOW (ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoCollapse)
 #define NAMEMAX 16
 #define FILENAMEMAX 512
 #define STRINGMAX 3000 // We have a limit in ImGui currently

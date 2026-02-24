@@ -36,7 +36,6 @@
 #include "TOOLBAR.HPP"
 #include "PROPS.HPP"
 #include "STL/SPRTEOBJ.HPP"
-#include "STL/DELAUNTR.HPP"
 #include <math.h>
 
 #define SKYBOX_LEFT 0
@@ -1064,81 +1063,36 @@ void paintPath(class GameObject *o, bool showModificators) {
   }
 }
 
-void createDelaunayTriangles(Array<BakedVertex> *triangles, const Vector &bmin, const Vector &bmax, Matrix *cameraMatrix, Matrix *modelView, Array<float> *heights, int width, int height, double param) {
+Vector heightMapVertex(int index, float *heights, int width, int height) {
+  int ix = index % width;
+  int iy = index / width;
+  return Vector((double)ix/(width-1)*2-1,heights[ix+iy*width],(double)iy/(height-1)*2-1);
+}
 
-  static Delaunator delaunator;
-  static Array<double> points2D;
-  static Array<Vector> points3D;
-  triangles->clear();
-
-  Vector camPos = inverse(*cameraMatrix).getColumn(3);
-  Matrix m2 = inverse(*cameraMatrix) * *modelView;
-
-  srand(0);
-  points2D.clear();
-  points3D.clear();
-  for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
-      float h = (*heights)[x+y*width];
-      bool isBorder = (x==0)||(y==0)||(x==width-1)||(y==height-1);
-      float slope = 0;
-      if (x > 0 && x < width-1) {
-        float d = fabs((*heights)[x+1+y*width]-(*heights)[x-1+y*width]);
-        float c = ((*heights)[x+1+y*width]+(*heights)[x-1+y*width])*0.5;
-        float s = fabs(h-c)/(d==0?1:d);
-        if (s > slope) slope = s;
-      }
-      if (y > 0 && y < height-1) {
-        float d = fabs((*heights)[x+(y+1)*width]-(*heights)[x+(y-1)*width]);
-        float c = ((*heights)[x+(y+1)*width]+(*heights)[x+(y-1)*width])*0.5;
-        float s = fabs(h-c)/(d==0?1:d);
-        if (s > slope) slope = s;
-      }
-      Vector p = Vector((double)x/(width-1)*2-1,h,(double)y/(height-1)*2-1);
-      Vector p_ = m2 * p;
-      if (p_.w != 0) {p_ /= p_.w; p_.w = 1;}
-      double dist = length(p_ - camPos);
-      double r = (double)(rand() & 255)/255.0;
-      if (dist!=0) dist = 1.0/dist; // the farer the less influence
-      if (isBorder || dist*slope>=r*param) {
-        points3D.push_back(p);
-        points2D.push_back(p.x);
-        points2D.push_back(p.z);
-      }
-    }
-  }
-
-  delaunator.delaunator(&points2D);
-
-  for (int i = 0; i < delaunator.triangles.size()/3; i++) {
-    Vector *p0 = &points3D[delaunator.triangles[i*3+0]];
-    Vector *p1 = &points3D[delaunator.triangles[i*3+1]];
-    Vector *p2 = &points3D[delaunator.triangles[i*3+2]];
-    Vector n = cross(*p1-*p0,*p2-*p0);
-    if (length(n)<0.00001) continue;
-    n = normalize(n);
-    for (int j = 0; j < 3; j++) {
-      BakedVertex v;
-      Vector *p = &points3D[delaunator.triangles[i*3+j]];
-      v.x = p->x;
-      v.y = p->y;
-      v.z = p->z;
-      v.color = 0xffffffff;
-      v.nx = n.x;
-      v.ny = n.y;
-      v.nz = n.z;
-      triangles->push_back(v);
-    }
-  }
+int heightMapIndex(int i10, int i00, int i01, int i11, int cx, int cy, int width, int height) {
+  int ix00 = i00 % width;
+  int iy00 = i00 / width;
+  int ix01 = i01 % width;
+  int iy01 = i01 / width;
+  int ix11 = i11 % width;
+  int iy11 = i11 / width;
+  int ix10 = i10 % width;
+  int iy10 = i10 / width;
+  if (abs(ix10-ix00)==1) return i00;
+  if (abs(ix01-ix00)==1) return i00;
+  int newX = (ix10-ix00)*cx/2+ix00;
+  int newY = (iy01-iy00)*cy/2+iy00;
+  return newX + newY*width;
 }
 
 void paintHeightmap(class GameObject *o, bool showModificators) {
 
   if (!isInViewport(o)) return;
   FileBinding *b = getBindingById(o->fileBindingId);
-  if (b == NULL || justDrawBoundingBoxes) {paintTrigger(o,showModificators); return;}
-
-  static Array<BakedVertex> triangles;
+  int width = b->originalWidth;
+  int height = b->originalHeight;
+  float *heights = &b->floatContent[0];
+  if (width < 2 || height < 2 || b == NULL || justDrawBoundingBoxes) {paintTrigger(o,showModificators); return;}
 
   Matrix cameraMatrix; glGetDoublev(GL_MODELVIEW_MATRIX, cameraMatrix.m);
 
@@ -1152,20 +1106,89 @@ void paintHeightmap(class GameObject *o, bool showModificators) {
   if (twoSidedOn) glDisable(GL_CULL_FACE); else glEnable(GL_CULL_FACE);  if (b->forceTwoSided) glDisable(GL_CULL_FACE);
 
   Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m);
-  createDelaunayTriangles(&triangles, Vector(-1,0,-1), Vector(1,1,1), &cameraMatrix, &modelView, &b->floatContent, b->originalWidth, b->originalHeight, b->doubleParameter);
+  Matrix projection; glGetDoublev(GL_PROJECTION_MATRIX, projection.m);
+  Matrix m2 = projection * modelView;
 
-  glBegin(GL_TRIANGLES);
-  for (int i = 0; i < triangles.size(); i++) {
-    BakedVertex *v = &triangles[i];
-    glColor4ubv((GLubyte*)&v->color);
-    glNormal3f(v->nx,v->ny,v->nz);
-    glVertex3f(v->x,v->y,v->z);
+  Vector camPos = inverse(cameraMatrix).getColumn(3);
+  if (camPos.w != 0) {camPos / camPos.w; camPos.w = 1;}
+  double f = b->doubleParameter;
+  static Array<unsigned int> recurse; recurse.clear();
+  recurse.push_back(1*(width-1)*1+0*(height-1)*width);
+  recurse.push_back(0*(width-1)*1+0*(height-1)*width);
+  recurse.push_back(0*(width-1)*1+1*(height-1)*width);
+  recurse.push_back(1*(width-1)*1+1*(height-1)*width);
+  glBegin(GL_QUADS);
+  glColor4ubv((GLubyte*)&o->color);
+  while(!recurse.empty()) {
+
+    int i11 = recurse.back(); recurse.pop_back();
+    int i01 = recurse.back(); recurse.pop_back();
+    int i00 = recurse.back(); recurse.pop_back();
+    int i10 = recurse.back(); recurse.pop_back();
+
+    if ((i11==i00)||(i01==i00)|(i10==i00)) continue;
+    
+    Vector p00 = heightMapVertex(i00,heights,width,height);
+    Vector p10 = heightMapVertex(i10,heights,width,height);
+    Vector p01 = heightMapVertex(i01,heights,width,height);
+    Vector p11 = heightMapVertex(i11,heights,width,height);
+
+    Vector t00 = m2 * p00;
+    Vector t10 = m2 * p10;
+    Vector t01 = m2 * p01;
+    Vector t11 = m2 * p11;
+
+    int allOutOnSide = 1|2|4|8|16|32;
+    if (t00.x>=-t00.w||t01.x>=-t01.w||t10.x>=-t10.w||t11.x>=-t11.w) allOutOnSide &= ~1;
+    if (t00.y>=-t00.w||t01.y>=-t01.w||t10.y>=-t10.w||t11.y>=-t11.w) allOutOnSide &= ~2;
+    if (t00.z>=-t00.w||t01.z>=-t01.w||t10.z>=-t10.w||t11.z>=-t11.w) allOutOnSide &= ~4;
+    if (t00.x<=t00.w||t01.x<=t01.w||t10.x<=t10.w||t11.x<=t11.w) allOutOnSide &= ~8;
+    if (t00.y<=t00.w||t01.y<=t01.w||t10.y<=t10.w||t11.y<=t11.w) allOutOnSide &= ~16;
+    if (t00.z<=t00.w||t01.z<=t01.w||t10.z<=t10.w||t11.z<=t11.w) allOutOnSide &= ~32;
+    if (allOutOnSide!=0) continue;
+
+    if (t00.w != 0) {t00 /= t00.w; t00.w = 1;}
+    if (t10.w != 0) {t10 /= t10.w; t10.w = 1;}
+    if (t01.w != 0) {t01 /= t01.w; t01.w = 1;}
+    if (t11.w != 0) {t11 /= t11.w; t11.w = 1;}
+
+    double size = length((t11-t00).xy());
+    bool dontRecurse = heightMapIndex(i10,i00,i01,i11,1,0,width,height)==i00 || heightMapIndex(i10,i00,i01,i11,0,1,width,height)==i00;
+
+    if (size>f && !dontRecurse) {
+      recurse.push_back(heightMapIndex(i10,i00,i01,i11,1,0,width,height));
+      recurse.push_back(heightMapIndex(i10,i00,i01,i11,0,0,width,height));
+      recurse.push_back(heightMapIndex(i10,i00,i01,i11,0,1,width,height));
+      recurse.push_back(heightMapIndex(i10,i00,i01,i11,1,1,width,height));
+
+      recurse.push_back(heightMapIndex(i10,i00,i01,i11,2,0,width,height));
+      recurse.push_back(heightMapIndex(i10,i00,i01,i11,1,0,width,height));
+      recurse.push_back(heightMapIndex(i10,i00,i01,i11,1,1,width,height));
+      recurse.push_back(heightMapIndex(i10,i00,i01,i11,2,1,width,height));
+
+      recurse.push_back(heightMapIndex(i10,i00,i01,i11,2,1,width,height));
+      recurse.push_back(heightMapIndex(i10,i00,i01,i11,1,1,width,height));
+      recurse.push_back(heightMapIndex(i10,i00,i01,i11,1,2,width,height));
+      recurse.push_back(heightMapIndex(i10,i00,i01,i11,2,2,width,height));
+
+      recurse.push_back(heightMapIndex(i10,i00,i01,i11,1,1,width,height));
+      recurse.push_back(heightMapIndex(i10,i00,i01,i11,0,1,width,height));
+      recurse.push_back(heightMapIndex(i10,i00,i01,i11,0,2,width,height));
+      recurse.push_back(heightMapIndex(i10,i00,i01,i11,1,2,width,height));
+    } else {
+      Vector n1 = p11-p00;
+      Vector n2 = p10-p01;
+      Vector n = normalize(cross(n1,n2));
+      glNormal3dv(&n.x);
+      glVertex3dv(&p10.x);
+      glVertex3dv(&p00.x);
+      glVertex3dv(&p01.x);
+      glVertex3dv(&p11.x);
+    }
   }
   glEnd();
 
   glEnable(GL_CULL_FACE);
-
-  addHitTestTriangles(o,0,&triangles,minB,maxB);
 
   glTranslatef(o->anchor.x,o->anchor.y,o->anchor.z);
 

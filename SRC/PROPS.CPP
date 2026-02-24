@@ -953,8 +953,10 @@ void showHeightmapProperties(GameObject *object) {
       ImGui::Text("Height %d",binding->originalHeight);
       ImGui::Text("Min elevation %0.4f",binding->boundingBoxMin.y);
       ImGui::Text("Max elevation %0.4f",binding->boundingBoxMax.y);
+      ImGui::Text("Two sided"); ImGui::SameLine(); if (ImGui::Checkbox("##HEIGHTMAPPROPTWOSIDED",&binding->forceTwoSided)) {renderingUpdated = true;}
       float k;
-      k = binding->doubleParameter; ImGui::Text("Dist"); ImGui::SameLine(); if (ImGui::InputFloat("##HEIGHTMAPPROPDISTANCE",&k)) {binding->doubleParameter = k; renderingUpdated = true;}
+      k = binding->doubleParameter; ImGui::Text("Dist"); ImGui::SameLine(); if (ImGui::SliderFloat("##HEIGHTMAPPROPDISTANCE",&k,0,1)) {binding->doubleParameter = k; renderingUpdated = true;}
+      if (binding->doubleParameter<0) binding->doubleParameter = 0;
     }
     ImGui::Text("%s",binding->fileName.last(19).c_str());
   }

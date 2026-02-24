@@ -734,7 +734,7 @@ bool FileBinding::reload() {
       }
       boundingBoxMin.set(-1,minz,-1);
       boundingBoxMax.set(1,maxz,1);
-      doubleParameter = 1;
+      doubleParameter = 0.1;
       s.free();
       return true;
     } //break;
