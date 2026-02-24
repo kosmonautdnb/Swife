@@ -36,6 +36,7 @@
 #include "TOOLBAR.HPP"
 #include "PROPS.HPP"
 #include "STL/SPRTEOBJ.HPP"
+#include "STL/DELAUNTR.HPP"
 #include <math.h>
 
 #define SKYBOX_LEFT 0
@@ -1061,4 +1062,120 @@ void paintPath(class GameObject *o, bool showModificators) {
     glColor4f(0,0,1,1); p2 = p + (r * Vector(0,0,1))*l; glVertex3dv(&p.x); glVertex3dv(&p2.x);
     glEnd();
   }
+}
+
+void createDelaunayTriangles(Array<BakedVertex> *triangles, const Vector &bmin, const Vector &bmax, Matrix *cameraMatrix, Matrix *modelView, Array<float> *heights, int width, int height, double param) {
+
+  static Delaunator delaunator;
+  static Array<double> points2D;
+  static Array<Vector> points3D;
+  triangles->clear();
+
+  Vector camPos = inverse(*cameraMatrix).getColumn(3);
+  Matrix m2 = inverse(*cameraMatrix) * *modelView;
+
+  srand(0);
+  points2D.clear();
+  points3D.clear();
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      float h = (*heights)[x+y*width];
+      bool isBorder = (x==0)||(y==0)||(x==width-1)||(y==height-1);
+      float slope = 0;
+      if (x > 0 && x < width-1) {
+        float d = fabs((*heights)[x+1+y*width]-(*heights)[x-1+y*width]);
+        float c = ((*heights)[x+1+y*width]+(*heights)[x-1+y*width])*0.5;
+        float s = fabs(h-c)/(d==0?1:d);
+        if (s > slope) slope = s;
+      }
+      if (y > 0 && y < height-1) {
+        float d = fabs((*heights)[x+(y+1)*width]-(*heights)[x+(y-1)*width]);
+        float c = ((*heights)[x+(y+1)*width]+(*heights)[x+(y-1)*width])*0.5;
+        float s = fabs(h-c)/(d==0?1:d);
+        if (s > slope) slope = s;
+      }
+      Vector p = Vector((double)x/(width-1)*2-1,h,(double)y/(height-1)*2-1);
+      Vector p_ = m2 * p;
+      if (p_.w != 0) {p_ /= p_.w; p_.w = 1;}
+      double dist = length(p_ - camPos);
+      double r = (double)(rand() & 255)/255.0;
+      if (dist!=0) dist = 1.0/dist; // the farer the less influence
+      if (isBorder || dist*slope>=r*param) {
+        points3D.push_back(p);
+        points2D.push_back(p.x);
+        points2D.push_back(p.z);
+      }
+    }
+  }
+
+  delaunator.delaunator(&points2D);
+
+  for (int i = 0; i < delaunator.triangles.size()/3; i++) {
+    Vector *p0 = &points3D[delaunator.triangles[i*3+0]];
+    Vector *p1 = &points3D[delaunator.triangles[i*3+1]];
+    Vector *p2 = &points3D[delaunator.triangles[i*3+2]];
+    Vector n = cross(*p1-*p0,*p2-*p0);
+    if (length(n)<0.00001) continue;
+    n = normalize(n);
+    for (int j = 0; j < 3; j++) {
+      BakedVertex v;
+      Vector *p = &points3D[delaunator.triangles[i*3+j]];
+      v.x = p->x;
+      v.y = p->y;
+      v.z = p->z;
+      v.color = 0xffffffff;
+      v.nx = n.x;
+      v.ny = n.y;
+      v.nz = n.z;
+      triangles->push_back(v);
+    }
+  }
+}
+
+void paintHeightmap(class GameObject *o, bool showModificators) {
+
+  if (!isInViewport(o)) return;
+  FileBinding *b = getBindingById(o->fileBindingId);
+  if (b == NULL || justDrawBoundingBoxes) {paintTrigger(o,showModificators); return;}
+
+  static Array<BakedVertex> triangles;
+
+  Matrix cameraMatrix; glGetDoublev(GL_MODELVIEW_MATRIX, cameraMatrix.m);
+
+  glPushMatrix();
+
+  Matrix m = o->getRenderTransform();
+  Vector minB = b->boundingBoxMin;
+  Vector maxB = b->boundingBoxMax;
+
+  glMultMatrixd(m.m);
+  if (twoSidedOn) glDisable(GL_CULL_FACE); else glEnable(GL_CULL_FACE);  if (b->forceTwoSided) glDisable(GL_CULL_FACE);
+
+  Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m);
+  createDelaunayTriangles(&triangles, Vector(-1,0,-1), Vector(1,1,1), &cameraMatrix, &modelView, &b->floatContent, b->originalWidth, b->originalHeight, b->doubleParameter);
+
+  glBegin(GL_TRIANGLES);
+  for (int i = 0; i < triangles.size(); i++) {
+    BakedVertex *v = &triangles[i];
+    glColor4ubv((GLubyte*)&v->color);
+    glNormal3f(v->nx,v->ny,v->nz);
+    glVertex3f(v->x,v->y,v->z);
+  }
+  glEnd();
+
+  glEnable(GL_CULL_FACE);
+
+  addHitTestTriangles(o,0,&triangles,minB,maxB);
+
+  glTranslatef(o->anchor.x,o->anchor.y,o->anchor.z);
+
+  if (showModificators) {
+    Vector minB2 = minB - o->anchor;
+    Vector maxB2 = maxB - o->anchor;
+    addHitTestScaleGizmo(o,minB2,maxB2);
+    addHitTestRotateGizmo(o,minB2,maxB2);
+    addHitTestMoveGizmo2(cameraMatrix,o,minB2,maxB2);
+  }
+
+  glPopMatrix();
 }

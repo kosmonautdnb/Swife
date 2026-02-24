@@ -138,6 +138,7 @@ void drawMenuBar() {
       if (ImGui::MenuItem("Add point")) {dialogAddObject(true,GAMEOBJECT_POINT);}
       if (ImGui::MenuItem("Add path")) {dialogAddObject(true,GAMEOBJECT_PATH);}
       if (ImGui::MenuItem("Add texture grid")) {dialogAddObject(true,GAMEOBJECT_TEXTUREGRID);}
+      if (ImGui::MenuItem("Add heightmap")) {dialogAddObject(true,GAMEOBJECT_HEIGHTMAP);}
       ImGui::Separator();
       if (ImGui::MenuItem("Add image")) {dialogAddObject(true,GAMEOBJECT_IMAGE);}
       if (ImGui::MenuItem("Add script")) {dialogAddObject(true,GAMEOBJECT_SCRIPT);}

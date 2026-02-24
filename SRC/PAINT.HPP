@@ -41,6 +41,7 @@ void paintPoint(class GameObject *o, bool showModificators);
 void paintTextureGrid(class GameObject *o, bool showModificators);
 void paintCursor();
 void paintPath(class GameObject *o, bool showModificators);
+void paintHeightmap(class GameObject *o, bool showModificators);
 
 void paintBillBoardContents();
 

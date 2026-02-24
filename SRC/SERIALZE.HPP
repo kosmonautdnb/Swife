@@ -36,7 +36,8 @@ enum FILETYPE {
   FILETYPE_BILLBOARD = 3,
   FILETYPE_TEXTUREGRID = 4,
   FILETYPE_TEXTUREATLAS = 5,
-  FILETYPE_COUNT = 6
+  FILETYPE_HEIGHTMAP = 6,
+  FILETYPE_COUNT = 7
 };
 extern const char *fileTypeNames[FILETYPE_COUNT];
 
@@ -75,6 +76,7 @@ public:
     forceTwoSided = false;
     fileName = "";
     updated = false;
+    doubleParameter = 0;
   }
   ~FileBinding();
   unsigned int type;
@@ -96,6 +98,7 @@ public:
   int index2;
   bool forceTwoSided;
   bool updated;
+  double doubleParameter;
   Array<unsigned int> textureIds;
   Array<BakedVertex> triangles;
   Array<unsigned int> uintContent;
@@ -127,6 +130,7 @@ public:
   S_INT("selected",(__o__)->selected);\
   S_INT("index",(__o__)->index);\
   S_INT("index2",(__o__)->index2);\
+  S_DOUBLE("doubleParameter",(__o__)->doubleParameter);\
   S_BOOL("forceTwoSided",(__o__)->forceTwoSided);\
   S_ARRAY("uintContent",(__o__)->uintContent,S_UINT(NULL,(__o__)->uintContent[i]));\
   S_ARRAY("floatContent",(__o__)->floatContent,S_FLOAT(NULL,(__o__)->floatContent[i]));\
@@ -162,5 +166,7 @@ void saveScript(const char *path, const char *fileName);
 void loadGameObjects(const char *path, const char *fileName);
 void saveGameObjects(const char *path, const char *fileName);
 void saveImage(const char *path, const char *fileName);
+void loadHeightmapForObject(class GameObject *o, const char *fileName);
+void loadHeightmap(const char *path, const char *fileName);
 
 #endif //__SERIALZE_HPP__

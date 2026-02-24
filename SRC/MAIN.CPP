@@ -103,8 +103,8 @@ void renderLoop() {
     perFrame();
     updateCamera();
     drawToolBar();
-    drawViewport();
     drawTexPaint();
+    drawViewport();
     if (!fullScreen) drawInfo();
     if (!fullScreen) drawTimeLine();
     if (!fullScreen) drawProperties();
@@ -127,11 +127,9 @@ void defaultInit() {
   initPaint();
 }
 
-#include "STL/IMAGE.HPP"
-
 int main(int argc, const char *argv[]) {
   UNUSED(argc);
-
+  
   appFolder = unixFileName(getPath(argv[0]));
   //appFolder = getCWD();
 

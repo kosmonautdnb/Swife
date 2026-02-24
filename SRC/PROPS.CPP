@@ -941,6 +941,28 @@ void showSectionProperties(GameObject *object) {
   ImGui::PopStyleColor();
 }
 
+void showHeightmapProperties(GameObject *object) {
+  FileBinding *binding = getBindingById(object->fileBindingId);
+  showTransform(object,"##HEIGHTMAPPROP");
+  ImGui::Text("Binding");
+  if (binding != NULL) {
+    bindingReloadAndMakeUnique(object,binding,"##HEIGHTMAPPROP");
+    if (!binding->floatContent.empty()) {
+      ImGui::Text(" Binding ID:%d",binding->uniqueId);
+      ImGui::Text("Width %d",binding->originalWidth);
+      ImGui::Text("Height %d",binding->originalHeight);
+      ImGui::Text("Min elevation %0.4f",binding->boundingBoxMin.y);
+      ImGui::Text("Max elevation %0.4f",binding->boundingBoxMax.y);
+      float k;
+      k = binding->doubleParameter; ImGui::Text("Dist"); ImGui::SameLine(); if (ImGui::InputFloat("##HEIGHTMAPPROPDISTANCE",&k)) {binding->doubleParameter = k; renderingUpdated = true;}
+    }
+    ImGui::Text("%s",binding->fileName.last(19).c_str());
+  }
+  if (propsButton("Load##HEIGHTMAPPROPLOAD",strlen("Load")+4)) {
+    dialogLoadSaveSetFileNameAndPath = binding == NULL ? "" : binding->fileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADHEIGHTMAP);
+  }
+  ImGui::Separator();
+}
 
 void drawProperties() {
   int count = 0;
@@ -1020,6 +1042,7 @@ void drawProperties() {
       case GAMEOBJECT_TEXTUREGRID: {showTextureGridProperties(first);} break;
       case GAMEOBJECT_SCRIPT: {showScriptProperties(first);} break;
       case GAMEOBJECT_IMAGE: {showImageProperties(first);} break;
+      case GAMEOBJECT_HEIGHTMAP: {showHeightmapProperties(first);} break;
       default:
         showMeshProperties(first);
       }

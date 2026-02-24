@@ -28,6 +28,7 @@
 #include "TOOLBAR.HPP"
 #include "GAMEOBJ.HPP"
 #include "RENDER.HPP"
+#include "SERIALZE.HPP"
 #include "STL/MATRIX.HPP"
 #include <math.h>
 
@@ -191,6 +192,10 @@ bool isBackFace(const Matrix *m, const Matrix *invModelView, const Vector *v0,co
 void addHitTestTriangles(class GameObject *o, int toolId, Array<BakedVertex> *triangles, const Vector &minB, const Vector &maxB) {
   if (!doHitTest) return;
 
+  FileBinding *b = getBindingById(o->fileBindingId);
+  bool forceTwoSided = false;
+  if (b != NULL) forceTwoSided = b->forceTwoSided;  
+
   Array<Vector> collisionPoints;
   Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m); 
   Vector center = (minB+maxB) * 0.5; Matrix scale;  scale.translate(center); scale.scale3((maxB-minB)*0.5);
@@ -204,20 +209,7 @@ void addHitTestTriangles(class GameObject *o, int toolId, Array<BakedVertex> *tr
       t0.set(t->x,t->y,t->z); t++;
       t1.set(t->x,t->y,t->z); t++;
       t2.set(t->x,t->y,t->z);      
-      if (!twoSidedOn) {
-        // this one may be not working fully, since triangles are not clipped on nearplane
-        // backface by normal on the other hand may not work well with orthogonal matrices
-        //v0 = m3 * t0;
-        //v1 = m3 * t1;
-        //v2 = m3 * t2;
-        //if (v0.w != 0) v0 /= v0.w;
-        //if (v1.w != 0) v1 /= v1.w;
-        //if (v2.w != 0) v2 /= v2.w;
-        //double dx0 = v1.x - v0.x;
-        //double dy0 = v1.y - v0.y;
-        //double dx1 = v2.x - v0.x;
-        //double dy1 = v2.y - v0.y;
-        //if ((dx0*dy1 - dy0*dx1) < 0) continue;
+      if ((!twoSidedOn)&&(!forceTwoSided)) {
         if (isBackFace(&m3,&invModelView,&t0,&t1,&t2)) continue;
       }
 

@@ -47,7 +47,7 @@
 
 int version = 103;
 
-const char *fileTypeNames[FILETYPE_COUNT] = {"none","skybox","mesh","billboard","texturegrid","textureatlas"};
+const char *fileTypeNames[FILETYPE_COUNT] = {"none","skybox","mesh","billboard","texturegrid","textureatlas","heightmap"};
 
 enum JSONTYPE {
   JSONTYPE_NULL = 0,
@@ -714,6 +714,30 @@ bool FileBinding::reload() {
       s.free();
       return true;
     } //break;
+    case FILETYPE_HEIGHTMAP: {
+      RGBAImage s = RGBAImage::fromFile(dosFileName(fileName).c_str());
+      if (s.data == NULL) {String nm = String("Couldn't load file:<")+fileName+">";dialogMessage(true,nm.c_str()); return false;}
+      originalWidth = s.width;
+      originalHeight = s.height;
+      floatContent.resize(s.width * s.height);
+      double minz=0,maxz=0;
+      for (int i = 0; i < s.width * s.height; i++) {
+        unsigned int rgba = s.data[i];
+        int r = (rgba) & 255;
+        int g = (rgba>>8) & 255;
+        int b = (rgba>>16) & 255;
+        int a = (rgba>>24) & 255;
+        double grey = (r + g + b)/255.0/3.0*a/255.0;
+        if ((i==0) || grey < minz) minz = grey;
+        if ((i==0) || grey > maxz) maxz = grey;
+        floatContent[i] = (float)grey;
+      }
+      boundingBoxMin.set(-1,minz,-1);
+      boundingBoxMax.set(1,maxz,1);
+      doubleParameter = 1;
+      s.free();
+      return true;
+    } //break;
   }
   return false;
 }
@@ -1244,4 +1268,21 @@ void saveImage(const char *path, const char *fileName) {
     binding->updated = false;
   }
   renameTempFile(path,fileName);
+}
+
+void loadHeightmapForObject(class GameObject *o, const char *fileName) {
+  FileBinding *binding = getBindingByFileName(o, fileName, FILETYPE_HEIGHTMAP);
+  if (binding == NULL) {
+    binding = newBinding();
+    binding->load(fileName, FILETYPE_HEIGHTMAP);
+
+  }
+  o->fileBindingId = binding->uniqueId;
+}
+
+void loadHeightmap(const char *path, const char *fileName) {
+  int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
+  if (j<0) return;
+  GameObject *o = gameObjects[j];
+  loadHeightmapForObject(o,shortFileName(String(path)+String(fileName)).c_str());
 }
