@@ -820,7 +820,30 @@ void showImageProperties(GameObject *object) {
   ImGui::PushItemWidth(40);
   ImGui::Text("Scroll"); ImGui::SameLine(); k = imageScroll.x; if (ImGui::InputFloat("##IMAGEPROPSCROLLX",&k)) {imageScroll.x = k;}
   ImGui::SameLine(); k = imageScroll.y; if (ImGui::InputFloat("##IMAGEPROPSCROLLY",&k)) {imageScroll.y = k;}
+  ImGui::Separator();
+
+  ImGui::Text("Pencil");
+  ImGui::SameLine();
+  if (propsButton("Use##IMAGEPROPUSEPENCIL",strlen("Use")+4)) {pencilUpdated = true;}
+
+  ImGui::Text("Rectangle");
+  ImGui::SameLine();
+  if (ImGui::Checkbox("##IMAGEPROPPENCILISRECT",&pencilIsRect)) {pencilUpdated = true;}
+
+  ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.9,0.9,0.9,1));
+  ImGui::PushItemWidth(64);
+  ImGui::Text("Size"); ImGui::SameLine(); if (ImGui::InputInt("##IMAGEPROPPENCILSIZE",&pencilSize,2,2)) {pencilUpdated = true;}
+  pencilSize -= 1;
+  pencilSize &= ~1;
+  pencilSize += 1;
+  if (pencilSize<1) pencilSize = 1;
+  if (pencilSize>256+1) pencilSize = 256+1;
+  ImGui::PopItemWidth();
+  ImGui::PopStyleColor();
+  ImGui::Separator();
+
   if (stampOn) {
+    ImGui::Text("Stamp colored"); ImGui::SameLine(); ImGui::Checkbox("##IMAGEPROPSTAMPCOLORED",&stampColored);
     if (propsButton("FlipY##IMAGEPROPFLIPY",strlen("FlipY")+4)) {paintFlipY = true;}
     ImGui::SameLine();
     if (propsButton("FlipX##IMAGEPROPFLIPX",strlen("FlipX")+2+strlen("FlipY")+4)) {paintFlipX = true;}

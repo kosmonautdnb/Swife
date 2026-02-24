@@ -48,6 +48,11 @@ bool paintFlipY = false;
 bool paintRotate = false;
 
 bool stampOn = false;
+bool stampColored = false;
+bool pencilIsRect = false;
+int pencilSize = 3;
+bool pencilUpdated = false;
+
 int stampX0=-1,stampY0=-1,stampX1=-1,stampY1=-1;
 unsigned int stampTexture = 0;
 
@@ -160,8 +165,31 @@ unsigned int fxaa(int tx, int ty, unsigned int *sourceBuffer, int width, int hei
 #undef _MIN
 #undef _MAX
 
-void applyPixel(int x, int y, unsigned int color, unsigned int *pixels, int w, int h) {
+void applyPixel(int x, int y, unsigned int color, unsigned int *pixels, int w, int h, bool isStamp) {
   if ((x >= 0) && (y >= 0) && (x < w) && (y < h)) {
+    if (isStamp&&stampColored) {
+      int r = paintColor.x * 255.0;
+      int g = paintColor.y * 255.0;
+      int b = paintColor.z * 255.0;
+      int a = paintColor.w * 255.0;
+      if (r < 0) r = 0;
+      if (g < 0) g = 0;
+      if (b < 0) b = 0;
+      if (a < 0) a = 0;
+      if (r > 255) r = 255;
+      if (g > 255) g = 255;
+      if (b > 255) b = 255;
+      if (a > 255) a = 255;
+      int r3 = color & 255;
+      int g3 = (color>>8) & 255;
+      int b3 = (color>>16) & 255;
+      int a3 = (color>>24) & 255;
+      r = (r * r3)/255;
+      g = (g * g3)/255;
+      b = (b * b3)/255;
+      a = (a * a3)/255;
+      color = (r)|(g<<8)|(b<<16)|(a<<24);
+    }
     if (!paintBlended) 
       pixels[x+y*w] = color;
     else {
@@ -290,6 +318,7 @@ void drawTexPaint() {
           glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
           glBindTexture(GL_TEXTURE_2D,0);
           stampOn = true;
+          stampColored = false;
         }
         if (lineOn && alt) {
           binding->updated = true;
@@ -315,12 +344,12 @@ void drawTexPaint() {
                   int sy = y - stampPY0;
                   if (sx >= 0 && sy >= 0 && sx < sw && sy < sh) {
                     unsigned int rgba2 = sd[sx+sy*sw];
-                    applyPixel(x-tx+tx2,y-ty+ty2,rgba2,textureData,tw,th);
+                    applyPixel(x-tx+tx2,y-ty+ty2,rgba2,textureData,tw,th,true);
                   }
                 }
               }
             } else {
-              applyPixel(tx2,ty2,rgba,textureData,tw,th);
+              applyPixel(tx2,ty2,rgba,textureData,tw,th,false);
             }
             xp += dxa;
             yp += dya;
@@ -350,7 +379,7 @@ void drawTexPaint() {
           if (!paintBlended) {
             ImGui::GetWindowDrawList()->AddImage((ImTextureID)0,one,zwo,ImVec2(0,0),ImVec2(1,1),0xff000000);
           }
-          ImGui::GetWindowDrawList()->AddImage((ImTextureID)stampTexture,one,zwo,tex0,tex1);
+          ImGui::GetWindowDrawList()->AddImage((ImTextureID)stampTexture,one,zwo,tex0,tex1,stampColored?rgba:0xffffffff);
           ImGui::GetWindowDrawList()->AddRect(one,zwo,0xff00ff00);
         }
 
@@ -400,12 +429,12 @@ void drawTexPaint() {
                     int sy = y - stampPY0;
                     if (sx >= 0 && sy >= 0 && sx < sw && sy < sh) {
                       unsigned int rgba2 = sd[sx+sy*sw];
-                      applyPixel(x-tx+tx2,y-ty+ty2,rgba2,textureData,tw,th);
+                      applyPixel(x-tx+tx2,y-ty+ty2,rgba2,textureData,tw,th,true);
                     }
                   }
                 }
               } else {
-                applyPixel(tx2,ty2,rgba,textureData,tw,th);
+                applyPixel(tx2,ty2,rgba,textureData,tw,th,false);
               }
               xp += dxa;
               yp += dya;
@@ -516,14 +545,58 @@ void drawTexPaint() {
           }
           paintRotate = false;
         }
+        if (pencilUpdated) {
+          pencilUpdated = false;
+          stampOn = true;
+          stampColored = true;          
+          paintBlended = true;
+          RGBAImage image;
+          image.width = pencilSize;
+          image.height = pencilSize;
+          image.data = (unsigned int*)malloc(image.width*image.height*sizeof(unsigned int));
+          stampX0 = 0;
+          stampY0 = 0;
+          stampX1 = pencilSize;
+          stampY1 = pencilSize;
+          double p = pencilSize-1;
+          if (p<1) p = 1;
+          for (int y = 0; y < image.height; y++) {
+            for (int x = 0; x < image.width; x++) {
+              unsigned int rgba = 0x00000000;
+              if (pencilIsRect)
+                rgba = 0xffffffff;
+              else {
+                double dx = (double)(x) / p * 2.0 - 1.0;
+                double dy = (double)(y) / p * 2.0 - 1.0;
+                double r = sqrt(dx*dx+dy*dy);
+                if (r<=1+0.5/p) rgba = 0xffffffff;
+              }
+              image.data[x+y*image.width] = rgba;
+            }
+          }
+          if (stampTexture != 0) glDeleteTextures(1,&stampTexture);
+          glGenTextures(1,&stampTexture);
+          glBindTexture(GL_TEXTURE_2D,stampTexture);
+          glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_BYTE, image.data);
+          image.free();
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+          glBindTexture(GL_TEXTURE_2D,0);
+        }
         if (!ImGui::GetIO().WantCaptureKeyboard && ImGui::IsKeyPressed('f')) {
           if (tx>=0&&ty>=0&&tx<tw&&ty<th) {
             fillImage(tx,ty,rgba,textureData,tw,th);
+            stampOn = false;
+            binding->updated = true;
           }
         }
         if (!ImGui::GetIO().WantCaptureKeyboard && ImGui::IsKeyDown('a')) {
           if (tx>=0&&ty>=0&&tx<tw&&ty<th) {
             textureData[tx+ty*tw] = fxaa(tx,ty,textureData,tw,th);
+            stampOn = false;
+            binding->updated = true;
           }
         }
       }
