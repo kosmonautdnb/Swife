@@ -957,6 +957,7 @@ void showHeightmapProperties(GameObject *object) {
       float k;
       k = binding->doubleParameter; ImGui::Text("Dist"); ImGui::SameLine(); if (ImGui::SliderFloat("##HEIGHTMAPPROPDISTANCE",&k,0,1)) {binding->doubleParameter = k; renderingUpdated = true;}
       if (binding->doubleParameter<0) binding->doubleParameter = 0;
+      ImGui::Text("Fix borders"); ImGui::SameLine(); if (ImGui::Checkbox("##HEIGHTMAPPROPFIXBORDERS",&binding->boolParameter)) {renderingUpdated = true;}
     }
     ImGui::Text("%s",binding->fileName.last(19).c_str());
   }

@@ -1064,20 +1064,58 @@ void paintPath(class GameObject *o, bool showModificators) {
 }
 
 Vector heightMapVertex(int index, float *heights, int width, int height) {
+  index += height * width;
   int ix = index % width;
-  int iy = index / width;
+  int iy = (index / width) % height;
   return Vector((double)ix/(width-1)*2-1,heights[ix+iy*width],(double)iy/(height-1)*2-1);
 }
 
+bool heightMapIsIndexBorder(int index,int width,int height) {
+  index += width * height;
+  int ix = index % width;
+  int iy = (index / width) % height;
+  return (ix == 0)||(iy == 0)||(ix == width-1)||(iy == height-1);
+}
+
+void heightMapVertex2(Vector *toUpdate, int completeIndex, int failIndex, float *heights, int width, int height, unsigned char *pointCount) {
+
+  completeIndex += height * width;
+  failIndex += height * width;
+
+  int cx = completeIndex % width;
+  int cy = (completeIndex / width) % height;
+
+  int fx = failIndex % width;
+  int fy = (failIndex / width) % height;
+
+  int dx = fx-cx;
+  int dy = fy-cy;
+
+  int ix = cx + dx * 2;
+  int iy = cy + dy * 2;
+  if (ix < 0) ix = 0;
+  if (iy < 0) iy = 0;
+  if (ix > width-1) ix = width-1;
+  if (iy > height-1) iy = height-1;
+
+  ix = (ix + width) % width;
+  iy = (iy + height) % height;
+
+  int newIndex = ix + iy * width;
+  if (pointCount[newIndex]!=4) return;
+
+  toUpdate->y = (heightMapVertex(completeIndex, heights, width, height).y + heightMapVertex(newIndex, heights, width, height).y )*0.5;
+}
+
 int heightMapIndex(int i10, int i00, int i01, int i11, int cx, int cy, int width, int height) {
-  int ix00 = i00 % width;
-  int iy00 = i00 / width;
-  int ix01 = i01 % width;
-  int iy01 = i01 / width;
-  int ix11 = i11 % width;
-  int iy11 = i11 / width;
-  int ix10 = i10 % width;
-  int iy10 = i10 / width;
+  int ix00 = (i00+width) % width;
+  int iy00 = (i00 / width+height) % height;
+  int ix01 = (i01+width) % width;
+  int iy01 = (i01 / width+height) % height;
+  int ix11 = (i11+width) % width;
+  int iy11 = (i11 / width+height) % height;
+  int ix10 = (i10+width) % width;
+  int iy10 = (i10 / width+height) % height;
   if (abs(ix10-ix00)==1) return i00;
   if (abs(ix01-ix00)==1) return i00;
   int newX = (ix10-ix00)*cx/2+ix00;
@@ -1113,12 +1151,14 @@ void paintHeightmap(class GameObject *o, bool showModificators) {
   if (camPos.w != 0) {camPos / camPos.w; camPos.w = 1;}
   double f = b->doubleParameter;
   static Array<unsigned int> recurse; recurse.clear();
+  static Array<unsigned int> polys; polys.clear();
+  static Array<unsigned char> pointCount; pointCount.resize(width*height); memset(&pointCount[0],0,pointCount.size()*sizeof(unsigned char));
   recurse.push_back(1*(width-1)*1+0*(height-1)*width);
   recurse.push_back(0*(width-1)*1+0*(height-1)*width);
   recurse.push_back(0*(width-1)*1+1*(height-1)*width);
   recurse.push_back(1*(width-1)*1+1*(height-1)*width);
-  glBegin(GL_QUADS);
-  glColor4ubv((GLubyte*)&o->color);
+  bool fixBorders = b->boolParameter;
+
   while(!recurse.empty()) {
 
     int i11 = recurse.back(); recurse.pop_back();
@@ -1127,7 +1167,7 @@ void paintHeightmap(class GameObject *o, bool showModificators) {
     int i10 = recurse.back(); recurse.pop_back();
 
     if ((i11==i00)||(i01==i00)|(i10==i00)) continue;
-    
+
     Vector p00 = heightMapVertex(i00,heights,width,height);
     Vector p10 = heightMapVertex(i10,heights,width,height);
     Vector p01 = heightMapVertex(i01,heights,width,height);
@@ -1153,9 +1193,15 @@ void paintHeightmap(class GameObject *o, bool showModificators) {
     if (t11.w != 0) {t11 /= t11.w; t11.w = 1;}
 
     double size = length((t11-t00).xy());
-    bool dontRecurse = heightMapIndex(i10,i00,i01,i11,1,0,width,height)==i00 || heightMapIndex(i10,i00,i01,i11,0,1,width,height)==i00;
 
-    if (size>f && !dontRecurse) {
+    bool isLowestLevel = heightMapIndex(i10,i00,i01,i11,1,0,width,height)==i00 || heightMapIndex(i10,i00,i01,i11,0,1,width,height)==i00;
+    bool forceRecurse = false;
+    if (fixBorders) {
+      bool isBorder = heightMapIsIndexBorder(i00,width,height) || heightMapIsIndexBorder(i01,width,height) || heightMapIsIndexBorder(i10,width,height) || heightMapIsIndexBorder(i11,width,height);
+      if (isBorder&& !isLowestLevel) forceRecurse = true;
+    }
+
+    if ((size>f && !isLowestLevel)||(forceRecurse)) {
       recurse.push_back(heightMapIndex(i10,i00,i01,i11,1,0,width,height));
       recurse.push_back(heightMapIndex(i10,i00,i01,i11,0,0,width,height));
       recurse.push_back(heightMapIndex(i10,i00,i01,i11,0,1,width,height));
@@ -1176,15 +1222,45 @@ void paintHeightmap(class GameObject *o, bool showModificators) {
       recurse.push_back(heightMapIndex(i10,i00,i01,i11,0,2,width,height));
       recurse.push_back(heightMapIndex(i10,i00,i01,i11,1,2,width,height));
     } else {
-      Vector n1 = p11-p00;
-      Vector n2 = p10-p01;
-      Vector n = normalize(cross(n1,n2));
-      glNormal3dv(&n.x);
-      glVertex3dv(&p10.x);
-      glVertex3dv(&p00.x);
-      glVertex3dv(&p01.x);
-      glVertex3dv(&p11.x);
+      polys.push_back(i10);
+      polys.push_back(i00);
+      polys.push_back(i01);
+      polys.push_back(i11);
+      pointCount[i10]++;
+      pointCount[i00]++;
+      pointCount[i01]++;
+      pointCount[i11]++;
     }
+  }
+
+  glBegin(GL_QUADS);
+  glColor4ubv((GLubyte*)&o->color);
+  for (int i = 0; i < polys.size()/4; i++) {
+    int i10 = polys[i*4+0];
+    int i00 = polys[i*4+1];
+    int i01 = polys[i*4+2];
+    int i11 = polys[i*4+3];
+    Vector p10 = heightMapVertex(i10,heights,width,height);
+    Vector p00 = heightMapVertex(i00,heights,width,height);
+    Vector p01 = heightMapVertex(i01,heights,width,height);
+    Vector p11 = heightMapVertex(i11,heights,width,height);
+    Vector n1 = p11-p00;
+    Vector n2 = p10-p01;
+    // there are still some tiny seams here and there..
+    if (pointCount[i01]==4&&pointCount[i00]==2) {heightMapVertex2(&p00,i01,i00,heights,width,height,&pointCount[0]);}
+    if (pointCount[i10]==4&&pointCount[i00]==2) {heightMapVertex2(&p00,i10,i00,heights,width,height,&pointCount[0]);}
+    if (pointCount[i00]==4&&pointCount[i01]==2) {heightMapVertex2(&p01,i00,i01,heights,width,height,&pointCount[0]);}
+    if (pointCount[i11]==4&&pointCount[i01]==2) {heightMapVertex2(&p01,i11,i01,heights,width,height,&pointCount[0]);}
+    if (pointCount[i00]==4&&pointCount[i10]==2) {heightMapVertex2(&p10,i00,i10,heights,width,height,&pointCount[0]);}
+    if (pointCount[i11]==4&&pointCount[i10]==2) {heightMapVertex2(&p10,i11,i10,heights,width,height,&pointCount[0]);}
+    if (pointCount[i01]==4&&pointCount[i11]==2) {heightMapVertex2(&p11,i01,i11,heights,width,height,&pointCount[0]);}
+    if (pointCount[i10]==4&&pointCount[i11]==2) {heightMapVertex2(&p11,i10,i11,heights,width,height,&pointCount[0]);}
+    Vector n = normalize(cross(n1,n2));
+    glNormal3dv(&n.x);
+    glVertex3dv(&p10.x);
+    glVertex3dv(&p00.x);
+    glVertex3dv(&p01.x);
+    glVertex3dv(&p11.x);
   }
   glEnd();
 

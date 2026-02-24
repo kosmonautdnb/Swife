@@ -77,6 +77,7 @@ public:
     fileName = "";
     updated = false;
     doubleParameter = 0;
+    boolParameter = false;
   }
   ~FileBinding();
   unsigned int type;
@@ -99,6 +100,7 @@ public:
   bool forceTwoSided;
   bool updated;
   double doubleParameter;
+  bool boolParameter;
   Array<unsigned int> textureIds;
   Array<BakedVertex> triangles;
   Array<unsigned int> uintContent;
@@ -131,6 +133,7 @@ public:
   S_INT("index",(__o__)->index);\
   S_INT("index2",(__o__)->index2);\
   S_DOUBLE("doubleParameter",(__o__)->doubleParameter);\
+  S_DOUBLE("boolParameter",(__o__)->boolParameter);\
   S_BOOL("forceTwoSided",(__o__)->forceTwoSided);\
   S_ARRAY("uintContent",(__o__)->uintContent,S_UINT(NULL,(__o__)->uintContent[i]));\
   S_ARRAY("floatContent",(__o__)->floatContent,S_FLOAT(NULL,(__o__)->floatContent[i]));\
