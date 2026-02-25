@@ -966,10 +966,30 @@ void showHeightmapProperties(GameObject *object) {
       ImGui::Text("%s",binding->fileName2.last(19).c_str());
     }
   }
-  if (propsButton("Load heights##HEIGHTMAPPROPLOAD",strlen("Load heights")+4)) {
+
+  bool before;
+  double aspect = 1;
+  before = false;
+  if (binding != NULL && binding->textureIds.size()>0) {
+    int sw = properties_width-32; int sh = sw*aspectRatio/main_window_xres*main_window_yres;
+    if (glGetTextureHeight(binding->textureIds[0])>0) aspect = (double)glGetTextureWidth(binding->textureIds[0])/glGetTextureHeight(binding->textureIds[0]);
+    if (aspect != 0) sh /= aspect;
+    if (textureButton("##HEIGHTMAPPROPHEIGHTTEXTURE",binding->textureIds[0],sw,sh,false)) {
+      before = true;
+    }
+  }
+  if (propsButton("Load heights##HEIGHTMAPPROPHEIGHTLOAD",strlen("Load heights")+4)||before) {
     dialogLoadSaveModeId = 0; dialogLoadSaveSetFileNameAndPath = binding == NULL ? "" : binding->fileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADHEIGHTMAP);
   }
-  if (propsButton("Load colors##HEIGHTMAPPROPLOAD",strlen("Load colors")+4)) {
+  before = false;
+  if (binding != NULL && binding->textureIds.size()>1) {
+    int sw = properties_width-32; int sh = sw*aspectRatio/main_window_xres*main_window_yres;
+    if (aspect != 0) sh /= aspect;
+    if (textureButton("##HEIGHTMAPPROPHEIGHTTEXTURE",binding->textureIds[1],sw,sh,false)) {
+      before = true;
+    }
+  }
+  if (propsButton("Load colors##HEIGHTMAPPROPCOLORLOAD",strlen("Load colors")+4)||before) {
     dialogLoadSaveModeId = 1; dialogLoadSaveSetFileNameAndPath = binding == NULL ? "" : binding->fileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADHEIGHTMAP);
   }
   ImGui::Separator();
