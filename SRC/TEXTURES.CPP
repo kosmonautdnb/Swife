@@ -26,6 +26,7 @@
 #include "TEXTURES.HPP"
 #include "CONFIG.HPP"
 #include "STL/IMAGE.HPP"
+#include "UTIL/LOG.HPP"
 
 bool textureButton(const char *id, unsigned int textureId, int w, int h, bool decoration) {
   ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0,0,0,1));
@@ -84,6 +85,7 @@ bool textureAtlasButton(const char *id, unsigned int textureId, int w, int h, fl
 }
 
 unsigned int textureFromImageArea(const class RGBAImage *i, int x0, int y0, int x1, int y1) {
+  logd("textureFromImageArea:<%d,%d,%d,%d>",x0,y0,x1,y1);
   unsigned int t = 0;
   int w = x1 - x0;
   int h = y1 - y0;
@@ -116,6 +118,7 @@ unsigned int textureFromImageArea(const class RGBAImage *i, int x0, int y0, int 
 }
 
 void skyBoxFromHorizontalCrossImage(unsigned int t[6], const class RGBAImage *s) {
+  logd("skyBoxFromHorizontalCrossImage:<%d,%d>",s->width,s->height);
   for (int j = 0; j < 6; j++) {glDeleteTextures(1,&t[j]); t[j] = 0;}
   if (s->data == NULL) return;
   int kx = s->height/3;
@@ -132,6 +135,7 @@ void correctTextureSize(class RGBAImage *image) {
   if (image->width > maxTextureWidth || image->height > maxTextureHeight) {
     int w2 = image->width > maxTextureWidth ? maxTextureWidth : image->width;
     int h2 = image->height > maxTextureHeight ? maxTextureHeight : image->height;
+    logd("correctTextureSize from<%d,%d> to<%d,%d>",image->width,image->height,w2,h2);
     RGBAImage zwo = image->getResized(w2,h2);
     image->free();
     *image = zwo;
@@ -139,5 +143,6 @@ void correctTextureSize(class RGBAImage *image) {
 }
 
 unsigned int textureFromImage(const class RGBAImage *s) {
+  logd("textureFromImage:<%d,%d>",s->width,s->height);
   return textureFromImageArea(s,0,0,s->width,s->height);
 }

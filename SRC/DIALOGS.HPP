@@ -71,6 +71,7 @@ String shortFileName(const String &a);
 
 extern unsigned int dialogLoadSaveGameObjectUniqueId;
 extern String dialogLoadSaveSetFileNameAndPath;
+extern int dialogLoadSaveModeId;
 void dialogLoadSave(bool openIt, int dialogMode);
 
 void dialogMessage(bool openIt, const char *alertMessage);

@@ -44,6 +44,7 @@
 #include "HITTEST.HPP"
 #include "PROPS.HPP"
 #include "TEXPAINT.HPP"
+#include "UTIL/LOG.HPP"
 
 int version = 103;
 
@@ -76,23 +77,23 @@ JSON_Value * json_parse_string(const char *string);
 #define STARTSERIALIZATION(__save__, __file__) int arrayIndex = 0; bool error = false; JSON_Value *jval; Array<JSON_Value*> jvals; Array<char> jsonArray; jsonArray.resize(JSONPORTIONLENGTH); jsonArray[0] = '{'; char *jsonPos = &jsonArray[1]; bool jsonIsSaving = __save__; if (!jsonIsSaving) {loadArray(&jsonArray,file);jval=json_parse_string_with_comments(&jsonArray[0]); jvals.push_back(jval); jsonPos = (char*)&jvals; if (jval==NULL) error = true;}
 #define FINISHSERIALIZATION(__file__) {if (jsonIsSaving) {if (jsonPos[-1] == ',' ) jsonPos--; sprintf(jsonPos,"}");fputs(&jsonArray[0],file);}}
 
-#define S_NULL(__name__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_NULL, __name__, NULL, jsonIsSaving,arrayIndex)
-#define S_BOOL(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_BOOL, __name__, &(__v__), jsonIsSaving,arrayIndex)
-#define S_INT(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_INT, __name__, &(__v__), jsonIsSaving,arrayIndex)
-#define S_UINT(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_UINT, __name__, &(__v__), jsonIsSaving,arrayIndex)
-#define S_FLOAT(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_FLOAT, __name__, &(__v__), jsonIsSaving,arrayIndex)
-#define S_DOUBLE(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_DOUBLE, __name__, &(__v__), jsonIsSaving,arrayIndex)
-#define S_STRING(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_STRING, __name__, &(__v__), jsonIsSaving,arrayIndex)
-#define S_NAME(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_NAME, __name__, (__v__), jsonIsSaving,arrayIndex)
+#define S_NULL(__name__)  {jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_NULL, __name__, NULL, jsonIsSaving,arrayIndex);}
+#define S_BOOL(__name__, __v__)  {bool *typeSafe = &(__v__); UNUSED(typeSafe); jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_BOOL, __name__, &(__v__), jsonIsSaving,arrayIndex);}
+#define S_INT(__name__, __v__)  {int *typeSafe = &(__v__); UNUSED(typeSafe); jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_INT, __name__, &(__v__), jsonIsSaving,arrayIndex);}
+#define S_UINT(__name__, __v__)  {unsigned int *typeSafe = &(__v__); UNUSED(typeSafe); jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_UINT, __name__, &(__v__), jsonIsSaving,arrayIndex);}
+#define S_FLOAT(__name__, __v__)  {float *typeSafe = &(__v__); UNUSED(typeSafe); jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_FLOAT, __name__, &(__v__), jsonIsSaving,arrayIndex);}
+#define S_DOUBLE(__name__, __v__)  {double *typeSafe = &(__v__); UNUSED(typeSafe); jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_DOUBLE, __name__, &(__v__), jsonIsSaving,arrayIndex);}
+#define S_STRING(__name__, __v__)  {String *typeSafe = &(__v__); UNUSED(typeSafe); jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_STRING, __name__, &(__v__), jsonIsSaving,arrayIndex);}
+#define S_NAME(__name__, __v__)  {char *typeSafe = (__v__); UNUSED(typeSafe); jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_NAME, __name__, (__v__), jsonIsSaving,arrayIndex);}
 #define S_ARRAY_OPEN(__name__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_ARRAY_OPEN, __name__, NULL, jsonIsSaving,arrayIndex)
 #define S_ARRAY_CLOSE()  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_ARRAY_CLOSE, NULL, NULL, jsonIsSaving,arrayIndex)
 #define S_OBJECT_OPEN(__name__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_OBJECT_OPEN, __name__, NULL, jsonIsSaving,arrayIndex)
 #define S_OBJECT_CLOSE()  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_OBJECT_CLOSE, NULL, NULL, jsonIsSaving,arrayIndex)
-#define S_VECTOR(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_VECTOR, __name__, &(__v__), jsonIsSaving,arrayIndex)
-#define S_QUATERNION(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_QUATERNION, __name__, &(__v__), jsonIsSaving,arrayIndex)
-#define S_FLOAT4(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_FLOAT4, __name__, &(__v__[0]), jsonIsSaving,arrayIndex)
-#define S_MATRIX(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_MATRIX, __name__, &(__v__), jsonIsSaving,arrayIndex)
-#define S_FILENAME(__name__, __v__)  jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_FILENAME, __name__, &(__v__), jsonIsSaving,arrayIndex)
+#define S_VECTOR(__name__, __v__) {Vector *typeSafe = &(__v__); UNUSED(typeSafe); jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_VECTOR, __name__, &(__v__), jsonIsSaving,arrayIndex);}
+#define S_QUATERNION(__name__, __v__)  {Quaternion *typeSafe = &(__v__); UNUSED(typeSafe); jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_QUATERNION, __name__, &(__v__), jsonIsSaving,arrayIndex);}
+#define S_FLOAT4(__name__, __v__)  {float *typeSafe = (__v__); UNUSED(typeSafe); jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_FLOAT4, __name__, &(__v__[0]), jsonIsSaving,arrayIndex);}
+#define S_MATRIX(__name__, __v__)  {Matrix *typeSafe = &(__v__); UNUSED(typeSafe); jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_MATRIX, __name__, &(__v__), jsonIsSaving,arrayIndex);}
+#define S_FILENAME(__name__, __v__)  {String *typeSafe = &(__v__); UNUSED(typeSafe); jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_FILENAME, __name__, &(__v__), jsonIsSaving,arrayIndex);}
 
 int arraySize = 0; 
 #define S_ARRAY(__name__,__array__,__elementFunc__) {\
@@ -230,6 +231,7 @@ void loadArray(Array<char> *arr, FILE *in) {
 }
 
 void serializeAll(FILE *file, bool save) {
+  logd("serializeAll - start");
   STARTSERIALIZATION(save, file);
   if (error) {return;}
 
@@ -262,6 +264,7 @@ void serializeAll(FILE *file, bool save) {
     arrayIndex = i1;
     S_GRID(NULL,&grids[i1]);
   }
+
   S_ARRAY_CLOSE();
   S_ARRAY_OPEN("gameObjects");
   S_ARRAY_POINTER_RESIZE(gameObjects,GameObject,arraySize);
@@ -315,11 +318,16 @@ void serializeAll(FILE *file, bool save) {
 
   // VIEWPORT.HPP
   S_BOOL("toolOn", toolOn);
+  S_VECTOR("cursor", cursor);
+  S_QUATERNION("cursorOrientation", cursorOrientation);
 
   FINISHSERIALIZATION(file);
+  logd("serializeAll - end");
 }
 
 void serializeObjects(bool save, FILE *file, Array<GameObject*> &gameObjects, Array<FileBinding*> &bindings, unsigned int &currentUniqueGameObjectId, unsigned int &bindingUniqueId) {
+  logd("serializeObjects - start");
+
   STARTSERIALIZATION(save, file);
   if (error) {return;}
 
@@ -352,6 +360,7 @@ void serializeObjects(bool save, FILE *file, Array<GameObject*> &gameObjects, Ar
   S_ARRAY_CLOSE();
 
   FINISHSERIALIZATION(file);
+  logd("serializeObjects - end");
 }
 
 FileBinding::~FileBinding() {
@@ -359,9 +368,11 @@ FileBinding::~FileBinding() {
 }
 
 void FileBinding::load(const char *name, unsigned int type) {
+  logd("FileBinding::load start with name:<%s> and type<%d>",name,type);
   this->fileName = name;
   this->type = type;
   reload();
+  logd("FileBinding::load end");
 }
 
 double loadingBarTimeBefore = 0;
@@ -391,6 +402,7 @@ void updateLoadingBar() {
 
 Array<unsigned int> allGenTexturesHere;
 unsigned int OBJloadTexture(const String &fileName, const String &type) {
+  logd("OBJ load texture:<%s> and type:<%s>",fileName.c_str(),type.c_str());
   unsigned int texture = 0;
   if (type != "map_Kd") return texture;
   String name = shortFileName(fileName);
@@ -423,6 +435,7 @@ unsigned int vectorToColor(const Vector &v) {
 }
 
 unsigned int gltfTextureCallback(RGBAImage *img) {
+  logd("GLTF load texture:<%d,%d>",img->width,img->height);
   correctTextureSize(img);
   unsigned int r;
   glGenTextures(1, &r);
@@ -671,26 +684,30 @@ bool loadMeshForBinding(const String &fileName, FileBinding *binding) {
 }
 
 bool FileBinding::reload() {
+  logd("FileBinding::reload");
   free();
+  logd("FileBinding::reload_");
   renderingUpdated = true;
   switch(type) {
-  case FILETYPE_SKYBOX: {RGBAImage s = RGBAImage::fromFile(dosFileName(fileName).c_str());
+  case FILETYPE_SKYBOX: {RGBAImage s = RGBAImage::fromFile(shortFileName(dosFileName(fileName)).c_str());
       if (s.data == NULL) {String nm = String("Couldn't load file:<")+fileName+">";dialogMessage(true,nm.c_str()); return false;}
       textureIds.resize(6); 
       skyBoxFromHorizontalCrossImage(&textureIds[0], &s);
       s.free();
+      logd("FileBinding::reload loadskybox %s", fileName.c_str());
       return true;
     }// break;
   case FILETYPE_MESH: return loadMeshForBinding(fileName,this);
   case FILETYPE_BILLBOARD: {
       billBoardIsTexture = false;
-      RGBAImage s = RGBAImage::fromFile(dosFileName(fileName).c_str());
+      RGBAImage s = RGBAImage::fromFile(shortFileName(dosFileName(fileName)).c_str());
       if (s.data != NULL) {
         originalWidth = s.width;
         originalHeight = s.height;
         textureIds.push_back(textureFromImage(&s));
         s.free();
         billBoardIsTexture = true;
+        logd("FileBinding::reload billboard texture %s", fileName.c_str());
         return true;
       }
       if (loadMeshForBinding(fileName, this)) {
@@ -698,6 +715,7 @@ bool FileBinding::reload() {
         originalHeight = defaultRenderTargetHeight;
         spriteObject = new SpriteObject();
         createSpriteObjectFrameBuffer(spriteObject,originalWidth,originalHeight);
+        logd("FileBinding::reload billboard mesh %s", fileName.c_str());
         return true;
       }
       String nm = String("Couldn't load file:<")+fileName+">";
@@ -706,20 +724,20 @@ bool FileBinding::reload() {
     } //break;
     case FILETYPE_TEXTUREATLAS:
     case FILETYPE_TEXTUREGRID: {
-      RGBAImage s = RGBAImage::fromFile(dosFileName(fileName).c_str());
+      RGBAImage s = RGBAImage::fromFile(shortFileName(dosFileName(fileName)).c_str());
       if (s.data == NULL) {String nm = String("Couldn't load file:<")+fileName+">";dialogMessage(true,nm.c_str()); return false;}
       textureIds.push_back(textureFromImage(&s));
       originalWidth = s.width;
       originalHeight = s.height;
       s.free();
+      logd("FileBinding::reload textureatlas/texturegrid %s", fileName.c_str());
       return true;
     } //break;
     case FILETYPE_HEIGHTMAP: {
-      RGBAImage s = RGBAImage::fromFile(dosFileName(fileName).c_str());
+      logd("1");
+      RGBAImage s = RGBAImage::fromFile(shortFileName(dosFileName(fileName)).c_str());
       if (s.data == NULL) {String nm = String("Couldn't load file:<")+fileName+">";dialogMessage(true,nm.c_str()); return false;}
-      originalWidth = s.width;
-      originalHeight = s.height;
-      floatContent.resize(s.width * s.height);
+      logd("2");
       double minz=0,maxz=0;
       for (int i = 0; i < s.width * s.height; i++) {
         unsigned int rgba = s.data[i];
@@ -727,15 +745,28 @@ bool FileBinding::reload() {
         int g = (rgba>>8) & 255;
         int b = (rgba>>16) & 255;
         int a = (rgba>>24) & 255;
-        double grey = (r + g + b)/255.0/3.0*a/255.0;
+        double grey = (r + g + b)/255.0/3.0+a/255.0/256.0;
         if ((i==0) || grey < minz) minz = grey;
         if ((i==0) || grey > maxz) maxz = grey;
-        floatContent[i] = (float)grey;
       }
       boundingBoxMin.set(-1,minz,-1);
       boundingBoxMax.set(1,maxz,1);
       doubleParameter = 0.1;
+      if (textureIds.size()<1) textureIds.resize(1);
+      logd("3");
+      textureIds[0] = textureFromImage(&s);
+      logd("4");
       s.free();
+      logd("5");
+      logd("FileBinding::reload heightmap heights %s", fileName.c_str());
+      if (!fileName2.empty()) {
+        s = RGBAImage::fromFile(shortFileName(dosFileName(fileName2)).c_str());
+        if (s.data == NULL) {String nm = String("Couldn't load file:<")+fileName2+">";dialogMessage(true,nm.c_str()); return false;}
+        if (textureIds.size()<2) textureIds.resize(2);
+        textureIds[1] = textureFromImage(&s);
+        s.free();
+        logd("FileBinding::reload heightmap colors %s", fileName2.c_str());
+      }
       return true;
     } //break;
   }
@@ -743,12 +774,19 @@ bool FileBinding::reload() {
 }
 
 void FileBinding::free() {
+  logd("FileBinding::free");
   for (int i = 0; i < textureIds.size(); i++) {
+    logd("FileBinding::free deleteTexture");
+    logd("id:<%d> texCount:<%d>",textureIds[i],textureIds.size());
     glDeleteTextures(1,&textureIds[i]);
   }
+  logd("FileBinding::free2");
   textureIds.clear();
+  logd("FileBinding::free3");
   triangles.clear();
+  logd("FileBinding::free4");
   if (spriteObject != 0) {freeSpriteObject(spriteObject); delete spriteObject; spriteObject = NULL;}
+  logd("FileBinding::free5");
 }
 
 FileBinding *FileBinding::clone() {
@@ -912,7 +950,7 @@ void loadSkyBox(const char *path, const char *fileName) {
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
-  loadSkyBoxForObject(o,shortFileName(String(path)+String(fileName)).c_str());
+  loadSkyBoxForObject(o,(String(path)+String(fileName)).c_str());
 }
 
 void loadMeshForObject(class GameObject *o, const char *fileName) {
@@ -928,7 +966,7 @@ void loadMesh(const char *path, const char *fileName) {
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
-  loadMeshForObject(o,shortFileName(String(path)+String(fileName)).c_str());
+  loadMeshForObject(o,(String(path)+String(fileName)).c_str());
 }
 
 void loadBillBoardForObject(class GameObject *o, const char *fileName) {
@@ -953,7 +991,7 @@ void loadBillBoard(const char *path, const char *fileName) {
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
-  loadBillBoardForObject(o,shortFileName(String(path)+String(fileName)).c_str());
+  loadBillBoardForObject(o,(String(path)+String(fileName)).c_str());
 }
 
 void loadTextureGridForObject(class GameObject *o, const char *fileName) {
@@ -974,7 +1012,7 @@ void loadTextureGrid(const char *path, const char *fileName) {
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
-  loadTextureGridForObject(o,shortFileName(String(path)+String(fileName)).c_str());
+  loadTextureGridForObject(o,(String(path)+String(fileName)).c_str());
 }
 
 void loadTextureAtlasForObject(class GameObject *o, const char *fileName) {
@@ -995,7 +1033,7 @@ void loadTextureAtlas(const char *path, const char *fileName) {
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
-  loadTextureAtlasForObject(o,shortFileName(String(path)+String(fileName)).c_str());
+  loadTextureAtlasForObject(o,(String(path)+String(fileName)).c_str());
 }
 
 void loadTextureGridCSV(const char *path, const char *fileName) {
@@ -1271,18 +1309,28 @@ void saveImage(const char *path, const char *fileName) {
 }
 
 void loadHeightmapForObject(class GameObject *o, const char *fileName) {
-  FileBinding *binding = getBindingByFileName(o, fileName, FILETYPE_HEIGHTMAP);
-  if (binding == NULL) {
-    binding = newBinding();
-    binding->load(fileName, FILETYPE_HEIGHTMAP);
-
+  if (dialogLoadSaveModeId == 0) {
+    FileBinding *binding = getBindingByFileName(o, fileName, FILETYPE_HEIGHTMAP);
+    if (binding == NULL) {
+      binding = newBinding();
+      binding->load(fileName, FILETYPE_HEIGHTMAP);
+  
+    }
+    o->fileBindingId = binding->uniqueId;
   }
-  o->fileBindingId = binding->uniqueId;
+  if (dialogLoadSaveModeId == 1) {
+    FileBinding *binding = getBindingById(o->fileBindingId);
+    if (binding == NULL) return;
+    if (binding->fileName2 != fileName) {
+      binding->fileName2 = fileName;
+      binding->reload();
+    }
+  }
 }
 
 void loadHeightmap(const char *path, const char *fileName) {
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
-  loadHeightmapForObject(o,shortFileName(String(path)+String(fileName)).c_str());
+  loadHeightmapForObject(o,(String(path)+String(fileName)).c_str());
 }

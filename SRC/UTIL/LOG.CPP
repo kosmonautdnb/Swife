@@ -74,7 +74,7 @@ void logi(const char *fmt, ...) {
 void logd(const char *fmt, ...) {
   TOBUFFER(temp_buffer1);
   sprintf(temp_buffer2,"DEBUG: %s\n",temp_buffer1);
-  logIt(temp_buffer2,true);
+  logIt(temp_buffer2,false);
 }
 
 void loge(const char *fmt, ...) {

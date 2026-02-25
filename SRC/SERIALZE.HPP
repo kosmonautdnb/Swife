@@ -75,6 +75,7 @@ public:
     index2 = -1;
     forceTwoSided = false;
     fileName = "";
+    fileName2 = "";
     updated = false;
     doubleParameter = 0;
     boolParameter = false;
@@ -82,6 +83,7 @@ public:
   ~FileBinding();
   unsigned int type;
   String fileName;
+  String fileName2;
   unsigned int uniqueId;
   Vector boundingBoxMin;
   Vector boundingBoxMax;
@@ -117,6 +119,7 @@ public:
   S_OBJECT_OPEN(__name__);\
   S_UINT("type", (__o__)->type);\
   S_FILENAME("fileName",(__o__)->fileName);\
+  S_FILENAME("fileName2",(__o__)->fileName2);\
   S_UINT("uniqueId",(__o__)->uniqueId);\
   S_VECTOR("boundingBoxMin",(__o__)->boundingBoxMin);\
   S_VECTOR("boundingBoxMax",(__o__)->boundingBoxMax);\
@@ -133,7 +136,7 @@ public:
   S_INT("index",(__o__)->index);\
   S_INT("index2",(__o__)->index2);\
   S_DOUBLE("doubleParameter",(__o__)->doubleParameter);\
-  S_DOUBLE("boolParameter",(__o__)->boolParameter);\
+  S_BOOL("boolParameter",(__o__)->boolParameter);\
   S_BOOL("forceTwoSided",(__o__)->forceTwoSided);\
   S_ARRAY("uintContent",(__o__)->uintContent,S_UINT(NULL,(__o__)->uintContent[i]));\
   S_ARRAY("floatContent",(__o__)->floatContent,S_FLOAT(NULL,(__o__)->floatContent[i]));\

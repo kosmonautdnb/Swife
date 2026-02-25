@@ -36,6 +36,7 @@
 #include "PROPS.HPP"
 #include "PAINT.HPP"
 #include "VIEWPORT.HPP"
+#include "UTIL/LOG.HPP"
 #include <math.h>
 
 typedef void (*LOADSAVEFUNC)(const char *shortPath, const char *longFileName);
@@ -509,6 +510,8 @@ void dialogTroubleShooting(bool openIt) {
   ImGui::Text(
     "Save often it is not guaranteed to be stable and maybe verify the saving.\n"
     "\n"
+    "Images and textures should be around max. 875x875 (bigger images may crash).\n"
+    "\n"
     "Files:\n"
     "If you want to share your files, you need to have placed them\n"
     "directly from begin in the DATA folder. And that means\n"
@@ -853,14 +856,16 @@ void sortFileNames(Array<File> &files, int column, bool sortOrder) {
 
 unsigned int dialogLoadSaveGameObjectUniqueId = 0;
 String dialogLoadSaveSetFileNameAndPath;
+int dialogLoadSaveModeId = 0;
 
 LOADSAVEFUNC loadSaveFunc = NULL; 
 String loadSaveShortPath; 
 String loadSaveLongFileName;
 
 void callLoadSaveFunc() {
-  if (loadSaveFunc == NULL) return;
+  if (loadSaveFunc == NULL) {dialogLoadSaveModeId = 0;return;}
   loadSaveFunc(loadSaveShortPath.c_str(), loadSaveLongFileName.c_str());
+  dialogLoadSaveModeId = 0;
 }
 
 void dialogOverwrite(bool openIt) {
@@ -882,10 +887,12 @@ void dialogOverwrite(bool openIt) {
   ImGui::Separator();
   if (ImGui::Button("Overwrite##DIALOGOVERWRITEOVERWRITE")) {
     callLoadSaveFunc();
+    dialogLoadSaveModeId = 0;
     ImGui::CloseCurrentPopup();
   }
   ImGui::SameLine();
   if (ImGui::Button("Don't##DIALOGOVERWRITECLOSE")) {
+    dialogLoadSaveModeId = 0;
     ImGui::CloseCurrentPopup();
   }
   DIALOGEND()
@@ -1118,7 +1125,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
 }
 
 void dialogMessage(bool openIt, const char *message) {
-  static String alertMessage; if (message != NULL) alertMessage = message;
+  static String alertMessage; if (message != NULL) {alertMessage = message; logd("ALERT:%s",message);}
   DIALOGSTART("ALERT MESSAGE")
   ImGui::Text("%s",alertMessage.c_str());
   ImGui::Separator();

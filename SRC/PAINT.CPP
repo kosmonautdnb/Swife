@@ -1063,11 +1063,17 @@ void paintPath(class GameObject *o, bool showModificators) {
   }
 }
 
-Vector heightMapVertex(int index, float *heights, int width, int height) {
+Vector heightMapVertex(int index, unsigned int *heights, int width, int height) {
   index += height * width;
   int ix = index % width;
   int iy = (index / width) % height;
-  return Vector((double)ix/(width-1)*2-1,heights[ix+iy*width],(double)iy/(height-1)*2-1);
+  unsigned int rgba = heights[ix+iy*width];
+  int r = (rgba) & 255;
+  int g = (rgba>>8) & 255;
+  int b = (rgba>>16) & 255;
+  int a = (rgba>>24) & 255;
+  double h = (double)(r+g+b)/255.0/3.0+(double)a/255.0/256.0;
+  return Vector((double)ix/(width-1)*2-1,h,(double)iy/(height-1)*2-1);
 }
 
 bool heightMapIsIndexBorder(int index,int width,int height) {
@@ -1077,7 +1083,7 @@ bool heightMapIsIndexBorder(int index,int width,int height) {
   return (ix == 0)||(iy == 0)||(ix == width-1)||(iy == height-1);
 }
 
-void heightMapVertex2(Vector *toUpdate, int completeIndex, int failIndex, float *heights, int width, int height, unsigned char *pointCount) {
+void heightMapVertex2(Vector *toUpdate, int completeIndex, int failIndex, unsigned int *heights, int width, int height, unsigned char *pointCount) {
 
   completeIndex += height * width;
   failIndex += height * width;
@@ -1117,7 +1123,7 @@ int heightMapIndex(int i10, int i00, int i01, int i11, int cx, int cy, int width
   int ix10 = (i10+width) % width;
   int iy10 = (i10 / width+height) % height;
   if (abs(ix10-ix00)==1) return i00;
-  if (abs(ix01-ix00)==1) return i00;
+  if (abs(iy01-iy00)==1) return i00;
   int newX = (ix10-ix00)*cx/2+ix00;
   int newY = (iy01-iy00)*cy/2+iy00;
   return newX + newY*width;
@@ -1127,10 +1133,11 @@ void paintHeightmap(class GameObject *o, bool showModificators) {
 
   if (!isInViewport(o)) return;
   FileBinding *b = getBindingById(o->fileBindingId);
-  int width = b->originalWidth;
-  int height = b->originalHeight;
-  float *heights = &b->floatContent[0];
-  if (width < 2 || height < 2 || b == NULL || justDrawBoundingBoxes) {paintTrigger(o,showModificators); return;}
+  if (b == NULL || b->textureIds.empty()) {paintTrigger(o,showModificators); return;}
+  int width = glGetTextureWidth(b->textureIds[0]);
+  int height = glGetTextureHeight(b->textureIds[0]);
+  unsigned int *heights = glGetTexturePointer(b->textureIds[0]);
+  if (heights == NULL || width < 2 || height < 2 || justDrawBoundingBoxes) {paintTrigger(o,showModificators); return;}
 
   Matrix cameraMatrix; glGetDoublev(GL_MODELVIEW_MATRIX, cameraMatrix.m);
 
@@ -1179,12 +1186,13 @@ void paintHeightmap(class GameObject *o, bool showModificators) {
     Vector t11 = m2 * p11;
 
     int allOutOnSide = 1|2|4|8|16|32;
-    if (t00.x>=-t00.w||t01.x>=-t01.w||t10.x>=-t10.w||t11.x>=-t11.w) allOutOnSide &= ~1;
-    if (t00.y>=-t00.w||t01.y>=-t01.w||t10.y>=-t10.w||t11.y>=-t11.w) allOutOnSide &= ~2;
-    if (t00.z>=-t00.w||t01.z>=-t01.w||t10.z>=-t10.w||t11.z>=-t11.w) allOutOnSide &= ~4;
-    if (t00.x<=t00.w||t01.x<=t01.w||t10.x<=t10.w||t11.x<=t11.w) allOutOnSide &= ~8;
-    if (t00.y<=t00.w||t01.y<=t01.w||t10.y<=t10.w||t11.y<=t11.w) allOutOnSide &= ~16;
-    if (t00.z<=t00.w||t01.z<=t01.w||t10.z<=t10.w||t11.z<=t11.w) allOutOnSide &= ~32;
+    double guard = 1.01;
+    if (t00.x>=-t00.w*guard||t01.x>=-t01.w*guard||t10.x>=-t10.w*guard||t11.x>=-t11.w*guard) allOutOnSide &= ~1;
+    if (t00.y>=-t00.w*guard||t01.y>=-t01.w*guard||t10.y>=-t10.w*guard||t11.y>=-t11.w*guard) allOutOnSide &= ~2;
+    if (t00.z>=-t00.w*guard||t01.z>=-t01.w*guard||t10.z>=-t10.w*guard||t11.z>=-t11.w*guard) allOutOnSide &= ~4;
+    if (t00.x<=t00.w*guard||t01.x<=t01.w*guard||t10.x<=t10.w*guard||t11.x<=t11.w*guard) allOutOnSide &= ~8;
+    if (t00.y<=t00.w*guard||t01.y<=t01.w*guard||t10.y<=t10.w*guard||t11.y<=t11.w*guard) allOutOnSide &= ~16;
+    if (t00.z<=t00.w*guard||t01.z<=t01.w*guard||t10.z<=t10.w*guard||t11.z<=t11.w*guard) allOutOnSide &= ~32;
     if (allOutOnSide!=0) continue;
 
     if (t00.w != 0) {t00 /= t00.w; t00.w = 1;}
@@ -1192,7 +1200,20 @@ void paintHeightmap(class GameObject *o, bool showModificators) {
     if (t01.w != 0) {t01 /= t01.w; t01.w = 1;}
     if (t11.w != 0) {t11 /= t11.w; t11.w = 1;}
 
-    double size = length((t11-t00).xy());
+    Vector minp=t00,maxp=t00;
+    if (t01.x<minp.x) minp.x = t01.x;
+    if (t01.y<minp.y) minp.y = t01.y;
+    if (t10.x<minp.x) minp.x = t10.x;
+    if (t10.y<minp.y) minp.y = t10.y;
+    if (t11.x<minp.x) minp.x = t11.x;
+    if (t11.y<minp.y) minp.y = t11.y;
+    if (t01.x>maxp.x) maxp.x = t01.x;
+    if (t01.y>maxp.y) maxp.y = t01.y;
+    if (t10.x>maxp.x) maxp.x = t10.x;
+    if (t10.y>maxp.y) maxp.y = t10.y;
+    if (t11.x>maxp.x) maxp.x = t11.x;
+    if (t11.y>maxp.y) maxp.y = t11.y;
+    double size = length((maxp-minp).xy());
 
     bool isLowestLevel = heightMapIndex(i10,i00,i01,i11,1,0,width,height)==i00 || heightMapIndex(i10,i00,i01,i11,0,1,width,height)==i00;
     bool forceRecurse = false;
@@ -1201,7 +1222,7 @@ void paintHeightmap(class GameObject *o, bool showModificators) {
       if (isBorder&& !isLowestLevel) forceRecurse = true;
     }
 
-    if ((size>f && !isLowestLevel)||(forceRecurse)) {
+    if ((size>f && !isLowestLevel)||(forceRecurse && !isLowestLevel)) {
       recurse.push_back(heightMapIndex(i10,i00,i01,i11,1,0,width,height));
       recurse.push_back(heightMapIndex(i10,i00,i01,i11,0,0,width,height));
       recurse.push_back(heightMapIndex(i10,i00,i01,i11,0,1,width,height));
@@ -1230,8 +1251,17 @@ void paintHeightmap(class GameObject *o, bool showModificators) {
       pointCount[i00]++;
       pointCount[i01]++;
       pointCount[i11]++;
+      if (polys.size()>MAXMEMPERALLOC/sizeof(unsigned int)) break;
     }
   }
+
+  if (b->textureIds.size()>1) {
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D,b->textureIds[1]);
+  }
+
+  Vector collisionPoint;
+  static Array<BakedVertex> tris; tris.resize(3);
 
   glBegin(GL_QUADS);
   glColor4ubv((GLubyte*)&o->color);
@@ -1257,14 +1287,59 @@ void paintHeightmap(class GameObject *o, bool showModificators) {
     if (pointCount[i10]==4&&pointCount[i11]==2) {heightMapVertex2(&p11,i10,i11,heights,width,height,&pointCount[0]);}
     Vector n = normalize(cross(n1,n2));
     glNormal3dv(&n.x);
-    glVertex3dv(&p10.x);
-    glVertex3dv(&p00.x);
-    glVertex3dv(&p01.x);
-    glVertex3dv(&p11.x);
+    glTexCoord2f((float)(i10%width)/width,(float)(i10/width)/height); glVertex3dv(&p10.x);
+    glTexCoord2f((float)(i00%width)/width,(float)(i00/width)/height); glVertex3dv(&p00.x);
+    glTexCoord2f((float)(i01%width)/width,(float)(i01/width)/height); glVertex3dv(&p01.x);
+    glTexCoord2f((float)(i11%width)/width,(float)(i11/width)/height); glVertex3dv(&p11.x);
+   
+    if (doHitTest) {
+      if (triangleHitTest(p10, p00, p01,collisionPoint)||triangleHitTest(p01, p11, p10,collisionPoint)) { // this doesn't work, because there are heights below the "quad"
+        tris[0].x = p10.x; tris[0].y = p10.y; tris[0].z = p10.z;
+        tris[1].x = p00.x; tris[1].y = p00.y; tris[1].z = p00.z;
+        tris[2].x = p01.x; tris[2].y = p01.y; tris[2].z = p01.z;
+        addHitTestTriangles(o, HITTESTTOOL_NONE, &tris, minB, maxB);
+        tris[0].x = p01.x; tris[0].y = p01.y; tris[0].z = p01.z;
+        tris[1].x = p11.x; tris[1].y = p11.y; tris[1].z = p11.z;
+        tris[2].x = p10.x; tris[2].y = p10.y; tris[2].z = p10.z;
+        addHitTestTriangles(o, HITTESTTOOL_NONE, &tris, minB, maxB);
+/*
+        int sx = i00 % width;
+        int sy = (i00/width) % height;
+        int ex = i11 % width;
+        int ey = (i11/width) % height;
+        for (int y = sy; y < ey-1; y++) {
+          for (int x = sx; x < ex-1; x++) {
+            int i00 = x + y * width;
+            int i10 = (x+1) + y * width;
+            int i11 = (x+1) + (y+1) * width;
+            int i01 = x + (y+1) * width;
+            Vector p10 = heightMapVertex(i10,heights,width,height);
+            Vector p00 = heightMapVertex(i00,heights,width,height);
+            Vector p01 = heightMapVertex(i01,heights,width,height);
+            Vector p11 = heightMapVertex(i11,heights,width,height);
+            if (triangleHitTest(p10, p00, p01,collisionPoint)) {
+              tris[0].x = p10.x; tris[0].y = p10.y; tris[0].z = p10.z;
+              tris[1].x = p00.x; tris[1].y = p00.y; tris[1].z = p00.z;
+              tris[2].x = p01.x; tris[2].y = p01.y; tris[2].z = p01.z;
+              addHitTestTriangles(o, HITTESTTOOL_NONE, &tris, minB, maxB);
+            }
+            if (triangleHitTest(p01, p11, p10,collisionPoint)) {
+              tris[0].x = p01.x; tris[0].y = p01.y; tris[0].z = p01.z;
+              tris[1].x = p11.x; tris[1].y = p11.y; tris[1].z = p11.z;
+              tris[2].x = p10.x; tris[2].y = p10.y; tris[2].z = p10.z;
+              addHitTestTriangles(o, HITTESTTOOL_NONE, &tris, minB, maxB);
+            }
+          }
+        }
+*/
+      }
+    }
   }
   glEnd();
 
   glEnable(GL_CULL_FACE);
+  glDisable(GL_TEXTURE_2D);
+  glBindTexture(GL_TEXTURE_2D,0);
 
   glTranslatef(o->anchor.x,o->anchor.y,o->anchor.z);
 

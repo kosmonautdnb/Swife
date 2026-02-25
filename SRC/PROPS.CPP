@@ -947,7 +947,7 @@ void showHeightmapProperties(GameObject *object) {
   ImGui::Text("Binding");
   if (binding != NULL) {
     bindingReloadAndMakeUnique(object,binding,"##HEIGHTMAPPROP");
-    if (!binding->floatContent.empty()) {
+    if (!binding->textureIds.empty()) {
       ImGui::Text(" Binding ID:%d",binding->uniqueId);
       ImGui::Text("Width %d",binding->originalWidth);
       ImGui::Text("Height %d",binding->originalHeight);
@@ -959,10 +959,18 @@ void showHeightmapProperties(GameObject *object) {
       if (binding->doubleParameter<0) binding->doubleParameter = 0;
       ImGui::Text("Fix borders"); ImGui::SameLine(); if (ImGui::Checkbox("##HEIGHTMAPPROPFIXBORDERS",&binding->boolParameter)) {renderingUpdated = true;}
     }
+    ImGui::Text("Heights");
     ImGui::Text("%s",binding->fileName.last(19).c_str());
+    if (!binding->fileName2.empty()) {
+      ImGui::Text("Colors");
+      ImGui::Text("%s",binding->fileName2.last(19).c_str());
+    }
   }
-  if (propsButton("Load##HEIGHTMAPPROPLOAD",strlen("Load")+4)) {
-    dialogLoadSaveSetFileNameAndPath = binding == NULL ? "" : binding->fileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADHEIGHTMAP);
+  if (propsButton("Load heights##HEIGHTMAPPROPLOAD",strlen("Load heights")+4)) {
+    dialogLoadSaveModeId = 0; dialogLoadSaveSetFileNameAndPath = binding == NULL ? "" : binding->fileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADHEIGHTMAP);
+  }
+  if (propsButton("Load colors##HEIGHTMAPPROPLOAD",strlen("Load colors")+4)) {
+    dialogLoadSaveModeId = 1; dialogLoadSaveSetFileNameAndPath = binding == NULL ? "" : binding->fileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADHEIGHTMAP);
   }
   ImGui::Separator();
 }
