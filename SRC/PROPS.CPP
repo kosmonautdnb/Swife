@@ -883,7 +883,7 @@ void collectSection(GameObject *object, Array<unsigned int> *arr, int specificTy
       }
       GameObject *o = gameObjects[j];
       if (o->type == GAMEOBJECT_SECTION) break;
-      if (specificType == -1 || o->type == specificType) arr->push_back(j);
+      if (specificType == -1 || o->type == specificType) arr->push_back((unsigned int)j);
     }
   }
 }

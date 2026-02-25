@@ -460,6 +460,7 @@ void updateBoundingBoxByBakedVertex(FileBinding *binding,const BakedVertex *b,bo
 }
 
 void gltfProcessPrimitive(FileBinding *binding, GLTFA_File *f, GLTFA_Primitive *a, GLTFA_Skin *b, const Vector &color, const double *matrix, unsigned int texHandle) {
+  UNUSED(f);
   Vector _c = color;
   Vector _t,_n,_p;
 
@@ -950,7 +951,8 @@ void loadSkyBox(const char *path, const char *fileName) {
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
-  loadSkyBoxForObject(o,(String(path)+String(fileName)).c_str());
+  String zwo = String(path)+String(fileName);
+  loadSkyBoxForObject(o,zwo.c_str());
 }
 
 void loadMeshForObject(class GameObject *o, const char *fileName) {
@@ -966,7 +968,8 @@ void loadMesh(const char *path, const char *fileName) {
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
-  loadMeshForObject(o,(String(path)+String(fileName)).c_str());
+  String zwo = String(path)+String(fileName);
+  loadMeshForObject(o,zwo.c_str());
 }
 
 void loadBillBoardForObject(class GameObject *o, const char *fileName) {
@@ -991,7 +994,8 @@ void loadBillBoard(const char *path, const char *fileName) {
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
-  loadBillBoardForObject(o,(String(path)+String(fileName)).c_str());
+  String zwo = String(path)+String(fileName);
+  loadBillBoardForObject(o,zwo.c_str());
 }
 
 void loadTextureGridForObject(class GameObject *o, const char *fileName) {
@@ -1012,7 +1016,8 @@ void loadTextureGrid(const char *path, const char *fileName) {
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
-  loadTextureGridForObject(o,(String(path)+String(fileName)).c_str());
+  String zwo = String(path)+String(fileName);
+  loadTextureGridForObject(o,zwo.c_str());
 }
 
 void loadTextureAtlasForObject(class GameObject *o, const char *fileName) {
@@ -1033,7 +1038,8 @@ void loadTextureAtlas(const char *path, const char *fileName) {
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
-  loadTextureAtlasForObject(o,(String(path)+String(fileName)).c_str());
+  String zwo = String(path)+String(fileName);
+  loadTextureAtlasForObject(o,zwo.c_str());
 }
 
 void loadTextureGridCSV(const char *path, const char *fileName) {
@@ -1332,5 +1338,6 @@ void loadHeightmap(const char *path, const char *fileName) {
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
-  loadHeightmapForObject(o,(String(path)+String(fileName)).c_str());
+  String zwo = String(path)+String(fileName);
+  loadHeightmapForObject(o,zwo.c_str());
 }

@@ -1005,6 +1005,7 @@ Hit *splinePart(class GameObject *o, const Vector &p0, const Vector &p1, int ind
 }
 
 void paintPath(class GameObject *o, bool showModificators) {
+  UNUSED(showModificators);
   static Array<unsigned int> points; points.clear();
   collectSection(o, &points, GAMEOBJECT_POINT);
   if (points.size()<2) return;
@@ -1168,10 +1169,10 @@ void paintHeightmap(class GameObject *o, bool showModificators) {
 
   while(!recurse.empty()) {
 
-    int i11 = recurse.back(); recurse.pop_back();
-    int i01 = recurse.back(); recurse.pop_back();
-    int i00 = recurse.back(); recurse.pop_back();
-    int i10 = recurse.back(); recurse.pop_back();
+    unsigned int i11 = recurse.back(); recurse.pop_back();
+    unsigned int i01 = recurse.back(); recurse.pop_back();
+    unsigned int i00 = recurse.back(); recurse.pop_back();
+    unsigned int i10 = recurse.back(); recurse.pop_back();
 
     if ((i11==i00)||(i01==i00)|(i10==i00)) continue;
 

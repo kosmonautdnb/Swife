@@ -65,7 +65,7 @@ void fillImage(int x, int y, unsigned int color, unsigned int *pixels, int w, in
   int count = 0;
   for (int i = 0; i < w * h; i++) {if ((pixels[i]&0xff000000)==0) if (!set.has(pixels[i])) {set.insert(pixels[i]);count++; if (count>2048) return;}}
   unsigned int found = 0x00ffffff;
-  for (int j = 0; j < 0x00ffffff; j++) if (!set.has(j)) {found = j; break;}
+  for (int j = 0; j <= 0x00ffffff; j++) if (!set.has((unsigned int)j)) {found = (unsigned int)j; break;}
   unsigned int colorToReplace = pixels[x+y*w];
   pixels[x+y*w] = found;
   bool some = true;

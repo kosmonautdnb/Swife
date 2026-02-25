@@ -318,7 +318,6 @@ void drawViewport() {
       if (viewportOn) {
         ImGui::BeginChild("VIEWPORTSETTING");
         Camera *c = &cameras[currentCamera];
-        float k;
         ImGui::PushItemWidth(15*7);
          ImGui::Text2("PosXYZ"); ImGui::SameLine(); if (vectorInput("",&c->position,"##VIEWPORTCAM")) {renderingUpdated = true;}
         Vector yawPitchRoll = c->rotation.getYawPitchRoll()*180/PI;
