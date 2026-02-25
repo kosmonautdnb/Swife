@@ -125,6 +125,9 @@ void drawSkyboxQuad(unsigned int color, unsigned int texture, float size, float 
 }
 
 void paintSkyBox(class GameObject *o) {
+
+  exportObject(o);
+
   FileBinding *binding = getBindingById(o->fileBindingId); if (binding == NULL) return;
   if (binding->textureIds.size() != 6) return;
   Camera *c = &cameras[currentCamera];
@@ -187,6 +190,9 @@ void addHitTestMoveGizmo2(const Matrix &cameraMatrix, GameObject *o, const Vecto
 }
 
 void paintTrigger(class GameObject *o, bool showModificators) {
+
+  exportObject(o);
+
   if (!isInViewport(o)) return;
 
   Matrix cameraMatrix; glGetDoublev(GL_MODELVIEW_MATRIX, cameraMatrix.m);
@@ -284,6 +290,9 @@ void paintTrigger(class GameObject *o, bool showModificators) {
 }
 
 void paintCamera(class GameObject *o) {
+
+  exportObject(o);
+
   if (!isInViewport(o)) return;
 
   glPushMatrix();
@@ -366,6 +375,9 @@ void paintCamera(class GameObject *o) {
 }
 
 void paintMesh(class GameObject *o, bool showModificators) {
+
+  exportObject(o);
+
   Array<BakedVertex> *triangles = o->getBakedTriangles();
   if (triangles == NULL) {
     o->hasDrawProblem = true;
@@ -423,6 +435,9 @@ void paintMesh(class GameObject *o, bool showModificators) {
 }
 
 void paintBillBoard(class GameObject *o, bool showModificators) {
+
+  exportObject(o);
+
   FileBinding *binding = getBindingById(o->fileBindingId);
 
   Matrix cameraMatrix; glGetDoublev(GL_MODELVIEW_MATRIX, cameraMatrix.m);
@@ -564,6 +579,8 @@ void paintLink(class GameObject *o1, class GameObject *o2) {
 
 void paintPoint(class GameObject *o, bool showModificators) {
 
+  exportObject(o);
+
   if (!isInViewport(o)) return;
 
   Matrix cameraMatrix; glGetDoublev(GL_MODELVIEW_MATRIX, cameraMatrix.m);
@@ -691,6 +708,8 @@ void paintTextureGrid(class GameObject *o, bool showModificators) {
     o->boundingBoxMin = binding->boundingBoxMin;
     o->boundingBoxMax = binding->boundingBoxMax;
   }
+
+  exportObject(o);
 
   if (!isInViewport(o)) return;
 
@@ -1131,6 +1150,8 @@ int heightMapIndex(int i10, int i00, int i01, int i11, int cx, int cy, int width
 }
 
 void paintHeightmap(class GameObject *o, bool showModificators) {
+
+  exportObject(o);
 
   if (!isInViewport(o)) return;
   FileBinding *b = getBindingById(o->fileBindingId);

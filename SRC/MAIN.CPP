@@ -141,12 +141,16 @@ int main(int argc, const char *argv[]) {
   initVideo();
   installKeyboardHandler();
 
+  logd("starting..");
   renderLoop();
+  logd("finishing..");
 
   uninstallKeyboardHandler();
   closeVideo();
 
   freeData();
+
+  logd("finished.");
 
   return 0;
 }

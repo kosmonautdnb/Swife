@@ -91,11 +91,11 @@ extern int renderMouseClicksOff;
 
 void disableRenderMouseClicks();
 
-
 void updateCamera();
 
 void initRendering();
 
+void drawGameObject(class GameObject *o);
 void drawScene();
 
 #endif //__RENDER_HPP__

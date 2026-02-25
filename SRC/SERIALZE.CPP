@@ -695,7 +695,7 @@ bool FileBinding::reload() {
       textureIds.resize(6); 
       skyBoxFromHorizontalCrossImage(&textureIds[0], &s);
       s.free();
-      logd("FileBinding::reload loadskybox %s", fileName.c_str());
+      logd("FileBinding::reload loadskybox <%s>", fileName.c_str());
       return true;
     }// break;
   case FILETYPE_MESH: return loadMeshForBinding(fileName,this);
@@ -708,7 +708,7 @@ bool FileBinding::reload() {
         textureIds.push_back(textureFromImage(&s));
         s.free();
         billBoardIsTexture = true;
-        logd("FileBinding::reload billboard texture %s", fileName.c_str());
+        logd("FileBinding::reload billboard texture <%s>", fileName.c_str());
         return true;
       }
       if (loadMeshForBinding(fileName, this)) {
@@ -716,7 +716,7 @@ bool FileBinding::reload() {
         originalHeight = defaultRenderTargetHeight;
         spriteObject = new SpriteObject();
         createSpriteObjectFrameBuffer(spriteObject,originalWidth,originalHeight);
-        logd("FileBinding::reload billboard mesh %s", fileName.c_str());
+        logd("FileBinding::reload billboard mesh <%s>", fileName.c_str());
         return true;
       }
       String nm = String("Couldn't load file:<")+fileName+">";
@@ -731,7 +731,7 @@ bool FileBinding::reload() {
       originalWidth = s.width;
       originalHeight = s.height;
       s.free();
-      logd("FileBinding::reload textureatlas/texturegrid %s", fileName.c_str());
+      logd("FileBinding::reload textureatlas/texturegrid <%s>", fileName.c_str());
       return true;
     } //break;
     case FILETYPE_HEIGHTMAP: {
@@ -759,14 +759,14 @@ bool FileBinding::reload() {
       logd("4");
       s.free();
       logd("5");
-      logd("FileBinding::reload heightmap heights %s", fileName.c_str());
+      logd("FileBinding::reload heightmap heights <%s>", fileName.c_str());
       if (!fileName2.empty()) {
         s = RGBAImage::fromFile(shortFileName(dosFileName(fileName2)).c_str());
         if (s.data == NULL) {String nm = String("Couldn't load file:<")+fileName2+">";dialogMessage(true,nm.c_str()); return false;}
         if (textureIds.size()<2) textureIds.resize(2);
         textureIds[1] = textureFromImage(&s);
         s.free();
-        logd("FileBinding::reload heightmap colors %s", fileName2.c_str());
+        logd("FileBinding::reload heightmap colors <%s>", fileName2.c_str());
       }
       return true;
     } //break;
@@ -872,12 +872,14 @@ FileBinding *getBindingByFileName(GameObject *o, const char *fileName, unsigned 
 }
 
 FileBinding *newBinding() {
+  logd("newBinding");
   FileBinding *ret = new FileBinding();
   bindings.push_back(ret);
   return ret;
 }
 
 void clearAllUnusedBindings() {
+  logd("clearAllUnusedBindings start");
   Set<unsigned int> usedBindings;
   for (int i = 0; i < gameObjects.size(); i++) {
     usedBindings.insert(gameObjects[i]->fileBindingId);
@@ -889,22 +891,28 @@ void clearAllUnusedBindings() {
       j--;
     }
   }
+  logd("clearAllUnusedBindings end");
 }
 
 void freeBindings() {
+  logd("freeBindings start");
   for (int i = 0; i < bindings.size(); i++) {
     delete bindings[i];
   }
   bindings.clear();
+  logd("freeBindings end");
 }
 
 void reloadAll() {
+  logd("reloadAll start");
   for (int i = 0; i < bindings.size(); i++) {
     bindings[i]->reload();
   }
+  logd("reloadAll end");
 }
 
 void loadScene(const char *path, const char *fileName) {
+  logd("loadScene");
   String fullName = String(path) + fileName;
   FILE *in = fopen(dosFileName(shortFileName(fullName)).c_str(),"rb");
   if (in == NULL) return;
@@ -915,6 +923,7 @@ void loadScene(const char *path, const char *fileName) {
 
 String tempName;
 FILE *createTempFile(const char *path) {
+  logd("createTempFile:<%s>",path);
   tempName = String(path)+"TMP.TMP"; dosRemoveFile(tempName.c_str());
   return fopen(dosFileName(tempName).c_str(),"w");
 }
@@ -922,6 +931,7 @@ FILE *createTempFile(const char *path) {
 void renameTempFile(const char *path, const char *fileName) {
   String tempName = String(path)+"TMP.TMP";
   String fullName = String(path) + fileName;
+  logd("renameTempFile:<%s> <%s>",tempName.c_str(),fullName.c_str());
   if (!doslfnDeleteFiles(fullName.c_str(),false)) {
     dosRemoveFile(fullName.c_str());
   }
@@ -931,6 +941,7 @@ void renameTempFile(const char *path, const char *fileName) {
 }
 
 void saveScene(const char *path, const char *fileName) {
+  logd("saveScene:<%s> <%s>",path,fileName);
   FILE *out = createTempFile(path);
   if (out == NULL) return;
   serializeAll(out, true);
@@ -939,6 +950,7 @@ void saveScene(const char *path, const char *fileName) {
 }
 
 void loadSkyBoxForObject(class GameObject *o, const char *fileName) {
+  logd("loadSkyBoxForObject:<%s>",fileName);
   FileBinding *binding = getBindingByFileName(o, fileName, FILETYPE_SKYBOX);
   if (binding == NULL) {
     binding = newBinding();
@@ -948,6 +960,7 @@ void loadSkyBoxForObject(class GameObject *o, const char *fileName) {
 }
 
 void loadSkyBox(const char *path, const char *fileName) {
+  logd("loadSkyBox:<%s> <%s>",path,fileName);
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
@@ -956,6 +969,7 @@ void loadSkyBox(const char *path, const char *fileName) {
 }
 
 void loadMeshForObject(class GameObject *o, const char *fileName) {
+  logd("loadMeshForObject:<%s>",fileName);
   FileBinding *binding = getBindingByFileName(o, fileName, FILETYPE_MESH);
   if (binding == NULL) {
     binding = newBinding();
@@ -965,6 +979,7 @@ void loadMeshForObject(class GameObject *o, const char *fileName) {
 }
 
 void loadMesh(const char *path, const char *fileName) {
+  logd("loadMesh:<%s>",fileName);
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
@@ -973,6 +988,7 @@ void loadMesh(const char *path, const char *fileName) {
 }
 
 void loadBillBoardForObject(class GameObject *o, const char *fileName) {
+  logd("loadBillBoardForObject:<%s>",fileName);
   FileBinding *binding = getBindingByFileName(o, fileName, FILETYPE_BILLBOARD);
   if (binding == NULL) {
     binding = newBinding();
@@ -991,6 +1007,7 @@ void loadBillBoardForObject(class GameObject *o, const char *fileName) {
 }
 
 void loadBillBoard(const char *path, const char *fileName) {
+  logd("loadBillBoard:<%s> <%s>",path,fileName);
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
@@ -999,6 +1016,7 @@ void loadBillBoard(const char *path, const char *fileName) {
 }
 
 void loadTextureGridForObject(class GameObject *o, const char *fileName) {
+  logd("loadTextureGridForObject:<%s>",fileName);
   FileBinding *binding = getBindingByFileName(o, fileName, FILETYPE_TEXTUREGRID);
   if (binding == NULL) {
     binding = newBinding();
@@ -1013,6 +1031,7 @@ void loadTextureGridForObject(class GameObject *o, const char *fileName) {
 }
 
 void loadTextureGrid(const char *path, const char *fileName) {
+  logd("loadTextureGrid:<%s> <%s>",path,fileName);
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
@@ -1021,6 +1040,7 @@ void loadTextureGrid(const char *path, const char *fileName) {
 }
 
 void loadTextureAtlasForObject(class GameObject *o, const char *fileName) {
+  logd("loadTextureAtlasForObject:<%s>",fileName);
   FileBinding *binding = getBindingByFileName(o, fileName, FILETYPE_TEXTUREATLAS);
   if (binding == NULL) {
     binding = newBinding();
@@ -1035,6 +1055,7 @@ void loadTextureAtlasForObject(class GameObject *o, const char *fileName) {
 }
 
 void loadTextureAtlas(const char *path, const char *fileName) {
+  logd("loadTextureAtlas:<%s> <%s>",path,fileName);
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
@@ -1043,6 +1064,7 @@ void loadTextureAtlas(const char *path, const char *fileName) {
 }
 
 void loadTextureGridCSV(const char *path, const char *fileName) {
+  logd("loadTextureGridCSV:<%s> <%s>",path,fileName);
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
 
@@ -1096,6 +1118,7 @@ void loadTextureGridCSV(const char *path, const char *fileName) {
 }
 
 void saveTextureGridCSV(const char *path, const char *fileName) {
+  logd("saveTextureGridCSV:<%s> <%s>",path,fileName);
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
@@ -1132,6 +1155,7 @@ void saveTextureGridCSV(const char *path, const char *fileName) {
 }
 
 void loadScript(const char *path, const char *fileName) {
+  logd("loadScript:<%s> <%s>",path,fileName);
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
@@ -1146,6 +1170,7 @@ void loadScript(const char *path, const char *fileName) {
 }
 
 void saveScript(const char *path, const char *fileName) {
+  logd("saveScript:<%s> <%s>",path,fileName);
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
@@ -1166,6 +1191,7 @@ unsigned int newUniqueId(unsigned int id, HashMap<unsigned int, unsigned int> &m
 }
 
 void loadGameObjects(const char *path, const char *fileName) {
+  logd("loadGameObjects:<%s> <%s>",path,fileName);
   String fullName = String(path) + fileName;
   FILE *in = fopen(dosFileName(shortFileName(fullName)).c_str(),"rb");
   if (in == NULL) return;
@@ -1224,6 +1250,7 @@ void loadGameObjects(const char *path, const char *fileName) {
 }
 
 void saveGameObjects(const char *path, const char *fileName) {
+  logd("saveGameObjects:<%s> <%s>",path,fileName);
   HashMap<unsigned int, GameObject *> _gameObjects;
   HashMap<unsigned int, FileBinding *> _bindings;
   for (int i1 = 0; i1 < gameObjects.size(); i1++) {
@@ -1293,6 +1320,7 @@ void saveGameObjects(const char *path, const char *fileName) {
 }
 
 void saveImage(const char *path, const char *fileName) {
+  logd("saveImage:<%s> <%s>",path,fileName);
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
@@ -1315,6 +1343,7 @@ void saveImage(const char *path, const char *fileName) {
 }
 
 void loadHeightmapForObject(class GameObject *o, const char *fileName) {
+  logd("loadHeightmapForObject:<%s>",fileName);
   if (dialogLoadSaveModeId == 0) {
     FileBinding *binding = getBindingByFileName(o, fileName, FILETYPE_HEIGHTMAP);
     if (binding == NULL) {
@@ -1335,9 +1364,130 @@ void loadHeightmapForObject(class GameObject *o, const char *fileName) {
 }
 
 void loadHeightmap(const char *path, const char *fileName) {
+  logd("loadHeightmap:<%s> <%s>",path,fileName);
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
   String zwo = String(path)+String(fileName);
   loadHeightmapForObject(o,zwo.c_str());
+}
+
+bool exportObjects = false;
+FILE *exportObjectsFile = NULL;
+
+String escapeCSV(const String &str) {
+  String ret = str;
+  for (int i = 0; i < ret.length(); i++) {
+    if (ret[i]==',') ret[i]='@';
+    if (ret[i]==';') ret[i]='#';
+  }
+  return ret;
+}
+
+#undef S_NULL
+#undef S_BOOL
+#undef S_INT
+#undef S_UINT
+#undef S_FLOAT
+#undef S_DOUBLE
+#undef S_STRING
+#undef S_NAME
+#undef S_ARRAY_OPEN
+#undef S_ARRAY_CLOSE
+#undef S_OBJECT_OPEN
+#undef S_OBJECT_CLOSE
+#undef S_VECTOR
+#undef S_QUATERNION
+#undef S_FLOAT4
+#undef S_MATRIX
+#undef S_FILENAME
+#undef S_ARRAY
+#undef S_ARRAY_POINTER_RESIZE
+#undef S_CARRAY
+
+#define S_NULL(__name__)
+#define S_BOOL(__name__, __v__)  {fprintf(out,"<BOOL>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%d,\n",(__v__)?1:0);}
+#define S_INT(__name__, __v__) {fprintf(out,"<INT>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%d,\n",(__v__));}
+#define S_UINT(__name__, __v__) {fprintf(out,"<UINT>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%d,\n",(__v__));}
+#define S_FLOAT(__name__, __v__) {fprintf(out,"<FLOAT>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%f,\n",(__v__));}
+#define S_DOUBLE(__name__, __v__) {fprintf(out,"<DOUBLE>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%f,\n",(__v__));}
+#define S_STRING(__name__, __v__) {fprintf(out,"<STRING>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%s,\n",escapeCSV(__v__).c_str());}
+#define S_NAME(__name__, __v__) {fprintf(out,"<NAME>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%s,\n",escapeCSV(__v__).c_str());}
+#define S_ARRAY_OPEN(__name__)
+#define S_ARRAY_CLOSE()
+#define S_OBJECT_OPEN(__name__) 
+#define S_OBJECT_CLOSE()
+#define S_VECTOR(__name__, __v__) {fprintf(out,"<VECTOR>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%s,\n",escapeCSV((__v__).toString()).c_str());}
+#define S_QUATERNION(__name__, __v__) {fprintf(out,"<QUATERNION>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%s,\n",escapeCSV((__v__).toString()).c_str());}
+#define S_FLOAT4(__name__, __v__) {Vector p((__v__)[0],(__v__)[1],(__v__)[2],(__v__)[3]); fprintf(out,"<FLOAT4>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%s,\n",escapeCSV(p.toString()).c_str());}
+#define S_MATRIX(__name__, __v__) {fprintf(out,"<MATRIX>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%s,\n",escapeCSV((__v__).toString()).c_str());}
+#define S_FILENAME(__name__, __v__) {fprintf(out,"<FILENAME>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%s,\n",escapeCSV(__v__).c_str());}
+#define S_ARRAY(__name__,__array__,__elementFunc__)
+#define S_ARRAY_POINTER_RESIZE(__array__,__type__,__count__)
+#define S_CARRAY(__name__,__array__,__elementFunc__,__count__)
+
+
+void exportPropertyCSV(FILE *out, GameObjectProperty *o) {
+  S_GAMEOBJECTPROPERTY("",o);
+}
+
+void exportObject(GameObject *o) {
+  if (o != NULL && exportObjects&&(exportObjectsFile!=NULL)) {
+    FILE *out = exportObjectsFile;
+    fprintf(out,"<OBJECT BEGIN>,\n");
+    fprintf(out,"<NAME>,%s,\n",escapeCSV(o->name).c_str());
+    fprintf(out,"<TYPE>,%s,\n",gameObjectTypeNames[o->type]);
+    fprintf(out,"<COLOR>,%d,\n",o->color);
+    fprintf(out,"<LAYERS>,%d,\n",o->layers);
+    fprintf(out,"<CAPTION>,%s,\n",escapeCSV(o->caption).c_str());
+    fprintf(out,"<BBOXMIN>,%s,\n",escapeCSV(o->boundingBoxMin.toString()).c_str());
+    fprintf(out,"<BBOXMAX>,%s,\n",escapeCSV(o->boundingBoxMax.toString()).c_str());
+    fprintf(out,"<MATRIX>,%s,\n",escapeCSV(o->getRenderTransform().toString()).c_str());
+    if (o->type == GAMEOBJECT_BILLBOARD) {
+      fprintf(out,"<BILLBOARDTX0>,%d,\n",o->billBoardTX0);
+      fprintf(out,"<BILLBOARDTY0>,%d,\n",o->billBoardTY0);
+      fprintf(out,"<BILLBOARDTX1>,%d,\n",o->billBoardTX1);
+      fprintf(out,"<BILLBOARDTY1>,%d,\n",o->billBoardTY1);
+      fprintf(out,"<BILLBOARDROTATEZ>,%d,\n",o->billBoardRotateZ?1:0);
+      fprintf(out,"<BILLBOARDROTATION>,%f,\n",o->billBoardRotation);
+      fprintf(out,"<BILLBOARDSCALE>,%f,\n",o->billBoardScale);
+      fprintf(out,"<BILLBOARDASPECT>,%f,\n",o->billBoardAspect);
+    }
+    FileBinding *b = getBindingById(o->fileBindingId);
+    if (b != NULL) {
+      fprintf(out,"<FILENAME>,%s,\n",escapeCSV(b->fileName).c_str());
+      if (!b->fileName2.empty())
+        fprintf(out,"<FILENAME2>,%s,\n",escapeCSV(b->fileName2).c_str());
+    }
+    if (!o->properties.empty()) {
+      fprintf(out,"<PROPERTIES BEGIN>,\n");
+      for(int i = 0; i < o->properties.size(); i++) {
+        exportPropertyCSV(out,&o->properties[i]);
+      }
+      fprintf(out,"<PROPERTIES END>,\n");
+    }
+    fprintf(out,"<OBJECT END>,\n");
+  }
+}
+
+void exportObjectCSV(const char *path, const char *fileName) {
+  logd("exportObjectCSV:<%s> <%s>",path,fileName);
+
+  exportObjectsFile = createTempFile(path);
+  if (exportObjectsFile == NULL) return;
+
+  fprintf(exportObjectsFile,"<FILE BEGIN>,\n");
+
+  // actually this here also renders the objects to the screen, so maybe some garbage may be displayed
+  exportObjects = true;
+  for (int i = 0; i < gameObjects.size(); i++) {
+    GameObject *o = gameObjects[i];
+    drawGameObject(o);
+  }
+  exportObjects = false;
+
+  fprintf(exportObjectsFile,"<FILE END>\n");
+
+  fclose(exportObjectsFile);
+  renameTempFile(path,fileName);
 }

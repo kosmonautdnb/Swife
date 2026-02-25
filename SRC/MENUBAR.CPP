@@ -87,6 +87,8 @@ void drawMenuBar() {
       if (ImGui::MenuItem("Include selection")) {dialogLoadSave(true,DIALOG_LOADANDINSERTGAMEOBJECTS);}
       if (ImGui::MenuItem("Save selection")) {dialogLoadSave(true,DIALOG_SAVESELECTEDGAMEOBJECTS);}
       ImGui::Separator();
+      if (ImGui::MenuItem("Export simple object CSV")) {dialogLoadSave(true,DIALOG_EXPORTOBJECTCSV);}
+      ImGui::Separator();
       if (ImGui::MenuItem("Quit")) {
         dialogQuit(true);
       }

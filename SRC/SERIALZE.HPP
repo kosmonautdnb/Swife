@@ -175,4 +175,7 @@ void saveImage(const char *path, const char *fileName);
 void loadHeightmapForObject(class GameObject *o, const char *fileName);
 void loadHeightmap(const char *path, const char *fileName);
 
+void exportObject(GameObject *o);
+void exportObjectCSV(const char *path, const char *fileName);
+
 #endif //__SERIALZE_HPP__
