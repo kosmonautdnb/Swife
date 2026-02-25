@@ -1421,7 +1421,7 @@ String escapeCSV(const String &str) {
 #define S_QUATERNION(__name__, __v__) {fprintf(out,"<QUATERNION>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%s,\n",escapeCSV((__v__).toString()).c_str());}
 #define S_FLOAT4(__name__, __v__) {Vector p((__v__)[0],(__v__)[1],(__v__)[2],(__v__)[3]); fprintf(out,"<FLOAT4>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%s,\n",escapeCSV(p.toString()).c_str());}
 #define S_MATRIX(__name__, __v__) {fprintf(out,"<MATRIX>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%s,\n",escapeCSV((__v__).toString()).c_str());}
-#define S_FILENAME(__name__, __v__) {fprintf(out,"<FILENAME>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%s,\n",escapeCSV(__v__).c_str());}
+#define S_FILENAME(__name__, __v__) {fprintf(out,"<FILENAME>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%s,\n",escapeCSV(toLocalFileName(__v__)).c_str());}
 #define S_ARRAY(__name__,__array__,__elementFunc__)
 #define S_ARRAY_POINTER_RESIZE(__array__,__type__,__count__)
 #define S_CARRAY(__name__,__array__,__elementFunc__,__count__)
@@ -1455,9 +1455,9 @@ void exportObject(GameObject *o) {
     }
     FileBinding *b = getBindingById(o->fileBindingId);
     if (b != NULL) {
-      fprintf(out,"<FILENAME>,%s,\n",escapeCSV(b->fileName).c_str());
+      fprintf(out,"<FILENAME>,%s,\n",escapeCSV(toLocalFileName(b->fileName)).c_str());
       if (!b->fileName2.empty())
-        fprintf(out,"<FILENAME2>,%s,\n",escapeCSV(b->fileName2).c_str());
+        fprintf(out,"<FILENAME2>,%s,\n",escapeCSV(toLocalFileName(b->fileName2)).c_str());
     }
     if (!o->properties.empty()) {
       fprintf(out,"<PROPERTIES BEGIN>,\n");
