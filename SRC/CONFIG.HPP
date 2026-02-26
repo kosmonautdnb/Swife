@@ -43,7 +43,9 @@
 #define IDINDEXED2(__prefix__,__number1__,__number2__) idIndexed2(__prefix__,__number1__,__number2__)
 #define IDCOMBINED(__prefix__,__suffix__) idCombined(__prefix__,__suffix__)
 #define IDCOMBINED3(__string1__,__string2__,__string3__) idCombined3(__string1__,__string2__,__string3__)
-#define MAXMEMPERALLOC (875*875*4) // (problems with dos allocations on WatcomC)
+#define MAXTEXTUREWIDTH 875 // 1024 (even 1000 may not work) is too much here maybe due to glMalloc that maybe can't allocate more than 4mb at once (WatcomC11) (there are strange behaviours and  crashes)
+#define MAXTEXTUREHEIGHT 875 // 1024 (even 1000 may not work) is too much here maybe due to glMalloc that maybe can't allocate more than 4mb at once (WatcomC11) (there are strange behaviours and  crashes)
+#define MAXMEMPERALLOC (MAXTEXTUREWIDTH*MAXTEXTUREHEIGHT*4) // (problems with dos allocations on WatcomC)
 
 extern bool fullScreen;
 extern double fps;
@@ -65,9 +67,6 @@ extern uint32_t main_window_xres;
 extern uint32_t main_window_yres;
 extern double aspectRatio;
 extern const char *logFileName;
-
-extern int maxTextureWidth;
-extern int maxTextureHeight;
 
 extern int defaultRenderTargetWidth;
 extern int defaultRenderTargetHeight;

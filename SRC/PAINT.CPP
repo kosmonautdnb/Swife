@@ -1375,3 +1375,56 @@ void paintHeightmap(class GameObject *o, bool showModificators) {
 
   glPopMatrix();
 }
+
+void drawScreenTexture(unsigned int texId, unsigned int color, int x0, int y0, int x1, int y1) {
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  int viewport[4]; glGetIntegerv(GL_VIEWPORT,viewport);
+  double aspect = aspectRatio * main_window_yres / main_window_xres;
+  glOrtho(viewport[0]*aspect,(viewport[0]+viewport[2])*aspect,main_window_yres-viewport[1],main_window_yres-(viewport[1]+viewport[3]),-1,1);
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+
+  glEnable(GL_TEXTURE_2D);
+  glBindTexture(GL_TEXTURE_2D, texId);
+  glDisable(GL_CULL_FACE);
+  glDisable(GL_DEPTH_TEST);
+  glDepthMask(GL_FALSE);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  glBegin(GL_QUADS);
+  glColor4ubv((GLubyte*)&color);
+  glTexCoord2f(1,0); glVertex3f(x1,y0,0);
+  glTexCoord2f(0,0); glVertex3f(x0,y0,0);
+  glTexCoord2f(0,1); glVertex3f(x0,y1,0);
+  glTexCoord2f(1,1); glVertex3f(x1,y1,0);
+  glEnd();
+
+  glDepthMask(GL_TRUE);
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
+  glDisable(GL_BLEND);
+  glDisable(GL_TEXTURE_2D);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  glPopMatrix();
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glMatrixMode(GL_MODELVIEW);
+}
+
+void paintOverlay(class GameObject *o) {
+  switch(o->type) {
+    case GAMEOBJECT_CAMERA: {
+        if (o->isCamera[currentCamera]) {
+          FileBinding *b = getBindingById(o->fileBindingId);
+          if (o->showOverlay && b != NULL && b->textureIds.size()==1) {
+            drawScreenTexture(b->textureIds[0],o->color,o->billBoardTX0,o->billBoardTY0,o->billBoardTX1,o->billBoardTY1);
+          }
+        }
+      } break;
+  }
+}

@@ -231,6 +231,7 @@ public:
     interpolationType = INTERPOLATION_LINEAR;
     interpolationParam = 0.5f;
     sliderPos = 0;
+    showOverlay = false;
   }
 
   unsigned int layers;
@@ -266,6 +267,7 @@ public:
   bool outlinerShouldFocusThis;
   Matrix parentTransform;
   unsigned int fileBindingId;
+  bool showOverlay;
   bool billBoardRotateZ;
   float billBoardRotation;
   float billBoardScale;
@@ -339,6 +341,7 @@ public:
   S_BOOL("outlinerShouldFocusThis",(__o__)->outlinerShouldFocusThis);\
   S_MATRIX("parentTransform",(__o__)->parentTransform);\
   S_UINT("fileBindingId",(__o__)->fileBindingId);\
+  S_BOOL("showOverlay",(__o__)->showOverlay);\
   S_BOOL("billBoardRotateZ",(__o__)->billBoardRotateZ);\
   S_FLOAT("billBoardRotation",(__o__)->billBoardRotation);\
   S_FLOAT("billBoardScale",(__o__)->billBoardScale);\

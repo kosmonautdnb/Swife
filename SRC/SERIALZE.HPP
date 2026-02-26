@@ -37,7 +37,8 @@ enum FILETYPE {
   FILETYPE_TEXTUREGRID = 4,
   FILETYPE_TEXTUREATLAS = 5,
   FILETYPE_HEIGHTMAP = 6,
-  FILETYPE_COUNT = 7
+  FILETYPE_OVERLAY = 7,
+  FILETYPE_COUNT = 8
 };
 extern const char *fileTypeNames[FILETYPE_COUNT];
 
@@ -177,6 +178,8 @@ void saveGameObjects(const char *path, const char *fileName);
 void saveImage(const char *path, const char *fileName);
 void loadHeightmapForObject(class GameObject *o, const char *fileName);
 void loadHeightmap(const char *path, const char *fileName);
+void loadOverlayForObject(class GameObject *o, const char *fileName);
+void loadOverlay(const char *path, const char *fileName);
 
 void exportObject(GameObject *o);
 void exportObjectCSV(const char *path, const char *fileName);

@@ -49,7 +49,7 @@
 
 int version = 103;
 
-const char *fileTypeNames[FILETYPE_COUNT] = {"none","skybox","mesh","billboard","texturegrid","textureatlas","heightmap"};
+const char *fileTypeNames[FILETYPE_COUNT] = {"none","skybox","mesh","billboard","texturegrid","textureatlas","heightmap","overlay"};
 
 enum JSONTYPE {
   JSONTYPE_NULL = 0,
@@ -272,14 +272,6 @@ void serializeAll(FILE *file, bool save, String *fileString) {
   // CONFIG.HPP
   S_BOOL("fullScreen",fullScreen);
   S_STRING("appFolder",appFolder);
-  int newMaxTextureWidth = maxTextureWidth;
-  int newMaxTextureHeight = maxTextureHeight;
-  S_INT("maxTextureWidth",newMaxTextureWidth);
-  S_INT("maxTextureHeight",newMaxTextureHeight);
-  if (newMaxTextureWidth > maxTextureWidth) newMaxTextureWidth = maxTextureWidth;
-  if (newMaxTextureHeight > maxTextureHeight) newMaxTextureHeight = maxTextureHeight;
-  maxTextureWidth = newMaxTextureWidth;
-  maxTextureHeight = newMaxTextureHeight;
 
   S_INT("defaultRenderTargetWidth",defaultRenderTargetWidth);
   S_INT("defaultRenderTargetHeight",defaultRenderTargetHeight);
@@ -750,6 +742,7 @@ bool FileBinding::reload() {
       dialogMessage(true,nm.c_str()); 
       return false;
     } //break;
+    case FILETYPE_OVERLAY:
     case FILETYPE_TEXTUREATLAS:
     case FILETYPE_TEXTUREGRID: {
       RGBAImage s = RGBAImage::fromFile(shortFileName(dosFileName(fileName)).c_str());
@@ -758,7 +751,7 @@ bool FileBinding::reload() {
       originalWidth = s.width;
       originalHeight = s.height;
       s.free();
-      logd("FileBinding::reload textureatlas/texturegrid <%s>", fileName.c_str());
+      logd("FileBinding::reload textureatlas/texturegrid/overlay <%s>", fileName.c_str());
       return true;
     } //break;
     case FILETYPE_HEIGHTMAP: {
@@ -1408,6 +1401,27 @@ void loadHeightmap(const char *path, const char *fileName) {
   String zwo = String(path)+String(fileName);
   loadHeightmapForObject(o,zwo.c_str());
 }
+
+void loadOverlayForObject(class GameObject *o, const char *fileName) {
+  logd("loadOverlayForObject:<%s>",fileName);
+  FileBinding *binding = getBindingByFileName(o, fileName, FILETYPE_OVERLAY);
+  if (binding == NULL) {
+    binding = newBinding();
+    binding->load(fileName, FILETYPE_OVERLAY);
+
+  }
+  o->fileBindingId = binding->uniqueId;
+}
+
+void loadOverlay(const char *path, const char *fileName) {
+  logd("loadOverlay:<%s> <%s>",path,fileName);
+  int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
+  if (j<0) return;
+  GameObject *o = gameObjects[j];
+  String zwo = String(path)+String(fileName);
+  loadOverlayForObject(o,zwo.c_str());
+}
+
 
 bool exportObjects = false;
 FILE *exportObjectsFile = NULL;

@@ -47,11 +47,11 @@ const char *sf0 = ".sf0";
 const char *all = "*.*";
 const char *imagesAndMeshes = ".png,.jpg,.tga,.bmp,.psd,.gif,.pic,.pnm,.hdr,.obj,.glb";
 
-const char *dialogCaption[DIALOG_COUNT] = {"NO MODE","Load a scene","Save a scene","Load a skybox","Load a mesh","Load a billboard texture","Load a texturegrid texture","Load a texturegrid CSV","Save a texturegrid CSV","Load a script","Save a script","Load and insert objects","Save selected objects","Load an image","Save this image as PNG","Load a heightmap","Export simple object CSV"};
-const char *proceedButton[DIALOG_COUNT] = {"<button>", "Load", "Save","Load","Load","Load","Load","Load","Save","Load","Save","Load","Save","Load","Save","Load","Save"};
-const char *dialogFileTypes[DIALOG_COUNT] = {"",".sfs",".sfs",images,meshes,imagesAndMeshes,images,csv,csv,all,all,sf0,sf0,images,".png",images,csv};
-const char *dialogDefaultExtension[DIALOG_COUNT] = {"",".SFS",".SFS","","","","",".CSV",".CSV","","",".SF0",".SF0","",".PNG","",".CSV"};
-LOADSAVEFUNC funcs[DIALOG_COUNT] = {NULL, loadScene, saveScene, loadSkyBox, loadMesh, loadBillBoard,loadTextureGrid,loadTextureGridCSV,saveTextureGridCSV,loadScript,saveScript,loadGameObjects,saveGameObjects,loadTextureAtlas,saveImage,loadHeightmap,exportObjectCSV};
+const char *dialogCaption[DIALOG_COUNT] = {"NO MODE","Load a scene","Save a scene","Load a skybox","Load a mesh","Load a billboard texture","Load a texturegrid texture","Load a texturegrid CSV","Save a texturegrid CSV","Load a script","Save a script","Load and insert objects","Save selected objects","Load an image","Save this image as PNG","Load a heightmap","Export simple object CSV","Load overlay"};
+const char *proceedButton[DIALOG_COUNT] = {"<button>", "Load", "Save","Load","Load","Load","Load","Load","Save","Load","Save","Load","Save","Load","Save","Load","Save","Load"};
+const char *dialogFileTypes[DIALOG_COUNT] = {"",".sfs",".sfs",images,meshes,imagesAndMeshes,images,csv,csv,all,all,sf0,sf0,images,".png",images,csv,images};
+const char *dialogDefaultExtension[DIALOG_COUNT] = {"",".SFS",".SFS","","","","",".CSV",".CSV","","",".SF0",".SF0","",".PNG","",".CSV",""};
+LOADSAVEFUNC funcs[DIALOG_COUNT] = {NULL, loadScene, saveScene, loadSkyBox, loadMesh, loadBillBoard,loadTextureGrid,loadTextureGridCSV,saveTextureGridCSV,loadScript,saveScript,loadGameObjects,saveGameObjects,loadTextureAtlas,saveImage,loadHeightmap,exportObjectCSV,loadOverlay};
 
 
 #define DIALOGSTART(__name__) static int keyboardFocusNew = 0; static bool openItNextTime = false;  if (openIt) {openItNextTime = true; keyboardFocusNew = 2; return;}  if (openItNextTime) {openItNextTime = false; ImGui::OpenPopup(__name__); } ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0,0,0,1)); ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(1,1,1,1); if (ImGui::BeginPopupModal(__name__,NULL,ImGuiWindowFlags_AlwaysAutoResize)) { ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(0,0,0,1); ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.4,0.4,0.4,1));disableRenderMouseClicks();
@@ -791,7 +791,7 @@ void dialogObjectTextures(bool openIt) {
   int buttonSize = main_window_xres/6;
   double aspect2 = aspectRatio*main_window_yres/main_window_xres;
   DIALOGSTART("Object textures")
-  ImGui::Text("Max. texture width:%d height:%d",maxTextureWidth,maxTextureHeight);
+  ImGui::Text("Max. texture width:%d height:%d",MAXTEXTUREWIDTH,MAXTEXTUREHEIGHT);
   ImGui::BeginChild("DIALOGOBJECTTEXTURESCHILD", ImVec2((buttonSize+16)*3,(buttonSize+16)*2));
   for (int i = 0; i < gameObjects.size(); i++) {
     if (gameObjects[i]->selected&&gameObjects[i]->type!=GAMEOBJECT_SECTION) {

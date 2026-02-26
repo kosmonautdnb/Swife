@@ -499,6 +499,17 @@ void drawLinks() {
   }
 }
 
+void drawOverlays() {
+  for (int i = 0; i < gameObjects.size(); i++) {
+    GameObject *o = gameObjects[i];
+
+    if (!(o->visible1 && o->visible2)) continue;
+    if (!((o->layers==0)||(outlinerLayers==0)||(o->layers & outlinerLayers))) continue;
+
+    paintOverlay(o);
+  }
+}
+
 void drawSelecting(bool tiny) {
   glStencilFunc(GL_EQUAL,0x01,0xffffffff);
   glStencilOp(GL_KEEP,GL_KEEP,GL_KEEP);
@@ -913,7 +924,8 @@ void drawScene() {
     lightSetup(false);
     paintCursor();
     renderedTriangles = glDrawnTrianglesFrame;
-
+    
+    drawOverlays();
     drawSelecting(tiny);
 
     if (hitTestOn) handleHitTest();

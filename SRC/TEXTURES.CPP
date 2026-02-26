@@ -132,9 +132,9 @@ void skyBoxFromHorizontalCrossImage(unsigned int t[6], const class RGBAImage *s)
 }
 
 void correctTextureSize(class RGBAImage *image) {
-  if (image->width > maxTextureWidth || image->height > maxTextureHeight) {
-    int w2 = image->width > maxTextureWidth ? maxTextureWidth : image->width;
-    int h2 = image->height > maxTextureHeight ? maxTextureHeight : image->height;
+  if (image->width > MAXTEXTUREWIDTH || image->height > MAXTEXTUREHEIGHT) {
+    int w2 = image->width > MAXTEXTUREWIDTH ? MAXTEXTUREWIDTH : image->width;
+    int h2 = image->height > MAXTEXTUREHEIGHT ? MAXTEXTUREHEIGHT : image->height;
     logd("correctTextureSize from<%d,%d> to<%d,%d>",image->width,image->height,w2,h2);
     RGBAImage zwo = image->getResized(w2,h2);
     image->free();

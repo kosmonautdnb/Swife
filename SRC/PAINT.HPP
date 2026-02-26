@@ -51,4 +51,6 @@ void getSpline(class GameObject *o, double slider, class Vector *position, class
 void paintIntoTextureGrid(class FileBinding *binding, int arrayPos, int toPaint);
 int getFromTextureGrid(class FileBinding *binding, int arrayPos);
 
+void paintOverlay(class GameObject *o);
+
 #endif //__PAINT_HPP__

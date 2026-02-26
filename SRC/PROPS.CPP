@@ -443,6 +443,8 @@ void showTriggerProperties(GameObject *object) {
 }
 
 void showCameraProperties(GameObject *object) {
+  FileBinding *binding = getBindingById(object->fileBindingId);
+
   ImGui::Text("Camera");
   int cameraHere = CAMERA_USER;
   for (int i = 1; i < CAMERA_COUNT; i++) { // not user camera (0)
@@ -548,6 +550,32 @@ void showCameraProperties(GameObject *object) {
   if (object->camera.nearPlane < 0.00001) object->camera.nearPlane = 0.00001;
   if (object->camera.farPlane < object->camera.nearPlane+0.00001) object->camera.farPlane = object->camera.nearPlane + 0.00001;
   ImGui::PopItemWidth();
+  ImGui::Separator();
+
+  if (binding != NULL) {
+    bindingReloadAndMakeUnique(object,binding,"##CAMERAPROPX");
+    if (binding->textureIds.size()==1) {
+      ImGui::Text(" Binding ID:%d",binding->uniqueId);
+      bool rescaledWidth = glGetTextureWidth(binding->textureIds[0]) != binding->originalWidth;
+      bool rescaledHeight = glGetTextureHeight(binding->textureIds[0]) != binding->originalHeight;
+      if (rescaledWidth || rescaledHeight) ImGui::TextColored(ERRORCOLOR,"Texture rescaled");
+      ImGui::Text("Original width:%d",binding->originalWidth);
+      ImGui::Text("Original height:%d",binding->originalHeight);
+      ImGui::Text("Screen:%dx%d",(int)(main_window_xres*aspectRatio*main_window_yres/main_window_xres),main_window_yres);
+      ImGui::Text("Show overlay"); ImGui::SameLine(); if (ImGui::Checkbox("##CAMERAPROPSHOWOVERLAY",&object->showOverlay)) {renderingUpdated = true;}
+      if (object->showOverlay) {
+        ImGui::Text(" "); ImGui::SameLine(); colorItem("Color","##CAMERAPROPOVERLAYCOLOR",&object->color, true);
+        ImGui::Text(" Overlay X0"); ImGui::SameLine(); if (ImGui::InputInt("##CAMERAPROPOVERLAYX0",&object->billBoardTX0,0,0)) {renderingUpdated = true;}
+        ImGui::Text(" Overlay Y0"); ImGui::SameLine(); if (ImGui::InputInt("##CAMERAPROPOVERLAYY0",&object->billBoardTY0,0,0)) {renderingUpdated = true;}
+        ImGui::Text(" Overlay X1"); ImGui::SameLine(); if (ImGui::InputInt("##CAMERAPROPOVERLAYX1",&object->billBoardTX1,0,0)) {renderingUpdated = true;}
+        ImGui::Text(" Overlay Y1"); ImGui::SameLine(); if (ImGui::InputInt("##CAMERAPROPOVERLAYY1",&object->billBoardTY1,0,0)) {renderingUpdated = true;}
+      }
+    }
+    ImGui::Text("%s",binding->fileName.last(19).c_str());
+  }
+  if (propsButton("Load overlay##CAMERAPROPLOAD",strlen("Load overlay")+4)) {
+    dialogLoadSaveSetFileNameAndPath = binding == NULL ? "" : binding->fileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADOVERLAY);
+  }
 
   ImGui::Separator();
 }
