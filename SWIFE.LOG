@@ -1,47 +1,97 @@
-[26.02.26 04:42.02] 
-[26.02.26 04:42.02] >>>Started new log
-[26.02.26 04:42.02] ---------------------------
-[26.02.26 04:42.02] SWIFE - STARTUP
-[26.02.26 04:42.02] DEBUG: loadSkyBoxForObject:<C:/_SWIFE_/DATA/CUBEMAPS/SKYBOX6.PNG>
-[26.02.26 04:42.02] DEBUG: newBinding
-[26.02.26 04:42.02] DEBUG: FileBinding::load start with name:<C:/_SWIFE_/DATA/CUBEMAPS/SKYBOX6.PNG> and type<1>
-[26.02.26 04:42.02] DEBUG: FileBinding::reload
-[26.02.26 04:42.02] DEBUG: FileBinding::free
-[26.02.26 04:42.02] DEBUG: FileBinding::free2
-[26.02.26 04:42.02] DEBUG: FileBinding::free3
-[26.02.26 04:42.02] DEBUG: FileBinding::free4
-[26.02.26 04:42.02] DEBUG: FileBinding::free5
-[26.02.26 04:42.02] DEBUG: FileBinding::reload_
-[26.02.26 04:42.02] DEBUG: skyBoxFromHorizontalCrossImage:<2048,1536>
-[26.02.26 04:42.02] DEBUG: textureFromImageArea:<0,512,512,1024>
-[26.02.26 04:42.02] DEBUG: textureFromImageArea:<512,512,1024,1024>
-[26.02.26 04:42.02] DEBUG: textureFromImageArea:<1024,512,1536,1024>
-[26.02.26 04:42.02] DEBUG: textureFromImageArea:<1536,512,2048,1024>
-[26.02.26 04:42.02] DEBUG: textureFromImageArea:<512,0,1024,512>
-[26.02.26 04:42.02] DEBUG: textureFromImageArea:<512,1024,1024,1536>
-[26.02.26 04:42.02] DEBUG: FileBinding::reload loadskybox <C:/_SWIFE_/DATA/CUBEMAPS/SKYBOX6.PNG>
-[26.02.26 04:42.02] DEBUG: FileBinding::load end
-[26.02.26 04:42.02] DEBUG: serializeAll - start
-[26.02.26 04:42.02] DEBUG: serializeAll - end
-[26.02.26 04:42.04] DEBUG: starting..
-[26.02.26 04:42.11] DEBUG: finishing..
-[26.02.26 04:42.11] DEBUG: freeBindings start
-[26.02.26 04:42.11] DEBUG: FileBinding::free
-[26.02.26 04:42.11] DEBUG: FileBinding::free deleteTexture
-[26.02.26 04:42.11] DEBUG: id:<1> texCount:<6>
-[26.02.26 04:42.11] DEBUG: FileBinding::free deleteTexture
-[26.02.26 04:42.11] DEBUG: id:<2> texCount:<6>
-[26.02.26 04:42.11] DEBUG: FileBinding::free deleteTexture
-[26.02.26 04:42.11] DEBUG: id:<3> texCount:<6>
-[26.02.26 04:42.11] DEBUG: FileBinding::free deleteTexture
-[26.02.26 04:42.11] DEBUG: id:<4> texCount:<6>
-[26.02.26 04:42.11] DEBUG: FileBinding::free deleteTexture
-[26.02.26 04:42.11] DEBUG: id:<5> texCount:<6>
-[26.02.26 04:42.11] DEBUG: FileBinding::free deleteTexture
-[26.02.26 04:42.11] DEBUG: id:<6> texCount:<6>
-[26.02.26 04:42.11] DEBUG: FileBinding::free2
-[26.02.26 04:42.11] DEBUG: FileBinding::free3
-[26.02.26 04:42.11] DEBUG: FileBinding::free4
-[26.02.26 04:42.11] DEBUG: FileBinding::free5
-[26.02.26 04:42.11] DEBUG: freeBindings end
-[26.02.26 04:42.11] DEBUG: finished.
+[26.02.26 15:06.52] 
+[26.02.26 15:06.52] >>>Started new log
+[26.02.26 15:06.52] ---------------------------
+[26.02.26 15:06.52] SWIFE - STARTUP
+[26.02.26 15:06.52] DEBUG: loadSkyBoxForObject:<C:/_SWIFE_/DATA/CUBEMAPS/SKYBOX6.PNG>
+[26.02.26 15:06.52] DEBUG: newBinding
+[26.02.26 15:06.52] DEBUG: FileBinding::load start with name:<C:/_SWIFE_/DATA/CUBEMAPS/SKYBOX6.PNG> and type<1>
+[26.02.26 15:06.52] DEBUG: FileBinding::reload
+[26.02.26 15:06.52] DEBUG: FileBinding::free
+[26.02.26 15:06.52] DEBUG: FileBinding::free2
+[26.02.26 15:06.52] DEBUG: FileBinding::free3
+[26.02.26 15:06.52] DEBUG: FileBinding::free4
+[26.02.26 15:06.52] DEBUG: FileBinding::free5
+[26.02.26 15:06.52] DEBUG: FileBinding::reload_
+[26.02.26 15:06.52] DEBUG: skyBoxFromHorizontalCrossImage:<2048,1536>
+[26.02.26 15:06.52] DEBUG: textureFromImageArea:<0,512,512,1024>
+[26.02.26 15:06.52] DEBUG: textureFromImageArea:<512,512,1024,1024>
+[26.02.26 15:06.52] DEBUG: textureFromImageArea:<1024,512,1536,1024>
+[26.02.26 15:06.52] DEBUG: textureFromImageArea:<1536,512,2048,1024>
+[26.02.26 15:06.52] DEBUG: textureFromImageArea:<512,0,1024,512>
+[26.02.26 15:06.52] DEBUG: textureFromImageArea:<512,1024,1024,1536>
+[26.02.26 15:06.52] DEBUG: FileBinding::reload loadskybox <C:/_SWIFE_/DATA/CUBEMAPS/SKYBOX6.PNG>
+[26.02.26 15:06.52] DEBUG: FileBinding::load end
+[26.02.26 15:06.52] DEBUG: serializeAll - start
+[26.02.26 15:06.52] DEBUG: serializeAll - end
+[26.02.26 15:06.54] DEBUG: starting..
+[26.02.26 15:06.58] DEBUG: loadScene
+[26.02.26 15:06.58] DEBUG: serializeAll - start
+[26.02.26 15:06.58] DEBUG: FileBinding::free
+[26.02.26 15:06.58] DEBUG: FileBinding::free deleteTexture
+[26.02.26 15:06.58] DEBUG: id:<1> texCount:<6>
+[26.02.26 15:06.58] DEBUG: FileBinding::free deleteTexture
+[26.02.26 15:06.58] DEBUG: id:<2> texCount:<6>
+[26.02.26 15:06.58] DEBUG: FileBinding::free deleteTexture
+[26.02.26 15:06.58] DEBUG: id:<3> texCount:<6>
+[26.02.26 15:06.58] DEBUG: FileBinding::free deleteTexture
+[26.02.26 15:06.58] DEBUG: id:<4> texCount:<6>
+[26.02.26 15:06.58] DEBUG: FileBinding::free deleteTexture
+[26.02.26 15:06.58] DEBUG: id:<5> texCount:<6>
+[26.02.26 15:06.58] DEBUG: FileBinding::free deleteTexture
+[26.02.26 15:06.58] DEBUG: id:<6> texCount:<6>
+[26.02.26 15:06.58] DEBUG: FileBinding::free2
+[26.02.26 15:06.58] DEBUG: FileBinding::free3
+[26.02.26 15:06.58] DEBUG: FileBinding::free4
+[26.02.26 15:06.58] DEBUG: FileBinding::free5
+[26.02.26 15:06.58] DEBUG: FileBinding::reload
+[26.02.26 15:06.58] DEBUG: FileBinding::free
+[26.02.26 15:06.58] DEBUG: FileBinding::free2
+[26.02.26 15:06.58] DEBUG: FileBinding::free3
+[26.02.26 15:06.58] DEBUG: FileBinding::free4
+[26.02.26 15:06.58] DEBUG: FileBinding::free5
+[26.02.26 15:06.58] DEBUG: FileBinding::reload_
+[26.02.26 15:06.59] DEBUG: skyBoxFromHorizontalCrossImage:<2048,1536>
+[26.02.26 15:06.59] DEBUG: textureFromImageArea:<0,512,512,1024>
+[26.02.26 15:06.59] DEBUG: textureFromImageArea:<512,512,1024,1024>
+[26.02.26 15:06.59] DEBUG: textureFromImageArea:<1024,512,1536,1024>
+[26.02.26 15:06.59] DEBUG: textureFromImageArea:<1536,512,2048,1024>
+[26.02.26 15:06.59] DEBUG: textureFromImageArea:<512,0,1024,512>
+[26.02.26 15:06.59] DEBUG: textureFromImageArea:<512,1024,1024,1536>
+[26.02.26 15:06.59] DEBUG: FileBinding::reload loadskybox <C:/_SWIFE_/DATA/CUBEMAPS/SKYBOX6.PNG>
+[26.02.26 15:06.59] DEBUG: FileBinding::reload
+[26.02.26 15:06.59] DEBUG: FileBinding::free
+[26.02.26 15:06.59] DEBUG: FileBinding::free2
+[26.02.26 15:06.59] DEBUG: FileBinding::free3
+[26.02.26 15:06.59] DEBUG: FileBinding::free4
+[26.02.26 15:06.59] DEBUG: FileBinding::free5
+[26.02.26 15:06.59] DEBUG: FileBinding::reload_
+[26.02.26 15:06.59] DEBUG: serializeAll - end
+[26.02.26 15:07.06] DEBUG: exportObjectCSV:<C:/_SWIFE_/> <2.CSV>
+[26.02.26 15:07.06] DEBUG: createTempFile:<C:/_SWIFE_/>
+[26.02.26 15:07.06] DEBUG: renameTempFile:<C:/_SWIFE_/TMP.TMP> <C:/_SWIFE_/2.CSV>
+[26.02.26 15:07.10] DEBUG: finishing..
+[26.02.26 15:07.10] DEBUG: freeBindings start
+[26.02.26 15:07.10] DEBUG: FileBinding::free
+[26.02.26 15:07.10] DEBUG: FileBinding::free deleteTexture
+[26.02.26 15:07.10] DEBUG: id:<1> texCount:<6>
+[26.02.26 15:07.10] DEBUG: FileBinding::free deleteTexture
+[26.02.26 15:07.10] DEBUG: id:<2> texCount:<6>
+[26.02.26 15:07.10] DEBUG: FileBinding::free deleteTexture
+[26.02.26 15:07.10] DEBUG: id:<3> texCount:<6>
+[26.02.26 15:07.10] DEBUG: FileBinding::free deleteTexture
+[26.02.26 15:07.10] DEBUG: id:<4> texCount:<6>
+[26.02.26 15:07.10] DEBUG: FileBinding::free deleteTexture
+[26.02.26 15:07.10] DEBUG: id:<5> texCount:<6>
+[26.02.26 15:07.10] DEBUG: FileBinding::free deleteTexture
+[26.02.26 15:07.10] DEBUG: id:<6> texCount:<6>
+[26.02.26 15:07.10] DEBUG: FileBinding::free2
+[26.02.26 15:07.10] DEBUG: FileBinding::free3
+[26.02.26 15:07.10] DEBUG: FileBinding::free4
+[26.02.26 15:07.10] DEBUG: FileBinding::free5
+[26.02.26 15:07.10] DEBUG: FileBinding::free
+[26.02.26 15:07.10] DEBUG: FileBinding::free2
+[26.02.26 15:07.10] DEBUG: FileBinding::free3
+[26.02.26 15:07.10] DEBUG: FileBinding::free4
+[26.02.26 15:07.10] DEBUG: FileBinding::free5
+[26.02.26 15:07.10] DEBUG: freeBindings end
+[26.02.26 15:07.10] DEBUG: finished.

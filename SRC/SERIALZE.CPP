@@ -1462,22 +1462,38 @@ String escapeCSV(const String &str) {
 #define S_DOUBLE(__name__, __v__) {fprintf(out,"<DOUBLE>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%f,\n",(__v__));}
 #define S_STRING(__name__, __v__) {fprintf(out,"<STRING>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%s,\n",escapeCSV(__v__).c_str());}
 #define S_NAME(__name__, __v__) {fprintf(out,"<NAME>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%s,\n",escapeCSV(__v__).c_str());}
-#define S_ARRAY_OPEN(__name__)
-#define S_ARRAY_CLOSE()
-#define S_OBJECT_OPEN(__name__) 
-#define S_OBJECT_CLOSE()
+#define S_ARRAY_OPEN(__name__) {fprintf(out,"<ARRAY BEGIN>,%s,\n",escapeCSV(__name__).c_str());}
+#define S_ARRAY_CLOSE() {fprintf(out,"<ARRAY END>,\n");}
+#define S_OBJECT_OPEN(__name__) {fprintf(out,"<BEGIN>,%s,\n",escapeCSV(__name__).c_str());}
+#define S_OBJECT_CLOSE() {fprintf(out,"<END>,\n");}
 #define S_VECTOR(__name__, __v__) {fprintf(out,"<VECTOR>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%s,\n",escapeCSV((__v__).toString()).c_str());}
 #define S_QUATERNION(__name__, __v__) {fprintf(out,"<QUATERNION>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%s,\n",escapeCSV((__v__).toString()).c_str());}
 #define S_FLOAT4(__name__, __v__) {Vector p((__v__)[0],(__v__)[1],(__v__)[2],(__v__)[3]); fprintf(out,"<FLOAT4>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%s,\n",escapeCSV(p.toString()).c_str());}
 #define S_MATRIX(__name__, __v__) {fprintf(out,"<MATRIX>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%s,\n",escapeCSV((__v__).toString()).c_str());}
 #define S_FILENAME(__name__, __v__) {fprintf(out,"<FILENAME>,%s,",escapeCSV(__name__).c_str()); fprintf(out,"%s,\n",escapeCSV(toLocalFileName(__v__)).c_str());}
-#define S_ARRAY(__name__,__array__,__elementFunc__)
-#define S_ARRAY_POINTER_RESIZE(__array__,__type__,__count__)
-#define S_CARRAY(__name__,__array__,__elementFunc__,__count__)
+// only for saving/exporting currently
+#define S_ARRAY(__name__,__array__,__elementFunc__) {\
+  if (!(__array__).empty()) {\
+    S_ARRAY_OPEN(__name__);\
+    for (int i = 0; i < (__array__).size(); i++) {\
+      __elementFunc__;\
+    }\
+    S_ARRAY_CLOSE();\
+  }\
+}
+#define S_CARRAY(__name__,__array__,__elementFunc__,__count__) {\
+  if (count != 0) {\
+    S_ARRAY_OPEN(__name__);\
+    for (int i = 0; i < (__count__); i++) {\
+      __elementFunc__;\
+    }\
+    S_ARRAY_CLOSE();\
+  }\
+}
 
 
-void exportPropertyCSV(FILE *out, GameObjectProperty *o) {
-  S_GAMEOBJECTPROPERTY("",o);
+void exportPropertyCSV(FILE *out, GameObjectProperty *o, const char *name) {
+  S_GAMEOBJECTPROPERTY(name,o);
 }
 
 void exportObject(GameObject *o) {
@@ -1511,7 +1527,8 @@ void exportObject(GameObject *o) {
     if (!o->properties.empty()) {
       fprintf(out,"<PROPERTIES BEGIN>,\n");
       for(int i = 0; i < o->properties.size(); i++) {
-        exportPropertyCSV(out,&o->properties[i]);
+        String name = "property"+String::fromInt(i);
+        exportPropertyCSV(out,&o->properties[i],name.c_str());
       }
       fprintf(out,"<PROPERTIES END>,\n");
     }
