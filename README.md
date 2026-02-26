@@ -1,5 +1,5 @@
 # Swife
-A tiny and fastcoded DOS based 3D level editor (in development). 
+A tiny and fastcoded swift and DOS based 3D level editor (in development). 
 
 ![ScreenShot](https://raw.github.com/kosmonautdnb/OpenGLDemoGame_DOS/main/SWIFE.PNG)
 
