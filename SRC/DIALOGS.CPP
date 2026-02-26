@@ -459,6 +459,7 @@ void dialogControls(bool openIt) {
   DIALOGSTART("Controls")
   ImGui::Text(
     "Press ctrl on a slider to enter a value.\n"
+    "Press F1 to take a screenshot.\n"
     "\n"
     "Outliner:\n"
     "Left mouse click for select.\n"

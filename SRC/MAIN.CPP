@@ -41,6 +41,7 @@
 #include "PAINT.HPP"
 #include "DOS.HPP"
 #include "SERIALZE.HPP"
+#include "STL/IMAGE.HPP"
 
 double lastTime;
 
@@ -94,12 +95,26 @@ void perFrame() {
   clearAllUnusedBindings();
 }
 
+void takeScreenShot(const char *fileName) {
+  RGBAImage img;
+  img.data = glFrameBuffer;
+  img.width = glFrameBufferWidth;
+  img.height = glFrameBufferHeight;
+  int newWidth = img.width * aspectRatio * main_window_yres/main_window_xres;
+  img = img.getResized(newWidth,img.height);
+  memset(glFrameBuffer,0xff,glFrameBufferWidth*glFrameBufferHeight*sizeof(unsigned int));
+  glRefresh();
+  img.savePNG(fileName);
+  img.free();
+}
+
 void renderLoop() {
   while(!quit) {
     ImGuiNewFrame();
     GLboolean shift,ctrl,alt;
     glSpecialKeys(&shift,&ctrl,&alt);
     if (currentKey == GL_VK_ESCAPE && shift) dialogQuit(true);
+    if (currentKey == GL_VK_F1) {takeScreenShot("SCRNSHOT.PNG");}
     perFrame();
     updateCamera();
     drawToolBar();

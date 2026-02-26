@@ -278,12 +278,12 @@ void drawViewport() {
         case MODE_MOVE: {
           if (ImGui::Button("Clear##VIEWPORTMOVECLEAR")) {moveV.set(0,0,0); move_negate = false;}
           ImGui::SameLine();ImGui::Text2("MoveXYZ"); ImGui::SameLine(); vectorInput("",&moveV,"##VIEWPORTMOVE");
-          if (ImGui::Button(!move_negate ? "Add##VIEWPORTMOVEAPPLY" : "Sub##VIEWPORTMOVEAPPLY")) {
+          if (ImGui::Button(!move_negate ? "Move forward##VIEWPORTMOVEAPPLY" : "Move back##VIEWPORTMOVEAPPLY")) {
             moveBy(moveV.x,moveV.y,moveV.z, move_negate);
           }
           ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTMOVENEGATE", &move_negate)) {;}
-          ImGui::SameLine();
-          if (ImGui::Button("Duplicate")) {
+          drawToolTip(move_negate?"move forward":"move back");
+          if (ImGui::Button("Move and duplicate")) {
             duplicate();
             moveBy(moveV.x,moveV.y,moveV.z, move_negate);
           }
@@ -294,18 +294,20 @@ void drawViewport() {
           if (scaleV.x < minScale) scaleV.x = minScale;
           if (scaleV.y < minScale) scaleV.y = minScale; 
           if (scaleV.z < minScale) scaleV.z = minScale;
-          if (ImGui::Button(!scale_negate ? "Add##VIEWPORTSCALEAPPLY" : "Sub##VIEWPORTSCALEAPPLY")) {
+          if (ImGui::Button(!scale_negate ? "Scale up##VIEWPORTSCALEAPPLY" : "Scale down##VIEWPORTSCALEAPPLY")) {
             scaleBy(scaleV.x,scaleV.y,scaleV.z, scale_negate);
           }
           ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTSCALENEGATE", &scale_negate)) {;}
+          drawToolTip(scale_negate?"scale up":"scale down");
         } break;
         case MODE_ROTATE: {
           if (ImGui::Button("Clear##VIEWPORTROTCLEAR")) {rotateV.set(0,0,0); rotate_negate = false;}
           ImGui::SameLine();ImGui::Text2("RotABC"); ImGui::SameLine(); vectorInput("",&rotateV,"##VIEWPORTROT");
-          if (ImGui::Button(!rotate_negate ? "Add##VIEWPORTROTAPPLY" : "Sub##VIEWPORTROTAPPLY")) {
+          if (ImGui::Button(!rotate_negate ? "Rotate forward##VIEWPORTROTAPPLY" : "Rotate back##VIEWPORTROTAPPLY")) {
             rotateBy(rotateV.x,rotateV.y,rotateV.z,rotate_negate);
           }
           ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTROTATENEGATE", &rotate_negate)) {;}
+          drawToolTip(scale_negate?"rotate forward":"rotate back");
         } break;
         }
         ImGui::PopItemWidth();
