@@ -438,6 +438,7 @@ void dialogAbout(bool openIt) {
   DIALOGSTART("About")
   ImGui::Text(
     "SWIFE - A SWIFT 3D EDITOR FOR DOS\n"
+    "dedicated to object placement.\n"
     "------------------------------------\n"
     "Coded in early 2026 by\n"
     "Stefan Mader of Puls4r\n"
