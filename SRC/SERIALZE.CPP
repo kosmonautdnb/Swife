@@ -47,7 +47,7 @@
 #include "MENUBAR.HPP"
 #include "UTIL/LOG.HPP"
 
-int version = 103;
+int version = 104;
 
 const char *fileTypeNames[FILETYPE_COUNT] = {"none","skybox","mesh","billboard","texturegrid","textureatlas","heightmap","overlay"};
 

@@ -223,10 +223,10 @@ void drawToolBar() {
     ImGui::SameLine();
     fullScreen  = (bool)toolBarTextButton((unsigned int)fullScreen,(unsigned int)false,"Edit##EDITMODE2");
     ImGui::SameLine();
-    drawSeparator(0,0,23);
-    ImGui::SameLine();
     if (ImGui::Checkbox("##DRAWBOUNDINGBOXES",&justDrawBoundingBoxes)) {renderingUpdated = true;}
     drawToolTip(justDrawBoundingBoxes ? "show normal":"just show boundingboxes");
+    ImGui::SameLine();
+    drawSeparator(0,0,23);
   }
   ImGui::End();
 }
