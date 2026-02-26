@@ -35,7 +35,7 @@ Grid grids[MAXGRIDS];
 
 const char *gameObjectTypeNames[GAMEOBJECT_COUNT] = {"undefined", "mesh", "camera", "skybox", "path", "billboard","section","trigger","link","point","texturegrid","script","image","heightmap"};
 const char *propertyTypeNames[GAMEOBJECTPROPERTY_COUNT] = {"undefined", "bool", "int", "float", "float4", "text", "color","links","script","repeat"};
-extern const char *interpolationNames[INTERPOLATION_COUNT] = {"step","linear","catmulrom"};
+const char *interpolationNames[INTERPOLATION_COUNT] = {"step","linear","catmulrom"};
 
 
 void GameObjectProperty::setName(const char *name) {
