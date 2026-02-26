@@ -57,6 +57,19 @@ String timeDescString() {
   return hex(rtc_day)+"."+hex(rtc_month)+"."+hex(rtc_year)+" "+String(day[(rtc_weekday-2)&7])+" "+hex(rtc_hours)+":"+hex(rtc_minutes);
 }
 
+void drawToolTip(const char *fmt, ...) {
+  if (ImGui::IsItemHovered()) {
+    ImGui::BeginTooltip();
+    ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0.0,0.0,0.0,1));
+    va_list args;
+    va_start(args, fmt);
+    ImGui::TextV(fmt, args);
+    va_end(args);
+    ImGui::PopStyleColor();
+    ImGui::EndTooltip();
+  }
+}
+
 void drawMenuBar() {
   bool on = false;
   GameObject *first = NULL;
@@ -70,14 +83,8 @@ void drawMenuBar() {
   if (ImGui::BeginMainMenuBar()) {
     SVG *svg = &svgs["appicon"];
     ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h));
-    if (ImGui::IsItemHovered()) {
-      ImGui::BeginTooltip();
-      ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0.0,0.0,0.0,1));
-      ImGui::Text("Swife v%d.%02d",version/100,version%100);
-      ImGui::PopStyleColor();
-      ImGui::EndTooltip();
-    }
     ImGui::SameLine();
+    drawToolTip("Swife v%d.%02d",version/100,version%100);
 
     if (ImGui::BeginMenu("File")) {
       on = true;

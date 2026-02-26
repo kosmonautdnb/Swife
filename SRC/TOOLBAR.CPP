@@ -154,6 +154,7 @@ void drawToolBar() {
       Vector newPos = imageScroll * zoom / zoomBefore;
       imageScroll += (newPos-oldPos);
     }
+    drawToolTip("zoom");
     ImGui::PopItemWidth();
     if (imageZoom<0) imageZoom=0;
     if (imageZoom>10.0) imageZoom=10.0;  
@@ -198,6 +199,7 @@ void drawToolBar() {
       ImGui::PushItemWidth(70);
       ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.9,0.9,0.9,1));
       ImGui::InputFloat("##CAMERASPEED",&cameraSpeed,cameraSpeed>1?1:0.1,1,2);
+      drawToolTip("camera speed");
       if (cameraSpeed < 0) cameraSpeed = 0;
       ImGui::PopStyleColor();
       ImGui::PopItemWidth();
@@ -224,6 +226,7 @@ void drawToolBar() {
     drawSeparator(0,0,23);
     ImGui::SameLine();
     if (ImGui::Checkbox("##DRAWBOUNDINGBOXES",&justDrawBoundingBoxes)) {renderingUpdated = true;}
+    drawToolTip(justDrawBoundingBoxes ? "show normal":"just show boundingboxes");
   }
   ImGui::End();
 }

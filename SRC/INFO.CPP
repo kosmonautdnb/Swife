@@ -90,6 +90,7 @@ void drawInfo() {
   ImGui::SetNextWindowPos(ImVec2(outliner_width,main_window_yres-timeLine_height-info_height));
   ImGui::Begin("INFO", NULL, ImVec2(main_window_xres-outliner_width-properties_width,info_height),1.0,FROZENWINDOW);
   ImGui::Checkbox("##INFOINFOON",&infoOn);
+  drawToolTip(infoOn?"close info":"open info");
   if (infoOn) {
     ImGui::SameLine();
     ImVec2 cursor = ImGui::GetCursorScreenPos();

@@ -79,8 +79,10 @@ void objectSelect(unsigned int i) {
   bool selected = gameObjects[i]->selected;
   if (t == GAMEOBJECT_SECTION) { 
     if (ImGui::Checkbox(IDINDEXED("##OBJECTSELECTSECTION",i),&gameObjects[i]->sectionOn)) {renderingUpdated = true;}
+    drawToolTip(gameObjects[i]->sectionOn?"collapse section":"uncollapse section");
     ImGui::SameLine();
     if (ImGui::Checkbox(IDINDEXED("##OBJECTSELECTSECTIONVISIBLE",i),&gameObjects[i]->sectionVisible)) {renderingUpdated = true;}
+    drawToolTip(gameObjects[i]->sectionVisible?"section invisible":"section visible");
     ImGui::SameLine();
     sectionOn = gameObjects[i]->sectionOn;
     sectionVisible = gameObjects[i]->sectionVisible;
@@ -218,6 +220,7 @@ void drawOutliner() {
   static bool selecty = false;
   if (one) selecty = true;
   bool markAllWithSelecty = false; ImGui::SameLine(); if (ImGui::Checkbox("##OUTLINERSELECTY",&selecty)) {markAllWithSelecty = true;}
+  drawToolTip(selecty?"deselect all":"select all");
   ImGui::Separator();
   ImGui::BeginChild("OUTLINERCHILD1",ImVec2(0,main_window_yres-ImGui::GetCursorScreenPos().y-18));
   String filter = toLower(String(outliner_filter));

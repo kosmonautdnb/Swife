@@ -30,6 +30,8 @@ extern int menuBar_height;
 
 String timeDescString();
 
+void drawToolTip(const char *fmt, ...);
+
 void drawMenuBar();
 
 #endif //__MENUBAR_HPP__
