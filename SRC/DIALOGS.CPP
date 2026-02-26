@@ -94,6 +94,7 @@ void drawDialogs() {
   dialogCompactAndMove(false);
   dialogTroubleShooting(false);
   dialogEditScript(false,NULL);
+  dialogNew(false);
 }
 
 void dialogDeleteGameObjects(bool openIt) {
@@ -511,6 +512,7 @@ void dialogTroubleShooting(bool openIt) {
     "Save often it is not guaranteed to be stable and maybe verify the saving.\n"
     "\n"
     "Images and textures should be around max. 875x875 (bigger images may crash).\n"
+    "Files bigger than 3mb may crash due to the memory manager used with WatcomC.\n"
     "\n"
     "Files:\n"
     "If you want to share your files, you need to have placed them\n"
@@ -806,6 +808,22 @@ void dialogObjectTextures(bool openIt) {
   }
   ImGui::EndChild();
   if (ImGui::Button("Close##DIALOGOBJECTTEXTURESCLOSE")) {
+    ImGui::CloseCurrentPopup();
+  }
+  DIALOGEND()
+}
+
+void dialogNew(bool openIt) {
+  DIALOGSTART("New")
+  ImGui::Text("Do you really want to remove all data?");
+  ImGui::Text("Did you save your working state?");
+  ImGui::Text("");
+  if (ImGui::Button("New##DIALOGNEWNEW")) {
+    restoreByDataPointForNew();
+    ImGui::CloseCurrentPopup();
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Close##DIALOGNEWCLOSE")) {
     ImGui::CloseCurrentPopup();
   }
   DIALOGEND()

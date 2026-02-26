@@ -45,7 +45,7 @@ static String hex(int v) {
   return r;
 }
 
-static String timeDescString() {
+String timeDescString() {
   int rtc_seconds = rtcRead(0);
   int rtc_minutes = rtcRead(2);
   int rtc_hours   = rtcRead(4);
@@ -81,6 +81,8 @@ void drawMenuBar() {
 
     if (ImGui::BeginMenu("File")) {
       on = true;
+      if (ImGui::MenuItem("New scene")) {dialogNew(true);}
+      ImGui::Separator();
       if (ImGui::MenuItem("Load scene")) {dialogLoadSave(true,DIALOG_LOADSCENE);}
       if (ImGui::MenuItem("Save scene")) {dialogLoadSave(true,DIALOG_SAVESCENE);}
       ImGui::Separator();

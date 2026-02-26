@@ -44,6 +44,7 @@
 #include "HITTEST.HPP"
 #include "PROPS.HPP"
 #include "TEXPAINT.HPP"
+#include "MENUBAR.HPP"
 #include "UTIL/LOG.HPP"
 
 int version = 103;
@@ -74,8 +75,39 @@ JSON_Value * json_parse_string(const char *string);
 
 #define JSONPORTIONLENGTH (STRINGMAX+1000)
 
-#define STARTSERIALIZATION(__save__, __file__) int arrayIndex = 0; bool error = false; JSON_Value *jval; Array<JSON_Value*> jvals; Array<char> jsonArray; jsonArray.resize(JSONPORTIONLENGTH); jsonArray[0] = '{'; char *jsonPos = &jsonArray[1]; bool jsonIsSaving = __save__; if (!jsonIsSaving) {loadArray(&jsonArray,file);jval=json_parse_string_with_comments(&jsonArray[0]); jvals.push_back(jval); jsonPos = (char*)&jvals; if (jval==NULL) error = true;}
-#define FINISHSERIALIZATION(__file__) {if (jsonIsSaving) {if (jsonPos[-1] == ',' ) jsonPos--; sprintf(jsonPos,"}");fputs(&jsonArray[0],file);}}
+void loadArray(Array<char> *arr, FILE *in) {
+  fseek(in,0,SEEK_END);
+  unsigned int fileLen = ftell(in);
+  fseek(in,0,SEEK_SET);
+  arr->resize(fileLen);
+  fread(&(*arr)[0],1,fileLen,in);
+}
+
+void readJson(Array<char> *arr, FILE *file, String *string) {
+  if (string == NULL) {
+    loadArray(arr,file);
+  } else {
+    arr->resize(string->length()+1);
+    (*arr)[string->length()] = 0x00;
+    for (int i = 0; i < string->length(); i++) {
+      (*arr)[i] = (*string)[i];
+    }
+  }
+}
+
+void writeJson(Array<char> *arr, FILE *file, String *string) {
+  if (string == NULL) {
+    fputs(&(*arr)[0],file);
+  } else {
+    string->resize(arr->size());
+    for (int i = 0; i < string->length(); i++) {
+      (*string)[i] = (*arr)[i];
+    }
+  }
+}
+
+#define STARTSERIALIZATION(__save__) int arrayIndex = 0; bool error = false; JSON_Value *jval; Array<JSON_Value*> jvals; Array<char> jsonArray; jsonArray.resize(JSONPORTIONLENGTH); jsonArray[0] = '{'; char *jsonPos = &jsonArray[1]; bool jsonIsSaving = __save__; if (!jsonIsSaving) {readJson(&jsonArray,file,fileString);jval=json_parse_string_with_comments(&jsonArray[0]); jvals.push_back(jval); jsonPos = (char*)&jvals; if (jval==NULL) error = true;}
+#define FINISHSERIALIZATION() {if (jsonIsSaving) {if (jsonPos[-1] == ',' ) jsonPos--; sprintf(jsonPos,"}");writeJson(&jsonArray,file,fileString);}}
 
 #define S_NULL(__name__)  {jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_NULL, __name__, NULL, jsonIsSaving,arrayIndex);}
 #define S_BOOL(__name__, __v__)  {bool *typeSafe = &(__v__); UNUSED(typeSafe); jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_BOOL, __name__, &(__v__), jsonIsSaving,arrayIndex);}
@@ -222,17 +254,9 @@ void jsonSerialize(void *json, void **jsonPos, int type, const char *name, void 
   }
 }
 
-void loadArray(Array<char> *arr, FILE *in) {
-  fseek(in,0,SEEK_END);
-  unsigned int fileLen = ftell(in);
-  fseek(in,0,SEEK_SET);
-  arr->resize(fileLen);
-  fread(&(*arr)[0],1,fileLen,in);
-}
-
-void serializeAll(FILE *file, bool save) {
+void serializeAll(FILE *file, bool save, String *fileString) {
   logd("serializeAll - start");
-  STARTSERIALIZATION(save, file);
+  STARTSERIALIZATION(save);
   if (error) {return;}
 
   // ID/Header
@@ -241,6 +265,9 @@ void serializeAll(FILE *file, bool save) {
   int v = version;
   S_INT("version", version);
   version = v;
+  String timeDesc = timeDescString();
+  S_STRING("timeStamp", timeDesc);
+
 
   // CONFIG.HPP
   S_BOOL("fullScreen",fullScreen);
@@ -321,14 +348,14 @@ void serializeAll(FILE *file, bool save) {
   S_VECTOR("cursor", cursor);
   S_QUATERNION("cursorOrientation", cursorOrientation);
 
-  FINISHSERIALIZATION(file);
+  FINISHSERIALIZATION();
   logd("serializeAll - end");
 }
 
-void serializeObjects(bool save, FILE *file, Array<GameObject*> &gameObjects, Array<FileBinding*> &bindings, unsigned int &currentUniqueGameObjectId, unsigned int &bindingUniqueId) {
+void serializeObjects(bool save, FILE *file, String *fileString, Array<GameObject*> &gameObjects, Array<FileBinding*> &bindings, unsigned int &currentUniqueGameObjectId, unsigned int &bindingUniqueId) {
   logd("serializeObjects - start");
 
-  STARTSERIALIZATION(save, file);
+  STARTSERIALIZATION(save);
   if (error) {return;}
 
   // ID/Header
@@ -359,7 +386,7 @@ void serializeObjects(bool save, FILE *file, Array<GameObject*> &gameObjects, Ar
   }
   S_ARRAY_CLOSE();
 
-  FINISHSERIALIZATION(file);
+  FINISHSERIALIZATION();
   logd("serializeObjects - end");
 }
 
@@ -911,12 +938,22 @@ void reloadAll() {
   logd("reloadAll end");
 }
 
+String newDataPoint;
+
+void createDataPointForNew() {
+  serializeAll(NULL,true,&newDataPoint);
+}
+
+void restoreByDataPointForNew() {
+  serializeAll(NULL,false,&newDataPoint);
+}
+
 void loadScene(const char *path, const char *fileName) {
   logd("loadScene");
   String fullName = String(path) + fileName;
   FILE *in = fopen(dosFileName(shortFileName(fullName)).c_str(),"rb");
   if (in == NULL) return;
-  serializeAll(in,false);
+  serializeAll(in,false,NULL);
   fclose(in);
   renderingUpdated = true;
 }
@@ -944,7 +981,7 @@ void saveScene(const char *path, const char *fileName) {
   logd("saveScene:<%s> <%s>",path,fileName);
   FILE *out = createTempFile(path);
   if (out == NULL) return;
-  serializeAll(out, true);
+  serializeAll(out, true,NULL);
   fclose(out);
   renameTempFile(path,fileName);
 }
@@ -1199,7 +1236,7 @@ void loadGameObjects(const char *path, const char *fileName) {
   Array<FileBinding*> _bindings2;
   unsigned int a;
   unsigned int b;
-  serializeObjects(false, in, _gameObjects2, _bindings2, a, b);
+  serializeObjects(false, in, NULL, _gameObjects2, _bindings2, a, b);
   fclose(in);
 
   // put loaded gameobjects to end of gameobjectuniqueids
@@ -1314,7 +1351,7 @@ void saveGameObjects(const char *path, const char *fileName) {
 
   unsigned int a = currentUniqueGameObjectId;
   unsigned int b = bindingUniqueId;
-  serializeObjects(true, out, _gameObjects2, _bindings2, a, b);
+  serializeObjects(true, out, NULL, _gameObjects2, _bindings2, a, b);
   fclose(out);
   renameTempFile(path,fileName);
 }
@@ -1477,6 +1514,9 @@ void exportObjectCSV(const char *path, const char *fileName) {
   if (exportObjectsFile == NULL) return;
 
   fprintf(exportObjectsFile,"<FILE BEGIN>,\n");
+  String timeDesc = timeDescString();
+  fprintf(exportObjectsFile,"<TIMESTAMP>,%s,\n",escapeCSV(timeDesc).c_str());
+
 
   // actually this here also renders the objects to the screen, so maybe some garbage may be displayed
   exportObjects = true;

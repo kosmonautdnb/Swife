@@ -43,6 +43,7 @@ void dialogSelectByLayer(bool openIt);
 void dialogSelectInvisible(bool openIt);
 void dialogColor(bool openIt, unsigned int *color);
 void dialogObjectTextures(bool openIt);
+void dialogNew(bool openIt);
 
 void colorItem(const String &name, const String &id, unsigned int *color, bool colorPicker);
 

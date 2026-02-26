@@ -152,6 +152,9 @@ void serializeAll(FILE *file, bool save);
 
 void reloadAll();
 
+void createDataPointForNew();
+void restoreByDataPointForNew();
+
 void loadScene(const char *path, const char *fileName);
 void saveScene(const char *path, const char *fileName);
 

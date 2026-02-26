@@ -24,7 +24,11 @@
 #ifndef __MENUBAR_HPP__
 #define __MENUBAR_HPP__
 
+#include "STL/STRING.HPP"
+
 extern int menuBar_height;
+
+String timeDescString();
 
 void drawMenuBar();
 

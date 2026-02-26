@@ -125,6 +125,7 @@ void defaultInit() {
   initGizmos();
   initDialogs();
   initPaint();
+  createDataPointForNew();
 }
 
 int main(int argc, const char *argv[]) {
