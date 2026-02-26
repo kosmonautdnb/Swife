@@ -899,7 +899,6 @@ FileBinding *newBinding() {
 }
 
 void clearAllUnusedBindings() {
-  logd("clearAllUnusedBindings start");
   Set<unsigned int> usedBindings;
   for (int i = 0; i < gameObjects.size(); i++) {
     usedBindings.insert(gameObjects[i]->fileBindingId);
@@ -911,7 +910,6 @@ void clearAllUnusedBindings() {
       j--;
     }
   }
-  logd("clearAllUnusedBindings end");
 }
 
 void freeBindings() {
