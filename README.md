@@ -1,6 +1,8 @@
 # Swife
 A tiny and fastcoded DOS based 3D level editor (in development). 
 
+![ScreenShot](https://raw.github.com/kosmonautdnb/OpenGLDemoGame_DOS/main/SWIFE.PNG)
+
 ## Compiling  
 It is created with WatcomC++ 11.0 (from 1997), but can also be compiled with OpenWatcom and DJGPP. It's purely coded on a bare metal DOS system using VCode as text editor.  
 You may compile it with the provided !make.bat but I will later additionally deliver a ".bat approach" for DJGPP and Watcom/OpenWatcom.
