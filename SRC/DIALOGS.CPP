@@ -63,6 +63,27 @@ bool quit = false;
 unsigned int colorWheelX = 160;
 unsigned int colorWheelY = 160*aspectRatio*main_window_yres/main_window_xres;
 unsigned int colorWheelTexture = 0;
+unsigned int previewTexture = 0;
+const unsigned int previewWidth = 64;
+const unsigned int previewHeight = 64;
+unsigned int preview[previewWidth*previewHeight];
+double previewAspect = 1;
+
+void updatePreview() {
+  glBindTexture(GL_TEXTURE_2D,previewTexture);
+  glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA, previewWidth, previewHeight, 0, GL_RGBA, GL_BYTE, preview);
+  glBindTexture(GL_TEXTURE_2D,0);
+}
+
+void clearPreview() {
+  for (int y = 0; y < previewHeight; y++) {
+    for (int x = 0; x < previewWidth; x++) {
+      preview[x+y*previewWidth] = 0x40000000;
+    }
+  }
+  previewAspect = 1;
+  updatePreview();
+}
 
 void initDialogs() {
   glGenTextures(1,&colorWheelTexture);
@@ -72,6 +93,16 @@ void initDialogs() {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+  glGenTextures(1,&previewTexture);
+  glBindTexture(GL_TEXTURE_2D,previewTexture);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  clearPreview();
+
+  glBindTexture(GL_TEXTURE_2D,0);
 }
 
 void drawDialogs() {
@@ -457,9 +488,10 @@ void dialogAbout(bool openIt) {
 
 void dialogControls(bool openIt) {
   DIALOGSTART("Controls")
+  ImGui::BeginChild("##DIALOGCONTROLCHILD",ImVec2(main_window_xres/2,main_window_yres/2));
   ImGui::Text(
     "Press ctrl on a slider to enter a value.\n"
-    "Press F1 to take a screenshot.\n"
+    "Press F1 to take a screenshot as \"SCRNSHOT.PNG\".\n"
     "\n"
     "Outliner:\n"
     "Left mouse click for select.\n"
@@ -490,6 +522,7 @@ void dialogControls(bool openIt) {
     "\n"
     "Tool \"scale\":\n"
     "Use shift to scale uniformly\n"
+    "\n"
     "On texture grids (with Tool \"selection\"):\n"
     "Left Mouse and alt to paint on selected grid.\n"
     "Right Mouse and alt to get from selected grid.\n"
@@ -501,6 +534,7 @@ void dialogControls(bool openIt) {
     "Left mouse and ctrl to select stamp rectangle.\n"
     "Left mouse and alt to paint a line.\n"
   );
+  ImGui::EndChild();
   ImGui::Separator();
   if (ImGui::Button("Close##DIALOGCONTROLSCLOSE")) {
     ImGui::CloseCurrentPopup();
@@ -510,6 +544,7 @@ void dialogControls(bool openIt) {
 
 void dialogTroubleShooting(bool openIt) {
   DIALOGSTART("Troubleshooting")
+  ImGui::BeginChild("##DIALOGTROUBLESHOOTINGCHILD",ImVec2(main_window_xres*10/12,main_window_yres/2));
   ImGui::Text(
     "Save often it is not guaranteed to be stable and maybe verify the saving.\n"
     "\n"
@@ -538,7 +573,10 @@ void dialogTroubleShooting(bool openIt) {
     "If it gets too imperformat, maybe use billboard meshes instead of meshes.\n"
     "\n"
     "The image editor sadly has some precission/placing problems.\n"
+    "\n"
+    "Heightmaps sometimes have some visible \"seams\" when rendered.\n"
   );
+  ImGui::EndChild();
   ImGui::Separator();
   if (ImGui::Button("Close##DIALOGTROUBLESHOOTING")) {
     ImGui::CloseCurrentPopup();
@@ -970,6 +1008,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   DIALOGSTART(dialogCaption[mode])
   if (paths[mode].empty()) paths[mode] = getCWD();
   if (needsRescanFiles) {
+    clearPreview();
     needsRescanFiles = false;
     files.clear();
     char driveLetter = paths[mode][0];
@@ -1006,6 +1045,13 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   ImGui::Text("%s",dialogFileTypes[mode]);
   ImGui::Separator();
   SVG *svg = &svgs["search"];ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h));ImGui::SameLine();ImGui::InputText("##DIALOGLOADSAVEFILTER",filter,NAMEMAX);
+  ImGui::SameLine();
+  ImGui::Text("Preview"); ImGui::SameLine(); static bool previewOn = false; if (ImGui::Checkbox("##DIALOGLOADSAVEPREVIEW",&previewOn)) {if (previewOn) clearPreview();}
+  if (previewOn) {
+    ImGui::BeginTooltip();
+    ImGui::Image((ImTextureID)previewTexture,ImVec2(previewWidth,previewHeight*aspectRatio*main_window_yres/main_window_xres/previewAspect));
+    ImGui::EndTooltip();
+  }
   ImGui::Separator();
   if (ImGui::Button("Home##DIALOGLOADSAVEHOME")) {
     paths[mode] = appFolder;
@@ -1085,6 +1131,13 @@ void dialogLoadSave(bool openIt, int dialogMode) {
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered,ImVec4(0,0,0,0));
             if (ImGui::Button((files[i].name.name+"##DIALOGLOADSAVEFILEBUTTON"+String::fromInt(i)).c_str())) {
               fileNames[mode] = files[i].name.name + files[i].name.extension;
+              if (previewOn) {
+                String p = paths[mode]; 
+                String f = fileNames[mode];
+                f.resize(strlen(f.c_str()));
+                previewAspect = updateToolTip(preview, previewWidth, previewHeight, p.c_str(), f.c_str());
+                updatePreview();
+              }
               resize2(fileNames[mode],NAMEMAXHERE);
             }
             if (fullFileName==scrollToFileName) {ImGui::SetScrollHere();}

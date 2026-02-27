@@ -161,9 +161,11 @@ void drawToolBar() {
     ImGui::SameLine();
     if (toolBarTextButton2(paintBlended?"Solid##DRAWTOOLBARBLENDING":"Blending##DRAWTOOLBARBLENDING",true)) {paintBlended = !paintBlended;}
     ImGui::SameLine();
-    ImGui::Text("Stamp");
-    ImGui::SameLine();
     ImGui::Checkbox("##DRAWTOOLBARSTAMPON",&stampOn);
+    drawToolTip(stampOn?"disable stamp":"enable stamp");
+    ImGui::SameLine();
+    ImGui::Checkbox("##DRAWTOOLBARALPHAON",&alphaCheckered);
+    drawToolTip(alphaCheckered?"alpha black":"alpha fading");
     ImGui::SameLine();
     ImGui::Text("f=fill a=fxaa");
     ImGui::SameLine();

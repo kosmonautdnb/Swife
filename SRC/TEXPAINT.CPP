@@ -33,6 +33,7 @@
 #include "TIMELINE.HPP"
 #include "GAMEOBJ.HPP"
 #include "DIALOGS.HPP"
+#include "PAINT.HPP"
 #include "STL/SET.HPP"
 #include "STL/IMAGE.HPP"
 #include <math.h>
@@ -46,6 +47,8 @@ bool paintBlended = false;
 bool paintFlipX = false;
 bool paintFlipY = false;
 bool paintRotate = false;
+bool alphaCheckered = false;
+
 
 bool stampOn = false;
 bool stampColored = false;
@@ -212,6 +215,14 @@ void applyPixel(int x, int y, unsigned int color, unsigned int *pixels, int w, i
   }
 }
 
+bool isWindowHovered2() {
+  ImVec2 p = ImGui::GetWindowPos();
+  ImVec2 s = ImGui::GetWindowSize();
+  ImVec2 m = ImGui::GetMousePos();
+  if (m.x>=p.x&&m.y>=p.y&&m.x<p.x+s.x&&m.y<p.y+s.y) return true;
+  return false;
+}
+
 void drawTexPaint() {
   int count = 0; GameObject *first = NULL; for (int ic = 0; ic < gameObjects.size(); ic++) {if (gameObjects[ic]->selected) {first = gameObjects[ic]; count++;}}
   bool isOn = (count == 1 && first->type == GAMEOBJECT_IMAGE);
@@ -232,7 +243,7 @@ void drawTexPaint() {
   bool leftClicked = ImGui::IsMouseClicked(0);
   bool leftDown = ImGui::IsMouseDown(0);
   bool rightDown = ImGui::IsMouseDown(1);
-  bool off = !ImGui::IsWindowHovered();
+  bool off = !isWindowHovered2();
   if (renderMouseClicksOff>0) {renderMouseClicksOff--; off = true;}
   if (off) {leftClicked = false; leftDown = false; rightDown = false;}
 
@@ -369,6 +380,12 @@ void drawTexPaint() {
           imageScroll.y -= mouseDY;
         }
 
+        if (alphaCheckered) {
+          ImVec2 cursor = ImGui::GetCursorPos();
+          static double kr = 0; kr += timeDelta; double r = sin(kr*5.0)*0.25+0.75;
+          ImGui::Image((ImTextureID)0,ImVec2(imageWidth,imageHeight),ImVec2(0,0),ImVec2(1,1),ImVec4(r,1,1,1));
+          ImGui::SetCursorPos(cursor);
+        }
         ImGui::Image((ImTextureID)binding->textureIds[0],ImVec2(imageWidth,imageHeight));
 
         if (useStamp) {

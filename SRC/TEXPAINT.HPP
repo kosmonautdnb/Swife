@@ -39,6 +39,7 @@ extern bool pencilUpdated;
 extern bool paintFlipX;
 extern bool paintFlipY;
 extern bool paintRotate;
+extern bool alphaCheckered;
 
 void selectImageTile(int tileIndex);
 

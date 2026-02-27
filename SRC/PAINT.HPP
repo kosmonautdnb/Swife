@@ -25,6 +25,7 @@
 #define __PAINT_HPP__
 
 extern bool justDrawBoundingBoxes;
+extern unsigned int gridTexture;
 
 void initGizmos();
 void draw3DGrid();

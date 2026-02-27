@@ -36,6 +36,7 @@
 #include "STL/DOS.HPP"
 #include "STL/PARSON.HPP"
 #include "STL/JSONWRT.HPP"
+#include "STL/PSDIMAGE.HPP"
 #include <math.h>
 #include "OUTLINER.HPP"
 #include "TOOLBAR.HPP"
@@ -708,6 +709,7 @@ bool FileBinding::reload() {
   free();
   logd("FileBinding::reload_");
   renderingUpdated = true;
+  bool usePSDLayers = false;
   switch(type) {
   case FILETYPE_SKYBOX: {RGBAImage s = RGBAImage::fromFile(shortFileName(dosFileName(fileName)).c_str());
       if (s.data == NULL) {String nm = String("Couldn't load file:<")+fileName+">";dialogMessage(true,nm.c_str()); return false;}
@@ -742,9 +744,51 @@ bool FileBinding::reload() {
       dialogMessage(true,nm.c_str()); 
       return false;
     } //break;
-    case FILETYPE_OVERLAY:
     case FILETYPE_TEXTUREATLAS:
-    case FILETYPE_TEXTUREGRID: {
+    case FILETYPE_TEXTUREGRID: 
+      usePSDLayers = true;
+    case FILETYPE_OVERLAY: {
+      if (usePSDLayers && toLower(getExtension(fileName)) == ".psd") {
+        PSDImage *img = new PSDImage();
+        if (img->Load(shortFileName(dosFileName(fileName)).c_str())) {
+          int w = img->header.Columns;
+          int h = img->header.Rows;
+          int l = img->NumLayers();
+          int cx = w != 0? MAXTEXTUREWIDTH/w : 1;
+          int cy = h != 0? MAXTEXTUREHEIGHT/h : 1;
+          if (h > 0 && w > 0 && l<cx*cy && l > 1) {
+            RGBAImage s;
+            s.width = l < cx ? l * w : cx * w;
+            s.height = ((l+cx-1)/cx) * h;
+            s.data = (unsigned int *)malloc(s.width * s.height * sizeof(unsigned int));
+            memset(s.data,0,s.width * s.height * sizeof(unsigned int));
+            for (int i = 0; i < l; i++) {
+              int width,height,offset_x,offset_y;
+              unsigned int *imagedata = img->GetLayerData(i, width, height, offset_x, offset_y);
+              if(imagedata==NULL) continue;
+              for (int y = 0; y < height; y++) {
+                int ry = y + offset_y + ((i/cx) % cy)*h;
+                if (ry<0||ry>=s.height) continue;
+                for (int x = 0; x < width; x++) {
+                  int rx = x + offset_x + (i % cx)*w;
+                  if (rx<0||rx>=s.width) continue;
+                  s.data[rx+ry*s.width] = swapRB(imagedata[x+y*width]);
+                }
+              }
+            }
+            delete img;
+            originalWidth = s.width;
+            originalHeight = s.height;
+            textureIds.push_back(textureFromImage(&s));
+            textureAtlasTileCountX = cx;
+            textureAtlasTileCountY = cy;
+            textureAtlasTileWidth = w;
+            textureAtlasTileHeight = h;
+            return true;
+          }
+        }
+        delete img;
+      }
       RGBAImage s = RGBAImage::fromFile(shortFileName(dosFileName(fileName)).c_str());
       if (s.data == NULL) {String nm = String("Couldn't load file:<")+fileName+">";dialogMessage(true,nm.c_str()); return false;}
       textureIds.push_back(textureFromImage(&s));
@@ -1049,11 +1093,12 @@ void loadTextureGridForObject(class GameObject *o, const char *fileName) {
   if (binding == NULL) {
     binding = newBinding();
     binding->load(fileName, FILETYPE_TEXTUREGRID);
-    binding->textureAtlasTileWidth = binding->originalWidth;
-    binding->textureAtlasTileHeight = binding->originalHeight;
-    binding->textureAtlasTileCountX = 1;
-    binding->textureAtlasTileCountY = 1;
-
+    if (binding->textureAtlasTileWidth == 0) {
+      binding->textureAtlasTileWidth = binding->originalWidth;
+      binding->textureAtlasTileHeight = binding->originalHeight;
+      binding->textureAtlasTileCountX = 1;
+      binding->textureAtlasTileCountY = 1;
+    }
   }
   o->fileBindingId = binding->uniqueId;
 }
@@ -1073,10 +1118,12 @@ void loadTextureAtlasForObject(class GameObject *o, const char *fileName) {
   if (binding == NULL) {
     binding = newBinding();
     binding->load(fileName, FILETYPE_TEXTUREATLAS);
-    binding->textureAtlasTileWidth = binding->originalWidth;
-    binding->textureAtlasTileHeight = binding->originalHeight;
-    binding->textureAtlasTileCountX = 1;
-    binding->textureAtlasTileCountY = 1;
+    if (binding->textureAtlasTileWidth == 0) {
+      binding->textureAtlasTileWidth = binding->originalWidth;
+      binding->textureAtlasTileHeight = binding->originalHeight;
+      binding->textureAtlasTileCountX = 1;
+      binding->textureAtlasTileCountY = 1;
+    }
 
   }
   o->fileBindingId = binding->uniqueId;
@@ -1559,4 +1606,20 @@ void exportObjectCSV(const char *path, const char *fileName) {
 
   fclose(exportObjectsFile);
   renameTempFile(path,fileName);
+}
+
+double updateToolTip(unsigned int *rgba, int width, int height, const char *path, const char *fileName) {
+  String fname = String(path) + fileName;
+  RGBAImage image = RGBAImage::fromFile(shortFileName(dosFileName(fname)).c_str());
+  if (image.data != NULL && image.width > 0 && image.height > 0) {
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        rgba[x+y*width] = image.data[x*image.width/width + y*image.height/height * image.width];
+      }
+    }
+    double aspect = (double)image.width/image.height;
+    image.free();
+    return aspect;
+  }
+  return 1;
 }

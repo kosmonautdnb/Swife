@@ -71,6 +71,7 @@ enum DIALOGMODE {
 
 String longFileName(const String &a);
 String shortFileName(const String &a);
+unsigned int swapRB(unsigned int color);
 
 extern unsigned int dialogLoadSaveGameObjectUniqueId;
 extern String dialogLoadSaveSetFileNameAndPath;
