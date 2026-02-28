@@ -5,7 +5,9 @@ A tiny and fastcoded swift and DOS based 3D level editor (in development).
 
 ## Compiling  
 It is created with WatcomC++ 11.0 (from 1997), but can also be compiled with OpenWatcom and DJGPP. It's purely coded on a bare metal DOS system using VCode as text editor.  
-You may compile it with the provided !make.bat but I will later additionally deliver a ".bat approach" for DJGPP and Watcom/OpenWatcom.
+You may compile it with the provided !MAKE.BAT but maybe it's easier to use:  
+- !DJGPP.BAT for a DJGPP build
+- !WATCOM.BAT for a WatcomC / OpenWatcom build
 
 ## Disclaimer  
 Don't try this with DosBOX or DosBOX-X this editor heavily uses floating point and by all means will be too slow in an emulation. 
