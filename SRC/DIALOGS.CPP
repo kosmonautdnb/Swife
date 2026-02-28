@@ -1136,6 +1136,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
                 String f = fileNames[mode];
                 f.resize(strlen(f.c_str()));
                 previewAspect = updateToolTip(preview, previewWidth, previewHeight, p.c_str(), f.c_str());
+                if (previewAspect == 0) clearPreview();
                 updatePreview();
               }
               resize2(fileNames[mode],NAMEMAXHERE);

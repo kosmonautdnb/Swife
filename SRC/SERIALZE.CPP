@@ -1621,5 +1621,5 @@ double updateToolTip(unsigned int *rgba, int width, int height, const char *path
     image.free();
     return aspect;
   }
-  return 1;
+  return 0;
 }
