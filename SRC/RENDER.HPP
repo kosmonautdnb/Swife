@@ -35,7 +35,7 @@ public:
     orthoScale = 100.f;
     nearPlane = 0.1f;
     farPlane = 1000.f;
-    aspect = aspectRatio;
+    aspect = 0;
     ortho = false;
     position.set(0,25,0);
     rotation.yawPitchRoll(-45*PI/180.0,-25*PI/180.0,0.001);

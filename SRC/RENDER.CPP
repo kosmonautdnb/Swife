@@ -136,10 +136,11 @@ int frameRenderTick = 0;
 void Camera::applyToGL() {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
+  float a = aspect <= 0 ? aspectRatio : aspect;
   if (!ortho) 
-    gluPerspective(fov,aspect*stretchy,nearPlane,farPlane);
+    gluPerspective(fov,a * stretchy,nearPlane,farPlane);
   else
-    glOrtho(-orthoScale*aspect*stretchy,orthoScale*aspect*stretchy,-orthoScale,orthoScale,-100000,100000);
+    glOrtho(-orthoScale * a * stretchy,orthoScale * a * stretchy,-orthoScale,orthoScale,-100000,100000);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glMultMatrixd(normalize(inverse(rotation)).rotationMatrix().m);
