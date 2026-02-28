@@ -1,3 +1,3 @@
 copy R:\main.exe
-call main.exe -4
+call main.exe
 del main.exe
