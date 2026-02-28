@@ -4,8 +4,7 @@ A tiny and fastcoded swift and DOS based 3D level editor (in development).
 ![ScreenShot](https://raw.github.com/kosmonautdnb/OpenGLDemoGame_DOS/main/SWIFE.PNG)
 
 ## Compiling  
-It is created with WatcomC++ 11.0 (from 1997), but can also be compiled with OpenWatcom and DJGPP. It's purely coded on a bare metal DOS system using VCode as text editor.  
-You may compile it with the provided !MAKE.BAT but maybe it's easier to use:  
+It is created with WatcomC++ 11.0 (from 1997), but can also be compiled with OpenWatcom and DJGPP. It's purely coded on a bare metal DOS system using VCode as text editor. You may compile it with the provided !MAKE.BAT but maybe it's easier to use:  
 - !DJGPP.BAT for a DJGPP build
 - !WATCOM.BAT for a WatcomC / OpenWatcom build
 
