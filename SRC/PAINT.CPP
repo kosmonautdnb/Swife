@@ -49,6 +49,18 @@ unsigned int gridTexture;
 
 bool justDrawBoundingBoxes = false;
 
+void alphaOn() {
+  glEnable(GL_BLEND);
+  glEnable(GL_ALPHA_TEST);
+  glAlphaFunc(GL_GREATER,0);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+void alphaOff() {
+  glDisable(GL_BLEND);
+  glDisable(GL_ALPHA_TEST);
+}
+
 unsigned int getGridColor(int x, int y) {
   unsigned int a = ((x/16)^(y/16))&1?0xff:0x00;
   unsigned int g = (rand() & 15)+200-15;
@@ -141,12 +153,14 @@ void paintSkyBox(class GameObject *o) {
   Quaternion back; back.yawPitchRoll(k * 180,0,0);
   Quaternion top; top.yawPitchRoll(0,k * 90,0);
   Quaternion bottom; bottom.yawPitchRoll(0,k * -90,0);
+  alphaOn();
   drawSkyboxQuad(o->color,binding->textureIds[SKYBOX_LEFT], size,0,cameraPosition,left,r,Vector(-size,0,0));
   drawSkyboxQuad(o->color,binding->textureIds[SKYBOX_RIGHT], size,0,cameraPosition,right,r,Vector(size,0,0));
   drawSkyboxQuad(o->color,binding->textureIds[SKYBOX_FRONT], size,0,cameraPosition,front,r,Vector(0,0,-size));
   drawSkyboxQuad(o->color,binding->textureIds[SKYBOX_BACK], size,0,cameraPosition,back,r,Vector(0,0,size));
   drawSkyboxQuad(o->color,binding->textureIds[SKYBOX_TOP], size,0,cameraPosition,top,r,Vector(0,size,0));
   drawSkyboxQuad(o->color,binding->textureIds[SKYBOX_BOTTOM], size,0,cameraPosition,bottom,r,Vector(0,-size,0));
+  alphaOff();
 }
 
 bool isInViewport(GameObject *o) {
@@ -204,10 +218,8 @@ void paintTrigger(class GameObject *o, bool showModificators) {
   Vector maxB = o->boundingBoxMax;
   glMultMatrixd(m.m);
   glEnable(GL_TEXTURE_2D);
-  glEnable(GL_ALPHA_TEST);
-  glAlphaFunc(GL_GREATER,0);
   glBindTexture(GL_TEXTURE_2D,gridTexture);
-
+  alphaOn();
 
   glPushMatrix();
   Vector center = (minB+maxB)*0.5;
@@ -271,8 +283,9 @@ void paintTrigger(class GameObject *o, bool showModificators) {
   }
   glPopMatrix();
 
-  glDisable(GL_ALPHA_TEST);
   glDisable(GL_TEXTURE_2D);
+
+  alphaOff();
 
   addHitTestCube(o,HITTESTTOOL_NONE,minB,maxB);
 
@@ -302,10 +315,9 @@ void paintCamera(class GameObject *o) {
   Vector maxB = o->boundingBoxMax;
   glMultMatrixd(m.m);
   glEnable(GL_TEXTURE_2D);
-  glEnable(GL_ALPHA_TEST);
-  glAlphaFunc(GL_GREATER,0);
   glBindTexture(GL_TEXTURE_2D,gridTexture);
-
+ 
+  alphaOn();
 
   glPushMatrix();
   Vector center = (minB+maxB)*0.5;
@@ -366,8 +378,9 @@ void paintCamera(class GameObject *o) {
 
   glPopMatrix();
 
-  glDisable(GL_ALPHA_TEST);
   glDisable(GL_TEXTURE_2D);
+
+  alphaOff();
 
   addHitTestCube(o,HITTESTTOOL_NONE,minB,maxB);
 
@@ -401,23 +414,32 @@ void paintMesh(class GameObject *o, bool showModificators) {
   if (twoSidedOn) glDisable(GL_CULL_FACE); else glEnable(GL_CULL_FACE);
   if (b->forceTwoSided) glDisable(GL_CULL_FACE);
 
-  glEnable(GL_ALPHA_TEST);
-  glAlphaFunc(GL_GREATER,0);
+  alphaOn();
+
+  float r1 = (float)(o->color & 255)/255.f;
+  float g1 = (float)((o->color>>8) & 255)/255.f;
+  float b1 = (float)((o->color>>16) & 255)/255.f;
+  float a1 = (float)((o->color>>24) & 255)/255.f;
 
   glBegin(GL_TRIANGLES);
   for (int i = 0; i < triangles->size(); i++) {
     BakedVertex *v = &(*triangles)[i];
     glBindTexture(GL_TEXTURE_2D,v->textureId); // non standard opengl (in glBegin/glEnd here)
-    glColor4ubv((GLubyte*)&v->color);
+    float r2 = (float)(v->color & 255)/255.f;
+    float g2 = (float)((v->color>>8) & 255)/255.f;
+    float b2 = (float)((v->color>>16) & 255)/255.f;
+    float a2 = (float)((v->color>>24) & 255)/255.f;
+    glColor4f(r1*r2,g1*g2,b1*b2,a1*a2);
     glTexCoord2f(v->tx,v->ty);
     glNormal3f(v->nx,v->ny,v->nz);
     glVertex3f(v->x,v->y,v->z);
   }
   glEnd();
 
-  glDisable(GL_ALPHA_TEST);
   glDisable(GL_TEXTURE_2D);
   glEnable(GL_CULL_FACE);
+
+  alphaOff();
 
   addHitTestTriangles(o,0,triangles,minB,maxB);
 
@@ -476,9 +498,9 @@ void paintBillBoard(class GameObject *o, bool showModificators) {
 
   glMultMatrixd(m.m);
   glEnable(GL_TEXTURE_2D);
-  glEnable(GL_ALPHA_TEST);
-  glAlphaFunc(GL_GREATER,0);
   glBindTexture(GL_TEXTURE_2D,textureId);
+
+  alphaOn();
 
   glPushMatrix();
   Vector center = (minB+maxB)*0.5;
@@ -498,8 +520,9 @@ void paintBillBoard(class GameObject *o, bool showModificators) {
 
   glPopMatrix();
 
-  glDisable(GL_ALPHA_TEST);
   glDisable(GL_TEXTURE_2D);
+
+  alphaOff();
 
   addHitTestCube(o,HITTESTTOOL_NONE,minB,maxB);
 
@@ -539,8 +562,7 @@ void paintBillBoardContents() {
         if (twoSidedOn) glDisable(GL_CULL_FACE); else glEnable(GL_CULL_FACE);
         if (b->forceTwoSided) glDisable(GL_CULL_FACE);
       
-        glEnable(GL_ALPHA_TEST);
-        glAlphaFunc(GL_GREATER,0);
+        alphaOn();
       
         glBegin(GL_TRIANGLES);
         for (int i = 0; i < triangles->size(); i++) {
@@ -553,9 +575,10 @@ void paintBillBoardContents() {
         }
         glEnd();
       
-        glDisable(GL_ALPHA_TEST);
         glDisable(GL_TEXTURE_2D);
         glEnable(GL_CULL_FACE);
+
+        alphaOff();
 
         glPopMatrix();
       }
@@ -598,6 +621,8 @@ void paintPoint(class GameObject *o, bool showModificators) {
 
   bool lightingWasOn = glIsEnabled(GL_LIGHTING); glDisable(GL_LIGHTING);
 
+  alphaOn();
+
   glBegin(GL_QUADS);
   unsigned int col = o->color;
   glColor4f((col & 255)/255.f,((col>>8) & 255)/255.f,((col>>16) & 255)/255.f,((col>>24) & 255)/255.f);
@@ -632,6 +657,8 @@ void paintPoint(class GameObject *o, bool showModificators) {
   glVertex3f(-1,+1,-1);
   glVertex3f(-1,-1,-1);
   glEnd();
+
+  alphaOff();
 
   if (lightingWasOn) glEnable(GL_LIGHTING); else glDisable(GL_LIGHTING);
 
@@ -731,9 +758,9 @@ void paintTextureGrid(class GameObject *o, bool showModificators) {
 
   glDisable(GL_CULL_FACE);
   glEnable(GL_TEXTURE_2D);
-  glEnable(GL_ALPHA_TEST);
-  glAlphaFunc(GL_GREATER,0);
   glBindTexture(GL_TEXTURE_2D,binding != NULL && binding->textureIds.size()==1 ? binding->textureIds[0]:0);
+
+  alphaOn();
 
   bool noMap = false;
   if (binding != NULL) {
@@ -825,9 +852,10 @@ void paintTextureGrid(class GameObject *o, bool showModificators) {
     hasGizmo = true;
   }
 
-  glDisable(GL_ALPHA_TEST);
   glDisable(GL_TEXTURE_2D);
   glEnable(GL_CULL_FACE);
+
+  alphaOff();
 
   if (lightingWasOn) glEnable(GL_LIGHTING); else glDisable(GL_LIGHTING);
 
@@ -1028,7 +1056,11 @@ void paintPath(class GameObject *o, bool showModificators) {
   static Array<unsigned int> points; points.clear();
   collectSection(o, &points, GAMEOBJECT_POINT);
   if (points.size()<2) return;
+
   glLineWidth(o->lineWidth);
+
+  alphaOn();
+
   glBegin(GL_LINES);
   unsigned int col = o->color;
   glColor4f((col & 255)/255.f,((col>>8) & 255)/255.f,((col>>16) & 255)/255.f,((col>>24) & 255)/255.f);
@@ -1061,6 +1093,9 @@ void paintPath(class GameObject *o, bool showModificators) {
     }
   }
   glEnd();
+
+  alphaOff();
+
   glLineWidth(1);
 
   if (points.size()>0) {
@@ -1285,6 +1320,8 @@ void paintHeightmap(class GameObject *o, bool showModificators) {
   Vector collisionPoint;
   static Array<BakedVertex> tris; tris.resize(3);
 
+  alphaOn();
+
   glBegin(GL_QUADS);
   glColor4ubv((GLubyte*)&o->color);
   for (int i = 0; i < polys.size()/4; i++) {
@@ -1359,6 +1396,8 @@ void paintHeightmap(class GameObject *o, bool showModificators) {
   }
   glEnd();
 
+  alphaOff();
+
   glEnable(GL_CULL_FACE);
   glDisable(GL_TEXTURE_2D);
   glBindTexture(GL_TEXTURE_2D,0);
@@ -1392,8 +1431,8 @@ void drawScreenTexture(unsigned int texId, unsigned int color, int x0, int y0, i
   glDisable(GL_CULL_FACE);
   glDisable(GL_DEPTH_TEST);
   glDepthMask(GL_FALSE);
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+       
+  alphaOn();
 
   glBegin(GL_QUADS);
   glColor4ubv((GLubyte*)&color);
@@ -1403,10 +1442,11 @@ void drawScreenTexture(unsigned int texId, unsigned int color, int x0, int y0, i
   glTexCoord2f(1,1); glVertex3f(x1,y1,0);
   glEnd();
 
+  alphaOff();
+
   glDepthMask(GL_TRUE);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
-  glDisable(GL_BLEND);
   glDisable(GL_TEXTURE_2D);
   glBindTexture(GL_TEXTURE_2D, 0);
 

@@ -551,6 +551,10 @@ void dialogTroubleShooting(bool openIt) {
     "Images and textures should be around max. 875x875 (bigger images may crash).\n"
     "Files bigger than 3mb may crash due to the memory manager used with WatcomC.\n"
     "\n"
+    "Alpha blending is not handled well, except alpha values of 0 and 255. You have to sort\n"
+    "your \"scene graph\" in order to get propper blending, the scene graph is painted\n"
+    "from top to bottom. Maybe just place transparent objects at the bottom.\n"
+    "\n"
     "Files:\n"
     "If you want to share your files, you need to have placed them\n"
     "directly from begin in the DATA folder. And that means\n"
@@ -967,6 +971,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   static int mode = DIALOG_NONE; if (dialogMode != DIALOG_NONE) mode = dialogMode;
   static char filter[NAMEMAX];
 
+  static bool previewOn = false; 
   static bool driveReady = true;
   static bool needsRescanFiles = false;
   static bool longFileNames = false;
@@ -983,6 +988,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   const int NAMEMAXHERE = 100;
   if (openIt) {
     initColumns = true;
+    previewOn = false;
     memset(filter,0,sizeof(filter));
     needsRescanFiles = true;
     driveLetters.clear();
@@ -1046,7 +1052,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   ImGui::Separator();
   SVG *svg = &svgs["search"];ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h));ImGui::SameLine();ImGui::InputText("##DIALOGLOADSAVEFILTER",filter,NAMEMAX);
   ImGui::SameLine();
-  ImGui::Text("Preview"); ImGui::SameLine(); static bool previewOn = false; if (ImGui::Checkbox("##DIALOGLOADSAVEPREVIEW",&previewOn)) {if (previewOn) clearPreview();}
+  ImGui::Text("Preview"); ImGui::SameLine(); if (ImGui::Checkbox("##DIALOGLOADSAVEPREVIEW",&previewOn)) {if (previewOn) clearPreview();}
   if (previewOn) {
     ImGui::BeginTooltip();
     ImGui::Image((ImTextureID)previewTexture,ImVec2(previewWidth,previewHeight*aspectRatio*main_window_yres/main_window_xres/previewAspect));

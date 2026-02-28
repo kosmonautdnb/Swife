@@ -932,6 +932,7 @@ FileBinding *getBindingByFileName(GameObject *o, const char *fileName, unsigned 
       count++; 
     }
   }
+  if (count == 1) renderingUpdated = true; // a bit displaced here
   return (count == 1) ? first : NULL;
 }
 
@@ -1574,12 +1575,16 @@ void exportObject(GameObject *o) {
         fprintf(out,"<FILENAME2>,%s,\n",escapeCSV(toLocalFileName(b->fileName2)).c_str());
     }
     if (!o->properties.empty()) {
-      fprintf(out,"<PROPERTIES BEGIN>,\n");
-      for(int i = 0; i < o->properties.size(); i++) {
-        String name = "property"+String::fromInt(i);
-        exportPropertyCSV(out,&o->properties[i],name.c_str());
+      int count = 0; for(int i = 0; i < o->properties.size(); i++) {if (o->properties[i].type != GAMEOBJECTPROPERTY_REPEAT) count++;}
+      if (count != 0) {
+        fprintf(out,"<PROPERTIES BEGIN>,\n");
+        for(int i = 0; i < o->properties.size(); i++) {
+          String name = "property"+String::fromInt(i);
+          if (o->properties[i].type != GAMEOBJECTPROPERTY_REPEAT)
+            exportPropertyCSV(out,&o->properties[i],name.c_str());
+        }
+        fprintf(out,"<PROPERTIES END>,\n");
       }
-      fprintf(out,"<PROPERTIES END>,\n");
     }
     fprintf(out,"<OBJECT END>,\n");
   }
