@@ -42,15 +42,17 @@
 #include "DOS.HPP"
 #include "SERIALZE.HPP"
 #include "STL/IMAGE.HPP"
+#include "STL/GLEGA.HPP"
 
 double lastTime;
 
 bool initVideo() {
   glWatcomPrecisionTimer(GL_TRUE);
-  if (!glVesa(main_window_xres,main_window_yres,16)) {
-    main_window_xres = 320;
-    main_window_yres = 200;
-    return glVGA()?true:false;
+  if (isEga || (!glVesa(main_window_xres,main_window_yres,16))) {
+    main_window_xres = 640;
+    main_window_yres = 480;
+    toolBar_height *= 2;
+    if (!glEGA(main_window_xres,main_window_yres)) return false;
   }
   glClearColor(0,0,0,1);
   glClearDepth(1.f);
@@ -144,17 +146,37 @@ void defaultInit() {
 }
 
 int main(int argc, const char *argv[]) {
-  UNUSED(argc);
-  
+
   appFolder = unixFileName(getPath(argv[0]));
   //appFolder = getCWD();
 
+  printf("Swife version: %d.%02d", version / 100, version % 100);
+  printf("\n");
+  printf("You can find the newest version of Swife at:\n");
+  printf("www.github.com/kosmonautdnb/swife\n");
+  printf("\n");
+
+  for (int i = 1; i < argc; i++) {
+    String parameter = toLower(String(argv[i]));
+    if (parameter == "-ega") isEga = true;
+    if (parameter == "-4") {aspectRatio = 4.0/3.0;}
+    if (parameter == "-?" || parameter == "-help" || parameter == "--help") {
+      printf("Commandline parameters:\n");
+      printf("-EGA use EGA 640x480\n");
+      printf("-4 use 4:3 monitor aspect ratio (not 16:9)\n");
+      exit(0);
+    }
+  }
+
   initLogging();
   logp("SWIFE - STARTUP");
-  
+
+  if (!initVideo()) {
+    printf("Could not initialize graphics..\n");
+    exit(0);
+  }
   defaultInit();
 
-  initVideo();
   installKeyboardHandler();
 
   logd("starting..");

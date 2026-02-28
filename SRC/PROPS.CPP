@@ -43,6 +43,15 @@ char properties_filter[NAMEMAX] = {0};
 
 unsigned int uniqueIdOfSingleDisplayedObject = 0;
 
+void drawBadges() {
+  ImVec2 wp = ImGui::GetWindowPos();
+  ImVec2 ws = ImGui::GetWindowSize();
+  if (isEga) {
+    ImVec2 position = ImVec2(wp.x+ws.x-strlen("EGA")*8,wp.y+ws.y-13);
+    ImGui::GetWindowDrawList()->AddText(ImGui::GetWindowFont(),ImGui::GetWindowFontSize(),position,0xff0000ff,"EGA");
+  }
+}
+
 Vector paintColor(0.2,0.4,0.6,1);
 Vector previousPaintColors[MAX_PREVIOUS_COLORS];
 
@@ -1135,6 +1144,7 @@ void drawProperties() {
 
     ImGui::EndChild();
   }
+  drawBadges();
   ImGui::End();
 
 }

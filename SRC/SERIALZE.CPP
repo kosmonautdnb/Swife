@@ -48,7 +48,7 @@
 #include "MENUBAR.HPP"
 #include "UTIL/LOG.HPP"
 
-int version = 104;
+int version = 105;
 
 const char *fileTypeNames[FILETYPE_COUNT] = {"none","skybox","mesh","billboard","texturegrid","textureatlas","heightmap","overlay"};
 
@@ -1479,6 +1479,8 @@ String escapeCSV(const String &str) {
   }
   return ret;
 }
+
+String escapeCSV(const char *str) {return escapeCSV(String(str));} // for DJGPP
 
 #undef S_NULL
 #undef S_BOOL

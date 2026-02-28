@@ -9,6 +9,8 @@ copy /Y c:\_STL_\COLL.HPP SRC\STL\
 copy /Y c:\_STL_\DELAUNTR.HPP SRC\STL\
 copy /Y c:\_STL_\DOS.HPP SRC\STL\
 copy /Y c:\_STL_\DOS.CPP SRC\STL\
+copy /Y c:\_STL_\GLEGA.HPP SRC\STL\
+copy /Y c:\_STL_\GLEGA.CPP SRC\STL\
 copy /Y c:\_STL_\HASHMAP.HPP SRC\STL\
 copy /Y c:\_STL_\IMAGE.HPP SRC\STL\
 copy /Y c:\_STL_\IMAGE.CPP SRC\STL\

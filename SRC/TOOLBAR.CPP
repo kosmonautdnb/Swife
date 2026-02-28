@@ -187,7 +187,7 @@ void drawToolBar() {
         if (toolBarButtons[i].isSingle()) mode = toolBarButtons[i].mode;
       }
     }
-    ImGui::SameLine();
+    if (!isEga) ImGui::SameLine();
     if (currentCamera == CAMERA_USER) {
       Camera *c = &cameras[currentCamera];
       c->ortho = (bool)toolBarTextButton((unsigned int)c->ortho,(unsigned int)false,"Persp##ORTHO1");

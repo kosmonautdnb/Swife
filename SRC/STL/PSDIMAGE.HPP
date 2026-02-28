@@ -81,10 +81,10 @@ public:
         r->layers[toLower(n)] = l;
         for (int y = 0; y < height; y++) {
           int ry = y + offset_y;
-          if (ry<0||ry>r->h) continue;
+          if (ry<0||ry>=r->h) continue;
           for (int x = 0; x < width; x++) {
             int rx = x + offset_x;
-            if (rx<0||rx>r->w) continue;
+            if (rx<0||rx>=r->w) continue;
             l[rx+ry*r->w] = imagedata[x+y*width];
           }
         }

@@ -66,6 +66,7 @@ extern String appFolder;
 extern uint32_t main_window_xres;
 extern uint32_t main_window_yres;
 extern double aspectRatio;
+extern bool isEga;
 extern const char *logFileName;
 
 extern int defaultRenderTargetWidth;
