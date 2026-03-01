@@ -562,7 +562,10 @@ void paintBillBoardContents() {
         if (twoSidedOn) glDisable(GL_CULL_FACE); else glEnable(GL_CULL_FACE);
         if (b->forceTwoSided) glDisable(GL_CULL_FACE);
       
-        alphaOn();
+        //alphaOn();
+        glEnable(GL_ALPHA_TEST);
+        glAlphaFunc(GL_GREATER,0);
+        glExplicitAlpha(GL_TRUE,1);
       
         glBegin(GL_TRIANGLES);
         for (int i = 0; i < triangles->size(); i++) {
@@ -579,6 +582,7 @@ void paintBillBoardContents() {
         glEnable(GL_CULL_FACE);
 
         alphaOff();
+        glExplicitAlpha(GL_FALSE,0);
 
         glPopMatrix();
       }
