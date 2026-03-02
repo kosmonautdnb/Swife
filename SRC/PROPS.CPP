@@ -152,7 +152,7 @@ bool propsButton(const String &name,int k) {
   return ret;
 }
 
-bool editProperty(GameObjectProperty *p, int i) {
+bool editProperty(GameObject *o, GameObjectProperty *p, int i) {
   char buffer[64];
   sprintf(buffer,"##PROPERTYEDIT%d",i);
   ImGui::Text("%s",strlen(p->name)==0?NONAME:p->name);
@@ -223,6 +223,13 @@ bool editProperty(GameObjectProperty *p, int i) {
         renderingUpdated = true;
       }
       if (p->goRepeat<0) p->goRepeat=0;
+
+      ImGui::SameLine();
+      if (propsButton(IDINDEXED("Bake all##PROPERTYEDITBAKEALL",i),strlen("Bake all") + 2 + strlen("Use path") + 4)) {
+        o->bakeAllProperties = true;
+        renderingUpdated = true;
+      }
+
       if (!p->goCheck1) {   
         sprintf(buffer,"##PROPERTYEDITm%d",i);if (vectorInput2("M",&p->goMove,buffer)) {renderingUpdated=true;}
         sprintf(buffer,"##PROPERTYEDITs%d",i);if (vectorInput2("S",&p->goScale,buffer)) {renderingUpdated=true;}
@@ -1128,7 +1135,7 @@ void drawProperties() {
         if (filter.empty()||(visib_.findFirst(filter)>=0)) {if (ImGui::Checkbox(IDINDEXED("Visible##PROPERTIESGAMEOBJECTVISIBLE",i2),&gameObjects[i2]->visible2)) {renderingUpdated = true;}ImGui::Separator();}
         for (int j = 0; j < gameObjects[i2]->properties.size(); j++) {
           if (!(filter.empty()||(toLower(String(gameObjects[i2]->properties[j].name)).findFirst(filter)>=0))) continue;
-          if (editProperty(&gameObjects[i2]->properties[j], i2 + j * 32768)) {
+          if (editProperty(gameObjects[i2],&gameObjects[i2]->properties[j], i2 + j * 32768)) {
             gameObjects[i2]->properties.erase(j,1); j--;
             renderingUpdated = true;
           }

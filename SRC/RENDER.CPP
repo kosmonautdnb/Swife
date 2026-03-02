@@ -315,6 +315,8 @@ void paintSimpleGameObject(GameObject *o, bool showModificators) {
   Matrix mt = o->getObjectTransform(); Matrix invmt = inverse(mt);
   Matrix rt = mt.rotationMatrix3x3(); Matrix invrt = inverse(rt);
 
+  bool doBaking = o->bakeAllProperties; o->bakeAllProperties = false;
+
   for (int j = 0; j < o->properties.size(); j++) {
     switch(o->properties[j].type) {
       case GAMEOBJECTPROPERTY_REPEAT: {
@@ -364,17 +366,36 @@ void paintSimpleGameObject(GameObject *o, bool showModificators) {
             }
           }
         }
+        if (doBaking) {
+          o->properties.erase(j,1);
+          j--;
+        }
       } break;
     }
   }
 
-  for (int i = 0; i < transforms.size(); i++) {
+  int index = -1; for (int k = 0; k < gameObjects.size(); k++) if (gameObjects[k] == o) index = k;
+
+  for (int i = 0 ; i < transforms.size(); i++) {
     o->parentTransform = restore * mt * transforms[i] * invmt;
-    paintRawGameObject(o,i==0?showModificators:false);
+    if (!doBaking) {
+      paintRawGameObject(o, i == 0 ? showModificators : false);
+    } else {
+      if (index >= 0) { // baking
+        GameObject *o2 = o->clone(); cloneName(o2->name, o->name);
+        Vector a = o->anchor; if (a.w != 0) {a /= a.w; a.w = 1;} Matrix ma; ma.translate(a);
+        Matrix m2 = o->parentTransform * mt * ma;
+        Quaternion rotation = normalize(rotationMatrixToQuaternion(m2.rotationMatrix3x3()));
+        o2->translation = m2.getColumn(3); o2->translation.w = 1;
+        o2->rotation = rotation;
+        o2->scaling = Vector(m2.getColumn(0).length(),m2.getColumn(1).length(),m2.getColumn(2).length());
+        o2->parentTransform = Matrix();
+        gameObjects.insert(o2,index+1+i);
+      }
+    }
   }
 
   o->parentTransform = restore;
-
 }
 
 void drawGameObject(GameObject *o) {

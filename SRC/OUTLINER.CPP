@@ -116,6 +116,7 @@ void objectSelect(unsigned int i) {
       }
     }
     gameObjects[i]->selected = !gameObjects[i]->selected;
+    renderingUpdated = true; // needed
     if (shift && t == GAMEOBJECT_SECTION) {sectionSelecting = true; sectionSelectingType = gameObjects[i]->selected;}
   }
 

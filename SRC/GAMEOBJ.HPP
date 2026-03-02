@@ -232,6 +232,7 @@ public:
     interpolationParam = 0.5f;
     sliderPos = 0;
     showOverlay = false;
+    bakeAllProperties = false;
   }
 
   unsigned int layers;
@@ -278,6 +279,7 @@ public:
   int billBoardTY1;
   bool showStructure;
   bool isCamera[CAMERA_COUNT];
+  bool bakeAllProperties;
   Array<GameObjectProperty> properties;
   Array<unsigned int> uniqueLinkIds;
   Camera camera;
