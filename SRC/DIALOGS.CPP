@@ -477,6 +477,8 @@ void dialogAbout(bool openIt) {
     "Build date: " __DATE__ "\n"
     "Build time: " __TIME__ "\n"
     "Version: %d.%02d\n"
+    "------------------------------------\n"
+    "This program is freeware.\n"
   ,version / 100, version % 100
   );
   ImGui::Separator();
