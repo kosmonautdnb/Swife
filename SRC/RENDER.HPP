@@ -89,6 +89,8 @@ extern bool showLinks;
 extern bool showGrids;
 extern int renderMouseClicksOff;
 
+void lightSetup(bool on);
+
 void disableRenderMouseClicks();
 
 void updateCamera();

@@ -37,6 +37,7 @@
 #include "PAINT.HPP"
 #include "VIEWPORT.HPP"
 #include "UTIL/LOG.HPP"
+#include "STL/SPRTEOBJ.HPP"
 #include <math.h>
 
 typedef void (*LOADSAVEFUNC)(const char *shortPath, const char *longFileName);
@@ -973,6 +974,9 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   static int mode = DIALOG_NONE; if (dialogMode != DIALOG_NONE) mode = dialogMode;
   static char filter[NAMEMAX];
 
+  static SpriteObject *sp = NULL;
+  static FileBinding *mesh = NULL;
+
   static bool previewOn = false; 
   static bool driveReady = true;
   static bool needsRescanFiles = false;
@@ -989,6 +993,9 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   static int scrollToHelper = 0;
   const int NAMEMAXHERE = 100;
   if (openIt) {
+    if (sp == NULL) sp = new SpriteObject();
+    if (mesh == NULL) mesh = new FileBinding();
+    createSpriteObjectFrameBuffer(sp, previewWidth, previewHeight);
     initColumns = true;
     previewOn = false;
     memset(filter,0,sizeof(filter));
@@ -1144,7 +1151,10 @@ void dialogLoadSave(bool openIt, int dialogMode) {
                 String f = fileNames[mode];
                 f.resize(strlen(f.c_str()));
                 previewAspect = updateToolTip(preview, previewWidth, previewHeight, p.c_str(), f.c_str());
-                if (previewAspect == 0) clearPreview();
+                if (previewAspect == 0) {
+                  clearPreview();
+                  String n = p+f; mesh->load(n.c_str(), FILETYPE_MESH);
+                }
                 updatePreview();
               }
               resize2(fileNames[mode],NAMEMAXHERE);
@@ -1181,10 +1191,14 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   ImGui::Separator();
   if (ImGui::Button(IDCOMBINED(proceedButton[mode],"##DIALOGLOADSAVEPROCEED"))) {
     result = true;
+    freeSpriteObject(sp); delete sp; sp = NULL;
+    delete mesh; mesh = NULL;
     ImGui::CloseCurrentPopup();
   }
   ImGui::SameLine();
   if (ImGui::Button("Close##DIALOGLOADSAVECLOSE")) {
+    freeSpriteObject(sp); delete sp; sp = NULL;
+    delete mesh; mesh = NULL;
     ImGui::CloseCurrentPopup();
   }
   DIALOGEND()
@@ -1203,6 +1217,47 @@ void dialogLoadSave(bool openIt, int dialogMode) {
       } else
         callLoadSaveFunc();
     }
+  }
+  if (previewOn && mesh != NULL && sp != NULL && !mesh->triangles.empty()) {
+
+    glPushMatrix();
+    GLboolean isDepthTest = glIsEnabled(GL_DEPTH_TEST); glEnable(GL_DEPTH_TEST);
+    GLboolean isCullFace = glIsEnabled(GL_CULL_FACE); glDisable(GL_CULL_FACE);
+    static double t = 0; t += timeDelta;
+    glLoadIdentity();
+    glRotatef(t * 23.0, 0,0,1);
+    glRotatef(t * 43.0, 1,0,0);
+    glTranslatef(-1,-1,-1);
+    lightSetup(true);
+
+    startSpriteObjectPainting(sp, &mesh->boundingBoxMin, &mesh->boundingBoxMax);
+    glBegin(GL_TRIANGLES);
+    for (int i = 0; i < mesh->triangles.size(); i++) {
+      BakedVertex *v = &mesh->triangles[i];
+      glBindTexture(GL_TEXTURE_2D,v->textureId); // non standard opengl (in glBegin/glEnd here)
+      float r2 = (float)(v->color & 255)/255.f;
+      float g2 = (float)((v->color>>8) & 255)/255.f;
+      float b2 = (float)((v->color>>16) & 255)/255.f;
+      float a2 = (float)((v->color>>24) & 255)/255.f;
+      glColor4f(r2,g2,b2,a2);
+      glTexCoord2f(v->tx,v->ty);
+      glNormal3f(v->nx,v->ny,v->nz);
+      glVertex3f(v->x,v->y,v->z);
+    }
+    glEnd();
+    finishSpriteObjectPainting();
+    lightSetup(false);
+    if (isDepthTest) glEnable(GL_DEPTH_TEST); else glDisable(GL_DEPTH_TEST);
+    if (isCullFace) glEnable(GL_CULL_FACE); else glDisable(GL_CULL_FACE);
+
+    double bw = fabs(sp->maxx-sp->minx);
+    double bh = fabs(sp->maxy-sp->miny);
+    if (bh != 0) previewAspect = bw / bh;
+
+    glPopMatrix();
+
+    memcpy(preview, glGetTexturePointer(sp->frameBufferColor), previewWidth*previewHeight*sizeof(unsigned int));
+    updatePreview();
   }
 }
 

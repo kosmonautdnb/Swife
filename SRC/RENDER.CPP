@@ -847,9 +847,6 @@ void lightSetup(bool on) {
   glEnable(GL_LIGHT0);
   glEnable(GL_COLOR_MATERIAL);
 
-  Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX,modelView.m);
-  Vector camPos = inverse(modelView)*Vector(0,0,0);
-
   float dir[4] = {1,1,1,0};
   float one[4] = {1,1,1,0};
   float zero[4] = {0,0,0,0};
