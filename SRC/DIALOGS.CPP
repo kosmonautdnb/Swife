@@ -1154,6 +1154,8 @@ void dialogLoadSave(bool openIt, int dialogMode) {
                 if (previewAspect == 0) {
                   clearPreview();
                   String n = p+f; mesh->load(n.c_str(), FILETYPE_MESH);
+                } else {
+                  mesh->free();
                 }
                 updatePreview();
               }
@@ -1221,14 +1223,19 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   if (previewOn && mesh != NULL && sp != NULL && !mesh->triangles.empty()) {
 
     glPushMatrix();
-    GLboolean isDepthTest = glIsEnabled(GL_DEPTH_TEST); glEnable(GL_DEPTH_TEST);
-    GLboolean isCullFace = glIsEnabled(GL_CULL_FACE); glDisable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+    if (mesh->textureIds.empty()) 
+      glDisable(GL_TEXTURE_2D); 
+    else 
+      glEnable(GL_TEXTURE_2D);
     static double t = 0; t += timeDelta;
     glLoadIdentity();
     glRotatef(t * 23.0, 0,0,1);
     glRotatef(t * 43.0, 1,0,0);
     glTranslatef(-1,-1,-1);
     lightSetup(true);
+    alphaOn();
 
     startSpriteObjectPainting(sp, &mesh->boundingBoxMin, &mesh->boundingBoxMax);
     glBegin(GL_TRIANGLES);
@@ -1247,12 +1254,17 @@ void dialogLoadSave(bool openIt, int dialogMode) {
     glEnd();
     finishSpriteObjectPainting();
     lightSetup(false);
-    if (isDepthTest) glEnable(GL_DEPTH_TEST); else glDisable(GL_DEPTH_TEST);
-    if (isCullFace) glEnable(GL_CULL_FACE); else glDisable(GL_CULL_FACE);
+
+    alphaOff();
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glDisable(GL_TEXTURE_2D);
 
     double bw = fabs(sp->maxx-sp->minx);
     double bh = fabs(sp->maxy-sp->miny);
-    if (bh != 0) previewAspect = bw / bh;
+    if (bh != 0 && bw != 0) previewAspect = bw / bh;
+    if (previewAspect==0) previewAspect = 1;
 
     glPopMatrix();
 

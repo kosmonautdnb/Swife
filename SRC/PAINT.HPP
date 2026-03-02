@@ -54,4 +54,7 @@ int getFromTextureGrid(class FileBinding *binding, int arrayPos);
 
 void paintOverlay(class GameObject *o);
 
+void alphaOn();
+void alphaOff();
+
 #endif //__PAINT_HPP__
