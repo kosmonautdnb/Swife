@@ -551,9 +551,6 @@ void dialogTroubleShooting(bool openIt) {
   ImGui::Text(
     "Save often it is not guaranteed to be stable and maybe verify the saving.\n"
     "\n"
-    "Images and textures should be around max. 875x875 (bigger images may crash).\n"
-    "Files bigger than 3mb may crash due to the memory manager used with WatcomC.\n"
-    "\n"
     "Alpha blending is not handled well, except alpha values of 0 and 255. You have to sort\n"
     "your \"scene graph\" in order to get propper blending, the scene graph is painted\n"
     "from top to bottom. Maybe just place transparent objects at the bottom.\n"

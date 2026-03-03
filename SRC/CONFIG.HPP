@@ -43,9 +43,15 @@
 #define IDINDEXED2(__prefix__,__number1__,__number2__) idIndexed2(__prefix__,__number1__,__number2__)
 #define IDCOMBINED(__prefix__,__suffix__) idCombined(__prefix__,__suffix__)
 #define IDCOMBINED3(__string1__,__string2__,__string3__) idCombined3(__string1__,__string2__,__string3__)
+#ifdef NOTNEEDEDANYMORE // the bug was somewhere in stb_image in connection with realloc
 #define MAXTEXTUREWIDTH 875 // 1024 (even 1000 may not work) is too much here maybe due to glMalloc that maybe can't allocate more than 4mb at once (WatcomC11) (there are strange behaviours and  crashes)
 #define MAXTEXTUREHEIGHT 875 // 1024 (even 1000 may not work) is too much here maybe due to glMalloc that maybe can't allocate more than 4mb at once (WatcomC11) (there are strange behaviours and  crashes)
 #define MAXMEMPERALLOC (MAXTEXTUREWIDTH*MAXTEXTUREHEIGHT*4) // (problems with dos allocations on WatcomC)
+#else
+#define MAXTEXTUREWIDTH 8192
+#define MAXTEXTUREHEIGHT 8192
+#define MAXMEMPERALLOC (1024*1024*200)
+#endif
 
 extern bool fullScreen;
 extern double fps;
