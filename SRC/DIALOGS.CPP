@@ -1237,6 +1237,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
     lightSetup(true);
     alphaOn();
 
+    glExplicitAlpha(GL_TRUE,1);
     startSpriteObjectPainting(sp, &mesh->boundingBoxMin, &mesh->boundingBoxMax);
     glBegin(GL_TRIANGLES);
     for (int i = 0; i < mesh->triangles.size(); i++) {
@@ -1253,6 +1254,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
     }
     glEnd();
     finishSpriteObjectPainting();
+    glExplicitAlpha(GL_FALSE,0);
     lightSetup(false);
 
     alphaOff();
@@ -1263,12 +1265,26 @@ void dialogLoadSave(bool openIt, int dialogMode) {
 
     double bw = fabs(sp->maxx-sp->minx);
     double bh = fabs(sp->maxy-sp->miny);
-    if (bh != 0 && bw != 0) previewAspect = bw / bh;
-    if (previewAspect==0) previewAspect = 1;
+    double a = 1;
+    if (bh != 0) a = bw / bh;
+    if (a == 0) a = 1;
 
     glPopMatrix();
 
-    memcpy(preview, glGetTexturePointer(sp->frameBufferColor), previewWidth*previewHeight*sizeof(unsigned int));
+    memset(preview,0,previewWidth*previewHeight*sizeof(unsigned int));
+    for (int y = 0; y < previewHeight; y++) {
+      double ny = (double)(y * 2) / previewHeight - 1;
+      if (a > 1) ny *= a;
+      ny = (ny + 1) * 0.5 * previewHeight;
+      int nyi = (int)ny;
+      for (int x = 0; x < previewWidth; x++) {
+        double nx = (double)(x * 2) / previewWidth - 1;
+        if (a < 1) nx /= a;
+        nx = (nx + 1) * 0.5 * previewWidth;
+        int nxi = (int)nx;
+        if (nyi >= 0 && nyi < previewHeight && nxi >= 0 && nxi < previewWidth) preview[x+y*previewWidth] = glGetTexturePointer(sp->frameBufferColor)[nxi+nyi*previewWidth];
+      }
+    }
     updatePreview();
   }
 }
