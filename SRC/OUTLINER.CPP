@@ -103,6 +103,7 @@ void objectSelect(unsigned int i) {
 
   if (gameObjects[i]->type == GAMEOBJECT_LINK) {
     ImGui::Checkbox(IDINDEXED("##OBJECTSELECTLINK",i),&gameObjects[i]->showLinks);
+    drawToolTip(gameObjects[i]->showLinks?"hide links":"show links");
     ImGui::SameLine();
   }
 
