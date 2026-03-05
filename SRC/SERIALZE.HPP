@@ -27,6 +27,7 @@
 #include "STL/ARRAY.HPP"
 #include "STL/VECTOR.HPP"
 #include "STL/STRING.HPP"
+#include "STL/DOS.HPP"
 #include <stdio.h>
 
 enum FILETYPE {
@@ -185,5 +186,7 @@ void exportObject(GameObject *o);
 void exportObjectCSV(const char *path, const char *fileName);
 
 double updateToolTip(unsigned int *rgba, int width, int height, const char *path, const char *fileName);
+
+Array<File> getZipDirectory(const char *path, const char *zipFileName);
 
 #endif //__SERIALZE_HPP__

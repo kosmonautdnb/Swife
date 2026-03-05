@@ -38,6 +38,7 @@
 #include "VIEWPORT.HPP"
 #include "UTIL/LOG.HPP"
 #include "STL/SPRTEOBJ.HPP"
+#include "STL/SET.HPP"
 #include <math.h>
 
 typedef void (*LOADSAVEFUNC)(const char *shortPath, const char *longFileName);
@@ -53,7 +54,6 @@ const char *proceedButton[DIALOG_COUNT] = {"<button>", "Load", "Save","Load","Lo
 const char *dialogFileTypes[DIALOG_COUNT] = {"",".sfs",".sfs",images,meshes,imagesAndMeshes,images,csv,csv,all,all,sf0,sf0,images,".png",images,csv,images};
 const char *dialogDefaultExtension[DIALOG_COUNT] = {"",".SFS",".SFS","","","","",".CSV",".CSV","","",".SF0",".SF0","",".PNG","",".CSV",""};
 LOADSAVEFUNC funcs[DIALOG_COUNT] = {NULL, loadScene, saveScene, loadSkyBox, loadMesh, loadBillBoard,loadTextureGrid,loadTextureGridCSV,saveTextureGridCSV,loadScript,saveScript,loadGameObjects,saveGameObjects,loadTextureAtlas,saveImage,loadHeightmap,exportObjectCSV,loadOverlay};
-
 
 #define DIALOGSTART(__name__) static int keyboardFocusNew = 0; static bool openItNextTime = false;  if (openIt) {openItNextTime = true; keyboardFocusNew = 2; return;}  if (openItNextTime) {openItNextTime = false; ImGui::OpenPopup(__name__); } ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0,0,0,1)); ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(1,1,1,1); if (ImGui::BeginPopupModal(__name__,NULL,ImGuiWindowFlags_AlwaysAutoResize)) { ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(0,0,0,1); ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.4,0.4,0.4,1));disableRenderMouseClicks();
 #define DIALOGEND() ImGui::PopStyleColor(); ImGui::EndPopup();} ImGui::PopStyleColor();
@@ -924,6 +924,75 @@ LOADSAVEFUNC loadSaveFunc = NULL;
 String loadSaveShortPath; 
 String loadSaveLongFileName;
 
+String zipFileName = "";
+Array<File> zipDirectory;
+bool isInZip = false;
+
+const char *zipFolderPrefix = "ZIP:/""/";
+const char *zipFolderPrefix2 = "ZIP:/";
+
+Array<String> particles(const String &full, const char limiter, bool withLastParticle) {
+  Array<String> ret;
+  int start = 0;
+  for (int i = 0; i < full.length(); i++) {
+    if (full[i] == limiter) {
+      ret.push_back(full.substr(start,i-start));
+      start = i + 1;
+    }
+  }
+  if (withLastParticle && start != full.length()) ret.push_back(full.substr(start));
+  return ret;
+}
+
+Array<File> zipGetFiles(const String &path) {
+  Array<File> ret;
+  static Set<String> already;
+  already.clear();
+  String p = unixFileName(path); Array<String> particles1 = particles(p,'/',false);
+  for (int i = 0; i < zipDirectory.size(); i++) {
+    File &z = zipDirectory[i];
+    File f;
+    f = z;
+    f.name.full = zipFolderPrefix + f.name.full;
+    String n = unixFileName(f.name.full); Array<String> particles2 = particles(n,'/',false);
+    if (particles2.size() >= particles1.size()) {
+      bool found = true;
+      for (int j = 0; j < particles1.size(); j++) {
+        if (particles1[j]!=particles2[j]) {found = false; break;}
+      }
+      if (found) {
+        if (particles2.size()>particles1.size() && ((f.attributes & DOS_ATTR_SUBDIR)!=0)) {
+          f.name.name = particles2[particles1.size()];
+          if (!already.has(f.name.name)) {
+            already.insert(f.name.name);
+            ret.push_back(f);
+          }
+        } else {
+          if (particles2.size() == particles1.size() && ((f.attributes & DOS_ATTR_SUBDIR)==0)) {
+            // files belonging to that directory
+            ret.push_back(f);
+          } else {
+            if (particles2.size() > particles1.size() && ((f.attributes & DOS_ATTR_SUBDIR)==0)) {
+              // additional directories belonging to that directory
+              f.name.name = particles2[particles1.size()];
+              if (!already.has(f.name.name)) {
+                already.insert(f.name.name);
+                f.name.full = "";
+                for (int k = 0; k < particles1.size()+1; k++) {
+                  if (k != 0) f.name.full += "/";
+                  f.name.full += particles2[k];
+                }
+                ret.push_back(f);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return ret;
+}
+
 void callLoadSaveFunc() {
   if (loadSaveFunc == NULL) {dialogLoadSaveModeId = 0;return;}
   loadSaveFunc(loadSaveShortPath.c_str(), loadSaveLongFileName.c_str());
@@ -987,11 +1056,13 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   static String fileNames[DIALOG_COUNT];
   static String path2;
   static String scrollToFileName;
+  static String returnToPath;
   static int scrollToHelper = 0;
-  const int NAMEMAXHERE = 100;
+  const int NAMEMAXHERE = 513; // to be aligned with zip settings
   if (openIt) {
     if (sp == NULL) sp = new SpriteObject();
     if (mesh == NULL) mesh = new FileBinding();
+    isInZip = false; zipDirectory.clear(); returnToPath = "";
     createSpriteObjectFrameBuffer(sp, previewWidth, previewHeight);
     initColumns = true;
     previewOn = false;
@@ -1018,7 +1089,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   }
   bool result = false;
   DIALOGSTART(dialogCaption[mode])
-  if (paths[mode].empty()) paths[mode] = getCWD();
+  if (paths[mode].empty()) {isInZip = false; paths[mode] = getCWD();}
   if (needsRescanFiles) {
     clearPreview();
     needsRescanFiles = false;
@@ -1026,7 +1097,13 @@ void dialogLoadSave(bool openIt, int dialogMode) {
     char driveLetter = paths[mode][0];
     driveReady = true;
     if (driveLetter>='A'&&driveLetter<='B') {driveReady = dosIsDriveReady(driveLetter);}
-    if (driveReady) files = dosGetFiles(paths[mode]);
+    if (driveReady) {
+      if (!isInZip) {
+        files = dosGetFiles(paths[mode]);
+      } else {
+        files = zipGetFiles(paths[mode]);
+      }
+    }
     for (int i = 0; i < files.size(); i++) {
       if (files[i].name.name == "." || files[i].name.name == "..") {files.erase(i,1);i--;} else
       if ((files[i].attributes & 0x1f) != DOS_ATTR_SUBDIR && (files[i].attributes & 0x1f) != DOS_ATTR_NORMAL) {files.erase(i,1);i--;}
@@ -1067,6 +1144,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   ImGui::Separator();
   if (ImGui::Button("Home##DIALOGLOADSAVEHOME")) {
     paths[mode] = appFolder;
+    isInZip = false;
     needsRescanFiles=true;
   }
   ImGui::SameLine();
@@ -1075,6 +1153,9 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   if (paths[mode].length() > 3 && ImGui::Button("..##DIALOGLOADSAVEPATHBACK")) {
     int k = paths[mode].substr(0,paths[mode].length()-1).findLast("/");
     if (k>=0) paths[mode] = paths[mode].substr(0,k+1);
+    if (toLower(paths[mode]) == toLower(zipFolderPrefix2)) {
+      paths[mode] = returnToPath; returnToPath = ""; isInZip = false;
+    }
     needsRescanFiles = true;
   }
   ImGui::SameLine(); ImGui::Text("Sort by:"); ImGui::SameLine();
@@ -1143,18 +1224,30 @@ void dialogLoadSave(bool openIt, int dialogMode) {
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered,ImVec4(0,0,0,0));
             if (ImGui::Button((files[i].name.name+"##DIALOGLOADSAVEFILEBUTTON"+String::fromInt(i)).c_str())) {
               fileNames[mode] = files[i].name.name + files[i].name.extension;
-              if (previewOn) {
-                String p = paths[mode]; 
-                String f = fileNames[mode];
-                f.resize(strlen(f.c_str()));
-                previewAspect = updateToolTip(preview, previewWidth, previewHeight, p.c_str(), f.c_str());
-                if (previewAspect == 0) {
-                  clearPreview();
-                  String n = p+f; mesh->load(n.c_str(), FILETYPE_MESH);
-                } else {
-                  mesh->free();
+              if ((!isInZip) && toLower(files[i].name.extension) == ".zip") {
+                zipDirectory = getZipDirectory(paths[mode].c_str(),fileNames[mode].c_str());
+                if (!zipDirectory.empty()) {
+                  isInZip = true;
+                  zipFileName = fileNames[mode];
+                  fileNames[mode] = "";
+                  returnToPath = paths[mode];
+                  paths[mode] = zipFolderPrefix;
+                  needsRescanFiles = true;
                 }
-                updatePreview();
+              } else {
+                if (previewOn) {
+                  String p = paths[mode]; 
+                  String f = fileNames[mode];
+                  f.resize(strlen(f.c_str()));
+                  previewAspect = updateToolTip(preview, previewWidth, previewHeight, p.c_str(), f.c_str());
+                  if (previewAspect == 0) {
+                    clearPreview();
+                    String n = p+f; mesh->load(n.c_str(), FILETYPE_MESH);
+                  } else {
+                    mesh->free();
+                  }
+                  updatePreview();
+                }
               }
               resize2(fileNames[mode],NAMEMAXHERE);
             }

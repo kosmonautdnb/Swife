@@ -90,4 +90,7 @@ void dialogEditScript(bool openIt, class GameObject *object);
 
 bool displayColorWheel(class Vector *color, int width);
 
+extern String zipFileName;
+extern bool isInZip;
+
 #endif // __DIALOGS_HPP__

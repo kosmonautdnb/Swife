@@ -20,6 +20,8 @@ copy /Y c:\_STL_\KEYMTRIX.HPP SRC\STL\
 copy /Y c:\_STL_\KEYMTRIX.CPP SRC\STL\
 copy /Y c:\_STL_\MATRIX.HPP SRC\STL\
 copy /Y c:\_STL_\MATRIX.CPP SRC\STL\
+copy /Y c:\_STL_\MINIZ.HPP SRC\STL\
+copy /Y c:\_STL_\MINIZ.CPP SRC\STL\
 copy /Y c:\_STL_\NANOSVG.HPP SRC\STL\
 copy /Y c:\_STL_\NSVGRAST.HPP SRC\STL\
 copy /Y c:\_STL_\OBJECT.HPP SRC\STL\

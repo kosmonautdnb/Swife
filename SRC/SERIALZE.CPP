@@ -25,19 +25,8 @@
 #include "SERIALZE.HPP"
 #include "DIALOGS.HPP"
 #include "GAMEOBJ.HPP"
-#include "STL/SET.HPP"
-#include "STL/IMAGE.HPP"
 #include "TEXTURES.HPP"
 #include "RENDER.HPP"
-#define CGLTF_IMPLEMENTATION
-#include "STL/CGLTFA.HPP"
-#include "STL/SMPLOBJL.HPP"
-#include "STL/SPRTEOBJ.HPP"
-#include "STL/DOS.HPP"
-#include "STL/PARSON.HPP"
-#include "STL/JSONWRT.HPP"
-#include "STL/PSDIMAGE.HPP"
-#include <math.h>
 #include "OUTLINER.HPP"
 #include "TOOLBAR.HPP"
 #include "VIEWPORT.HPP"
@@ -46,7 +35,19 @@
 #include "PROPS.HPP"
 #include "TEXPAINT.HPP"
 #include "MENUBAR.HPP"
+#define CGLTF_IMPLEMENTATION
+#include "STL/CGLTFA.HPP"
+#include "STL/SET.HPP"
+#include "STL/IMAGE.HPP"
+#include "STL/SMPLOBJL.HPP"
+#include "STL/SPRTEOBJ.HPP"
+#include "STL/DOS.HPP"
+#include "STL/PARSON.HPP"
+#include "STL/JSONWRT.HPP"
+#include "STL/PSDIMAGE.HPP"
+#include "STL/MINIZ.HPP"
 #include "UTIL/LOG.HPP"
+#include <math.h>
 
 int version = 105;
 
@@ -425,8 +426,8 @@ unsigned int OBJloadTexture(const String &fileName, const String &type) {
   logd("OBJ load texture:<%s> and type:<%s>",fileName.c_str(),type.c_str());
   unsigned int texture = 0;
   if (type != "map_Kd") return texture;
-  String name = shortFileName(fileName);
-  RGBAImage image = RGBAImage::fromFile(dosFileName(name).c_str());
+  String name = shortFileName(dosFileName(fileName));
+  RGBAImage image = RGBAImage::fromFile(name.c_str());
   if (image.data == NULL) return texture;
   correctTextureSize(&image);
   glGenTextures(1, &texture);
@@ -638,7 +639,7 @@ bool loadMeshForBinding(const String &fileName, FileBinding *binding) {
   String a = toLower(fileName);
   startLoadingBar();
   if (a.endsWith(".obj")) { // WAVEFRONT OBJECT IMPORT
-    SMPL_File *obj = loadObj(dosFileName(shortFileName(fileName)).c_str(), true);
+    SMPL_File *obj = loadObj(shortFileName(dosFileName(fileName)).c_str(), true);
     updateLoadingBar();
     if (obj == NULL) return false;
     allGenTexturesHere.clear();
@@ -692,7 +693,7 @@ bool loadMeshForBinding(const String &fileName, FileBinding *binding) {
     allGenTexturesHere.clear();
     r->textureCallback = gltfTextureCallback;
     updateLoadingBar();
-    r->load(dosFileName(shortFileName(fileName)).c_str(),1.0);
+    r->load(shortFileName(dosFileName(fileName)).c_str(),1.0);
     binding->textureIds = allGenTexturesHere;
     binding->boundingBoxMin.set(-1,-1,-1);
     binding->boundingBoxMax.set(1,1,1);
@@ -987,7 +988,7 @@ void restoreByDataPointForNew() {
 void loadScene(const char *path, const char *fileName) {
   logd("loadScene");
   String fullName = String(path) + fileName;
-  FILE *in = fopen(dosFileName(shortFileName(fullName)).c_str(),"rb");
+  FILE *in = fopen(shortFileName(dosFileName(fullName)).c_str(),"rb");
   if (in == NULL) return;
   serializeAll(in,false,NULL);
   fclose(in);
@@ -1145,7 +1146,7 @@ void loadTextureGridCSV(const char *path, const char *fileName) {
   if (j<0) return;
 
   String fullName = String(path) + fileName;
-  FILE *in = fopen(dosFileName(shortFileName(fullName)).c_str(),"rb");
+  FILE *in = fopen(shortFileName(dosFileName(fullName)).c_str(),"rb");
   if (in == NULL) return;
   Array<char> csvSource; loadArray(&csvSource,in);
   fclose(in);
@@ -1236,7 +1237,7 @@ void loadScript(const char *path, const char *fileName) {
   if (j<0) return;
   GameObject *o = gameObjects[j];
   String fullName = String(path) + fileName;
-  FILE *in = fopen(dosFileName(shortFileName(fullName)).c_str(),"rb"); // actually better "r" here
+  FILE *in = fopen(shortFileName(dosFileName(fullName)).c_str(),"rb"); // actually better "r" here
   if (in == NULL) return;
   Array<char> csvSource; loadArray(&csvSource,in);
   fclose(in);
@@ -1269,7 +1270,7 @@ unsigned int newUniqueId(unsigned int id, HashMap<unsigned int, unsigned int> &m
 void loadGameObjects(const char *path, const char *fileName) {
   logd("loadGameObjects:<%s> <%s>",path,fileName);
   String fullName = String(path) + fileName;
-  FILE *in = fopen(dosFileName(shortFileName(fullName)).c_str(),"rb");
+  FILE *in = fopen(shortFileName(dosFileName(fullName)).c_str(),"rb");
   if (in == NULL) return;
   Array<GameObject*> _gameObjects2;
   Array<FileBinding*> _bindings2;
@@ -1629,4 +1630,49 @@ double updateToolTip(unsigned int *rgba, int width, int height, const char *path
     return aspect;
   }
   return 0;
+}
+
+
+Array<File> getZipDirectory(const char *path, const char *zipFileName) {
+
+  Array<File> ret;
+
+  String fullName = String(path) + zipFileName;
+  FILE *in = fopen(shortFileName(dosFileName(fullName)).c_str(),"rb"); if (in == NULL) return ret;
+
+  mz_zip_archive zip;
+  mz_zip_archive_file_stat file_stat;
+  mz_zip_zero_struct(&zip);
+
+  if (mz_zip_reader_init_cfile(&zip, in, 0, MZ_ZIP_FLAG_ASCII_FILENAME)) {
+  
+    unsigned int fileCount = mz_zip_reader_get_num_files(&zip);
+  
+    for (int i = 0; i < fileCount; i++) {
+      if (!mz_zip_reader_is_file_supported(&zip,i)) continue;
+      File f;
+      f.attributes = mz_zip_reader_is_file_a_directory(&zip, i) ? DOS_ATTR_SUBDIR : DOS_ATTR_NORMAL;
+      if (mz_zip_reader_file_stat(&zip, i, &file_stat)) {
+        f.size = file_stat.m_uncomp_size;
+        tm *t = gmtime(&file_stat.m_time);
+        f.date.day = t->tm_mday; // 1..31
+        f.date.month = t->tm_mon; // 0..11
+        f.date.year = t->tm_year + 1900;
+        f.date.hour = t->tm_hour; // 0..23
+        f.date.minute = t->tm_min; // 0..59
+        f.date.second = t->tm_sec; // 0..61
+        f.date.millisecond = 0;
+        free(t);
+        String a = (const char *)file_stat.m_filename; // the getting of the filename runs wrong in miniz, stack corruption or something, so we use this here
+        a = unixFileName(a);
+        f.name.full = a;
+        f.name.extension = getExtension(a);
+        f.name.name = getName(a);
+      }
+      ret.push_back(f);
+    }
+    mz_zip_reader_end(&zip);
+  }
+  fclose(in);
+  return ret;
 }
