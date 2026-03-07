@@ -928,9 +928,6 @@ String zipFileName = "";
 Array<File> zipDirectory;
 bool isInZip = false;
 
-const char *zipFolderPrefix = "ZIP:/""/";
-const char *zipFolderPrefix2 = "ZIP:/";
-
 Array<String> particles(const String &full, const char limiter, bool withLastParticle) {
   Array<String> ret;
   int start = 0;
@@ -1035,6 +1032,8 @@ void resize2(String &s, int len) {
   memset(&s[a],0,len-a);
 }
 
+#define DISABLEZIP {if (isInZip) {paths[mode] = returnToPath; returnToPath = ""; isInZip = false;}}
+
 void dialogLoadSave(bool openIt, int dialogMode) {
 
   static int mode = DIALOG_NONE; if (dialogMode != DIALOG_NONE) mode = dialogMode;
@@ -1062,7 +1061,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   if (openIt) {
     if (sp == NULL) sp = new SpriteObject();
     if (mesh == NULL) mesh = new FileBinding();
-    isInZip = false; zipDirectory.clear(); returnToPath = "";
+    DISABLEZIP; zipDirectory.clear();
     createSpriteObjectFrameBuffer(sp, previewWidth, previewHeight);
     initColumns = true;
     previewOn = false;
@@ -1078,8 +1077,19 @@ void dialogLoadSave(bool openIt, int dialogMode) {
     }
     scrollToHelper=0;
     if (!dialogLoadSaveSetFileNameAndPath.empty()) {
-      dialogLoadSaveSetFileNameAndPath = unixFileName(SHORTFILENAME(dialogLoadSaveSetFileNameAndPath));
-      fileNames[mode] = getName(dialogLoadSaveSetFileNameAndPath) + getExtension(dialogLoadSaveSetFileNameAndPath);
+      String zwo = dialogLoadSaveSetFileNameAndPath;
+      if (zwo.startsWith(zipFolderPrefix)) {
+        int pos = zwo.find("|");
+        if (pos >= 0) {
+          isInZip = true;
+          zipFileName = zwo.substr(pos+1);
+          zwo = zwo.substr(0,pos);
+          returnToPath = "";
+          zipDirectory = getZipDirectory("",zipFileName.c_str());
+        }
+      }
+      dialogLoadSaveSetFileNameAndPath = unixFileName(SHORTFILENAME(zwo));
+      fileNames[mode] = getName(zwo) + getExtension(zwo);
       scrollToFileName = toLower(fileNames[mode]);
       scrollToHelper = 2;
       resize2(fileNames[mode],NAMEMAXHERE);
@@ -1089,7 +1099,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   }
   bool result = false;
   DIALOGSTART(dialogCaption[mode])
-  if (paths[mode].empty()) {isInZip = false; paths[mode] = getCWD();}
+  if (paths[mode].empty()) {DISABLEZIP; paths[mode] = getCWD();}
   if (needsRescanFiles) {
     clearPreview();
     needsRescanFiles = false;
@@ -1143,8 +1153,8 @@ void dialogLoadSave(bool openIt, int dialogMode) {
   }
   ImGui::Separator();
   if (ImGui::Button("Home##DIALOGLOADSAVEHOME")) {
+    DISABLEZIP;
     paths[mode] = appFolder;
-    isInZip = false;
     needsRescanFiles=true;
   }
   ImGui::SameLine();
@@ -1154,7 +1164,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
     int k = paths[mode].substr(0,paths[mode].length()-1).findLast("/");
     if (k>=0) paths[mode] = paths[mode].substr(0,k+1);
     if (toLower(paths[mode]) == toLower(zipFolderPrefix2)) {
-      paths[mode] = returnToPath; returnToPath = ""; isInZip = false;
+      DISABLEZIP;
     }
     needsRescanFiles = true;
   }
@@ -1224,11 +1234,11 @@ void dialogLoadSave(bool openIt, int dialogMode) {
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered,ImVec4(0,0,0,0));
             if (ImGui::Button((files[i].name.name+"##DIALOGLOADSAVEFILEBUTTON"+String::fromInt(i)).c_str())) {
               fileNames[mode] = files[i].name.name + files[i].name.extension;
-              if ((!isInZip) && toLower(files[i].name.extension) == ".zip") {
+              if ((toLower(proceedButton[mode])=="load") && (!isInZip) && toLower(files[i].name.extension) == ".zip") {
                 zipDirectory = getZipDirectory(paths[mode].c_str(),fileNames[mode].c_str());
                 if (!zipDirectory.empty()) {
                   isInZip = true;
-                  zipFileName = fileNames[mode];
+                  zipFileName = paths[mode] + fileNames[mode];
                   fileNames[mode] = "";
                   returnToPath = paths[mode];
                   paths[mode] = zipFolderPrefix;
@@ -1238,6 +1248,7 @@ void dialogLoadSave(bool openIt, int dialogMode) {
                 if (previewOn) {
                   String p = paths[mode]; 
                   String f = fileNames[mode];
+                  if (isInZip) f = f + "|" + zipFileName;
                   f.resize(strlen(f.c_str()));
                   previewAspect = updateToolTip(preview, previewWidth, previewHeight, p.c_str(), f.c_str());
                   if (previewAspect == 0) {
@@ -1302,6 +1313,9 @@ void dialogLoadSave(bool openIt, int dialogMode) {
       loadSaveShortPath = paths[mode]; 
       loadSaveLongFileName = fileNames[mode];
       loadSaveLongFileName.resize(strlen(loadSaveLongFileName.c_str()));
+      if (isInZip) {
+        loadSaveLongFileName += "|" + toLocalFileName(zipFileName);
+      }
 
       if (toLower(proceedButton[mode])=="save") {
         if (loadSaveLongFileName.find(".")<0) {loadSaveLongFileName += dialogDefaultExtension[mode];}

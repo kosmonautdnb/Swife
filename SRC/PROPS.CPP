@@ -52,6 +52,11 @@ void drawBadges() {
   }
 }
 
+void showFileName(const String &fileName) {
+  ImGui::Text("%s",fileName.last(19).c_str());
+  drawToolTip(fileName.c_str());
+}
+
 Vector paintColor(0.2,0.4,0.6,1);
 Vector previousPaintColors[MAX_PREVIOUS_COLORS];
 
@@ -332,7 +337,7 @@ void showSkyBoxProperties(GameObject *object) {
       textureButton("##SKYBOXPROPROTATIONT7",binding->textureIds[5],sw,sh,false);
       ImGui::PopStyleVar();
     }
-    ImGui::Text("%s",binding->fileName.last(19).c_str());
+    showFileName(binding->fileName);
   }
   if (propsButton("Load##SKYBOXPROPLOAD",strlen("Load")+4)) {
     dialogLoadSaveSetFileNameAndPath = binding == NULL ? "" : binding->fileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADSKYBOX);
@@ -383,7 +388,7 @@ void showMeshProperties(GameObject *object) {
       ImGui::Text("Textures:%d",binding->textureIds.size());
     }
     ImGui::Text("Two sided"); ImGui::SameLine(); if (ImGui::Checkbox("##MESHPROPTWOSIDED",&binding->forceTwoSided)) {renderingUpdated = true;}
-    ImGui::Text("%s",binding->fileName.last(19).c_str());
+    showFileName(binding->fileName);
   }
   if (propsButton("Load##MESHPROPLOAD",strlen("Load")+4)) {
     dialogLoadSaveSetFileNameAndPath = binding == NULL ? "" : binding->fileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADMESH);
@@ -587,7 +592,7 @@ void showCameraProperties(GameObject *object) {
         ImGui::Text(" Overlay Y1"); ImGui::SameLine(); if (ImGui::InputInt("##CAMERAPROPOVERLAYY1",&object->billBoardTY1,0,0)) {renderingUpdated = true;}
       }
     }
-    ImGui::Text("%s",binding->fileName.last(19).c_str());
+    showFileName(binding->fileName);
   }
   if (propsButton("Load overlay##CAMERAPROPLOAD",strlen("Load overlay")+4)) {
     dialogLoadSaveSetFileNameAndPath = binding == NULL ? "" : binding->fileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADOVERLAY);
@@ -656,7 +661,7 @@ void showBillboardProperties(GameObject *object) {
       ImGui::Text("Rtt height:%d",binding->originalHeight);
       ImGui::Text("Two sided"); ImGui::SameLine(); if (ImGui::Checkbox("##BILLBOARDPROPTWOSIDED",&binding->forceTwoSided)) {renderingUpdated = true;}
     }
-    ImGui::Text("%s",binding->fileName.last(19).c_str());
+    showFileName(binding->fileName);
   }
   if (propsButton("Load##BILLBOARDPROPLOAD",strlen("Load")+4)) {
     dialogLoadSaveSetFileNameAndPath = binding == NULL ? "" : binding->fileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_LOADBILLBOARD);
@@ -736,7 +741,7 @@ void displayTextureGridBinding(GameObject *object, FileBinding *binding) {
       }
       ImGui::PopItemWidth();
     }
-    ImGui::Text("%s",binding->fileName.last(19).c_str());
+    showFileName(binding->fileName);
   }
   if (propsButton("Load##TEXTUREGRIDPROPLOAD",strlen("Load")+4)) {
     dialogLoadSaveSetFileNameAndPath = binding == NULL ? "" : binding->fileName; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, object->type == GAMEOBJECT_IMAGE ? DIALOG_LOADIMAGE : DIALOG_LOADTEXTUREGRID);
@@ -844,7 +849,7 @@ void showScriptProperties(GameObject *object) {
   ImGui::Separator();
   if (!object->scriptFileName.empty()) {
     ImGui::Text("Filename:");
-    ImGui::Text("%s",object->scriptFileName.last(19).c_str());
+    showFileName(object->scriptFileName);
     if (propsButton("Reload##SCRIPTPROPRELOADSCRIPT",strlen("Reload")+4)) {dialogLoadSaveGameObjectUniqueId = object->uniqueId; loadScript(getPath(object->scriptFileName).c_str(),(getName(object->scriptFileName)+getExtension(object->scriptFileName)).c_str()); renderingUpdated = true;}
     ImGui::Separator();
   }
@@ -1004,10 +1009,10 @@ void showHeightmapProperties(GameObject *object) {
       ImGui::Text("Fix borders"); ImGui::SameLine(); if (ImGui::Checkbox("##HEIGHTMAPPROPFIXBORDERS",&binding->boolParameter)) {renderingUpdated = true;}
     }
     ImGui::Text("Heights");
-    ImGui::Text("%s",binding->fileName.last(19).c_str());
+    showFileName(binding->fileName);
     if (!binding->fileName2.empty()) {
       ImGui::Text("Colors");
-      ImGui::Text("%s",binding->fileName2.last(19).c_str());
+      showFileName(binding->fileName2);
     }
   }
 

@@ -77,6 +77,8 @@ JSON_Value * json_parse_string(const char *string);
 
 #define JSONPORTIONLENGTH (STRINGMAX+1000)
 
+#define RGBAIMAGEFROMFILE(__image__,__path__,__fileName__) String fullFileName = String(__path__) + String(__fileName__); Array<unsigned char> arr; getFileArray(&arr,fullFileName); RGBAImage __image__ = RGBAImage::fromMemory(&(arr[0]), arr.size());
+
 void loadArray(Array<char> *arr, FILE *in) {
   fseek(in,0,SEEK_END);
   unsigned int fileLen = ftell(in);
@@ -108,7 +110,7 @@ void writeJson(Array<char> *arr, FILE *file, String *string) {
   }
 }
 
-#define STARTSERIALIZATION(__save__) int arrayIndex = 0; bool error = false; JSON_Value *jval; Array<JSON_Value*> jvals; Array<char> jsonArray; jsonArray.resize(JSONPORTIONLENGTH); jsonArray[0] = '{'; char *jsonPos = &jsonArray[1]; bool jsonIsSaving = __save__; if (!jsonIsSaving) {readJson(&jsonArray,file,fileString);jval=json_parse_string_with_comments(&jsonArray[0]); jvals.push_back(jval); jsonPos = (char*)&jvals; if (jval==NULL) error = true;}
+#define STARTSERIALIZATION(__save__) String serZip = lastZipFile; String serZipFile = lastZippedFile; int arrayIndex = 0; bool error = false; JSON_Value *jval; Array<JSON_Value*> jvals; Array<char> jsonArray; jsonArray.resize(JSONPORTIONLENGTH); jsonArray[0] = '{'; char *jsonPos = &jsonArray[1]; bool jsonIsSaving = __save__; if (!jsonIsSaving) {readJson(&jsonArray,file,fileString);jval=json_parse_string_with_comments(&jsonArray[0]); jvals.push_back(jval); jsonPos = (char*)&jvals; if (jval==NULL) error = true;}
 #define FINISHSERIALIZATION() {if (jsonIsSaving) {if (jsonPos[-1] == ',' ) jsonPos--; sprintf(jsonPos,"}");writeJson(&jsonArray,file,fileString);}}
 
 #define S_NULL(__name__)  {jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_NULL, __name__, NULL, jsonIsSaving,arrayIndex);}
@@ -328,7 +330,10 @@ void serializeAll(FILE *file, bool save, String *fileString) {
   for (int i4 = 0; i4 < bindings.size(); i4++) {
     arrayIndex = i4;
     S_FILEBINDING(NULL,bindings[i4]);
-    if (!jsonIsSaving) bindings[i4]->reload();
+    if (!jsonIsSaving) {
+      patchBinding(bindings[i4],serZip,serZipFile);
+      bindings[i4]->reload();
+    }
   }
   S_ARRAY_CLOSE();
 
@@ -376,7 +381,10 @@ void serializeObjects(bool save, FILE *file, String *fileString, Array<GameObjec
   for (int i4 = 0; i4 < bindings.size(); i4++) {
     arrayIndex = i4;
     S_FILEBINDING(NULL,bindings[i4]);
-    if (!jsonIsSaving) bindings[i4]->reload();
+    if (!jsonIsSaving) {
+      patchBinding(bindings[i4],serZip,serZipFile);
+      bindings[i4]->reload();
+    }
   }
   S_ARRAY_CLOSE();
 
@@ -421,13 +429,17 @@ void updateLoadingBar() {
   }
 }
 
+String objZipFile = "";
+String objZippedFile = "";
+
 Array<unsigned int> allGenTexturesHere;
 unsigned int OBJloadTexture(const String &fileName, const String &type) {
   logd("OBJ load texture:<%s> and type:<%s>",fileName.c_str(),type.c_str());
   unsigned int texture = 0;
   if (type != "map_Kd") return texture;
-  String name = shortFileName(dosFileName(fileName));
-  RGBAImage image = RGBAImage::fromFile(name.c_str());
+  String fn = fileName; patchFileName(&fn, objZipFile, objZippedFile);
+  logd("%s",fn.c_str());
+  RGBAIMAGEFROMFILE(image,"",fn);
   if (image.data == NULL) return texture;
   correctTextureSize(&image);
   glGenTextures(1, &texture);
@@ -441,6 +453,15 @@ unsigned int OBJloadTexture(const String &fileName, const String &type) {
   image.free();
   updateLoadingBar();
   return texture;
+}
+
+bool OBJloadMaterialLib(SMPL_File *f,const String &fileName) {
+  String fn = fileName;
+  patchFileName(&fn, objZipFile, objZippedFile);
+  fn = decompressFileBegin(fn);
+  bool a = loadMaterialLib(f,fn);
+  decompressFileEnd(fn);
+  return a;
 }
 
 unsigned int vectorToColor(const Vector &v) {
@@ -636,10 +657,15 @@ void gltfProcessScene(FileBinding *binding, GLTFA_File *f, unsigned int sceneId)
 }
 
 bool loadMeshForBinding(const String &fileName, FileBinding *binding) {
-  String a = toLower(fileName);
+  String b = toLower(fileName);
+  int pos = b.find("|"); if (pos >= 0) b = b.substr(0,pos);
   startLoadingBar();
-  if (a.endsWith(".obj")) { // WAVEFRONT OBJECT IMPORT
-    SMPL_File *obj = loadObj(shortFileName(dosFileName(fileName)).c_str(), true);
+  if (b.endsWith(".obj")) { // WAVEFRONT OBJECT IMPORT
+    String fn = decompressFileBegin(fileName);
+    objZipFile = lastZipFile;
+    objZippedFile = lastZippedFile;
+    SMPL_File *obj = loadObj(fn.c_str(), true, OBJloadMaterialLib);
+    decompressFileEnd(fn);
     updateLoadingBar();
     if (obj == NULL) return false;
     allGenTexturesHere.clear();
@@ -688,12 +714,14 @@ bool loadMeshForBinding(const String &fileName, FileBinding *binding) {
     stopLoadingBar();
     return true;
   }
-  if (a.endsWith(".glb")) {
+  if (b.endsWith(".glb")) {
     GLTFA_File *r = new GLTFA_File();
     allGenTexturesHere.clear();
     r->textureCallback = gltfTextureCallback;
     updateLoadingBar();
-    r->load(shortFileName(dosFileName(fileName)).c_str(),1.0);
+    String fn = decompressFileBegin(fileName);
+    r->load(fn.c_str(),1.0);
+    decompressFileEnd(fn);
     binding->textureIds = allGenTexturesHere;
     binding->boundingBoxMin.set(-1,-1,-1);
     binding->boundingBoxMax.set(1,1,1);
@@ -712,7 +740,8 @@ bool FileBinding::reload() {
   renderingUpdated = true;
   bool usePSDLayers = false;
   switch(type) {
-  case FILETYPE_SKYBOX: {RGBAImage s = RGBAImage::fromFile(shortFileName(dosFileName(fileName)).c_str());
+  case FILETYPE_SKYBOX: { 
+      RGBAIMAGEFROMFILE(s,"",fileName);
       if (s.data == NULL) {String nm = String("Couldn't load file:<")+fileName+">";dialogMessage(true,nm.c_str()); return false;}
       textureIds.resize(6); 
       skyBoxFromHorizontalCrossImage(&textureIds[0], &s);
@@ -723,7 +752,7 @@ bool FileBinding::reload() {
   case FILETYPE_MESH: return loadMeshForBinding(fileName,this);
   case FILETYPE_BILLBOARD: {
       billBoardIsTexture = false;
-      RGBAImage s = RGBAImage::fromFile(shortFileName(dosFileName(fileName)).c_str());
+      RGBAIMAGEFROMFILE(s,"",fileName);
       if (s.data != NULL) {
         originalWidth = s.width;
         originalHeight = s.height;
@@ -751,7 +780,8 @@ bool FileBinding::reload() {
     case FILETYPE_OVERLAY: {
       if (usePSDLayers && toLower(getExtension(fileName)) == ".psd") {
         PSDImage *img = new PSDImage();
-        if (img->Load(shortFileName(dosFileName(fileName)).c_str())) {
+        fileName = decompressFileBegin(fileName);
+        if (img->Load(fileName.c_str())) {
           int w = img->header.Columns;
           int h = img->header.Rows;
           int l = img->NumLayers();
@@ -785,12 +815,14 @@ bool FileBinding::reload() {
             textureAtlasTileCountY = cy;
             textureAtlasTileWidth = w;
             textureAtlasTileHeight = h;
+            decompressFileEnd(fileName);
             return true;
           }
         }
+        decompressFileEnd(fileName);
         delete img;
       }
-      RGBAImage s = RGBAImage::fromFile(shortFileName(dosFileName(fileName)).c_str());
+      RGBAIMAGEFROMFILE(s,"",fileName);
       if (s.data == NULL) {String nm = String("Couldn't load file:<")+fileName+">";dialogMessage(true,nm.c_str()); return false;}
       textureIds.push_back(textureFromImage(&s));
       originalWidth = s.width;
@@ -801,7 +833,7 @@ bool FileBinding::reload() {
     } //break;
     case FILETYPE_HEIGHTMAP: {
       logd("1");
-      RGBAImage s = RGBAImage::fromFile(shortFileName(dosFileName(fileName)).c_str());
+      RGBAIMAGEFROMFILE(s,"",fileName);
       if (s.data == NULL) {String nm = String("Couldn't load file:<")+fileName+">";dialogMessage(true,nm.c_str()); return false;}
       logd("2");
       double minz=0,maxz=0;
@@ -826,7 +858,7 @@ bool FileBinding::reload() {
       logd("5");
       logd("FileBinding::reload heightmap heights <%s>", fileName.c_str());
       if (!fileName2.empty()) {
-        s = RGBAImage::fromFile(shortFileName(dosFileName(fileName2)).c_str());
+        RGBAIMAGEFROMFILE(s,"",fileName2);
         if (s.data == NULL) {String nm = String("Couldn't load file:<")+fileName2+">";dialogMessage(true,nm.c_str()); return false;}
         if (textureIds.size()<2) textureIds.resize(2);
         textureIds[1] = textureFromImage(&s);
@@ -987,11 +1019,8 @@ void restoreByDataPointForNew() {
 
 void loadScene(const char *path, const char *fileName) {
   logd("loadScene");
-  String fullName = String(path) + fileName;
-  FILE *in = fopen(shortFileName(dosFileName(fullName)).c_str(),"rb");
-  if (in == NULL) return;
-  serializeAll(in,false,NULL);
-  fclose(in);
+  String fullFileName = String(path) + fileName; String source = getFileString(fullFileName);
+  serializeAll(NULL,false,&source);
   renderingUpdated = true;
 }
 
@@ -1145,15 +1174,11 @@ void loadTextureGridCSV(const char *path, const char *fileName) {
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
 
-  String fullName = String(path) + fileName;
-  FILE *in = fopen(shortFileName(dosFileName(fullName)).c_str(),"rb");
-  if (in == NULL) return;
-  Array<char> csvSource; loadArray(&csvSource,in);
-  fclose(in);
+  Array<unsigned char> csvSource; String fullFileName = String(path) + fileName; getFileArray(&csvSource, fullFileName);
   Array<String> csvData;
   String particle;
   for (int i = 0; i < csvSource.size(); i++) {
-    char c = csvSource[i];
+    char c = (char)csvSource[i];
     if (c == 0x0d || c == 0x0a) continue;
     if (c == ',' || c == ';') {
       csvData.push_back(particle); particle = "";
@@ -1236,13 +1261,9 @@ void loadScript(const char *path, const char *fileName) {
   int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
   if (j<0) return;
   GameObject *o = gameObjects[j];
-  String fullName = String(path) + fileName;
-  FILE *in = fopen(shortFileName(dosFileName(fullName)).c_str(),"rb"); // actually better "r" here
-  if (in == NULL) return;
-  Array<char> csvSource; loadArray(&csvSource,in);
-  fclose(in);
+  Array<unsigned char> scriptSource; String fullFileName = String(path) + fileName; getFileArray(&scriptSource, fullFileName);
   o->scriptFileName = String(path) + String(fileName);
-  o->script = (const char*)&csvSource[0];
+  o->script = (const char*)&scriptSource[0];
   if (o->script.size()>=STRINGMAX) o->script.resize(STRINGMAX-1);
 }
 
@@ -1269,15 +1290,12 @@ unsigned int newUniqueId(unsigned int id, HashMap<unsigned int, unsigned int> &m
 
 void loadGameObjects(const char *path, const char *fileName) {
   logd("loadGameObjects:<%s> <%s>",path,fileName);
-  String fullName = String(path) + fileName;
-  FILE *in = fopen(shortFileName(dosFileName(fullName)).c_str(),"rb");
-  if (in == NULL) return;
   Array<GameObject*> _gameObjects2;
   Array<FileBinding*> _bindings2;
   unsigned int a;
   unsigned int b;
-  serializeObjects(false, in, NULL, _gameObjects2, _bindings2, a, b);
-  fclose(in);
+  String fullFileName = String(path) + fileName; String source = getFileString(fullFileName);
+  serializeObjects(false, NULL, &source, _gameObjects2, _bindings2, a, b);
 
   // put loaded gameobjects to end of gameobjectuniqueids
   HashMap<unsigned int, unsigned int> remapGameObjects;
@@ -1617,8 +1635,7 @@ void exportObjectCSV(const char *path, const char *fileName) {
 }
 
 double updateToolTip(unsigned int *rgba, int width, int height, const char *path, const char *fileName) {
-  String fname = String(path) + fileName;
-  RGBAImage image = RGBAImage::fromFile(shortFileName(dosFileName(fname)).c_str());
+  RGBAIMAGEFROMFILE(image, path, fileName);
   if (image.data != NULL && image.width > 0 && image.height > 0) {
     for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
@@ -1632,6 +1649,120 @@ double updateToolTip(unsigned int *rgba, int width, int height, const char *path
   return 0;
 }
 
+const char *zipFolderPrefix = "ZIP:/""/";
+const char *zipFolderPrefix2 = "ZIP:/";
+int tempFileCounter = 0;
+String lastZipFile = "";
+String lastZippedFile = "";
+
+void getFileArray(Array<unsigned char> *arr,const String &maybeExtendedFileName) {
+  arr->resize(0);
+  if (maybeExtendedFileName.startsWith(zipFolderPrefix)) {
+    logd("getFileArray decompress <%s>",maybeExtendedFileName.c_str());
+    String zipFileName = "";
+    String fileNameInZip = maybeExtendedFileName.substr(strlen(zipFolderPrefix));
+    int pos = fileNameInZip.find("|");
+    if (pos >= 0) {zipFileName = fileNameInZip.substr(pos+1); fileNameInZip = fileNameInZip.substr(0,pos);}
+    unpackZipFileToArray(arr, zipFileName.c_str(), fileNameInZip.c_str());
+    lastZipFile = toLocalFileName(zipFileName);
+    lastZippedFile = fileNameInZip;
+    return;
+  }
+  lastZipFile = "";
+  lastZippedFile = "";
+  String fullFileName = shortFileName(dosFileName(maybeExtendedFileName));
+  FILE *in = fopen(fullFileName.c_str(),"rb");
+  if (in == NULL) return;
+  fseek(in,0,SEEK_END);
+  unsigned int fileLen = ftell(in);
+  fseek(in,0,SEEK_SET);
+  arr->resize(fileLen);
+  fread(&(*arr)[0],1,fileLen,in);
+  fclose(in);
+}
+
+String getFileString(const String &maybeExtendedFileName) {
+  Array<unsigned char> arr;
+  getFileArray(&arr,maybeExtendedFileName);
+  String ret;
+  ret.resize(arr.size());
+  memcpy(&(ret[0]),&(arr[0]),ret.size());
+  return ret;
+}
+
+String decompressFileBegin(const String &maybeExtendedFileName) {
+  if (maybeExtendedFileName.startsWith(zipFolderPrefix)) {
+    logd("decompressFileBegin <%s>",maybeExtendedFileName.c_str());
+    String zipFileName = "";
+    String fileNameInZip = maybeExtendedFileName.substr(strlen(zipFolderPrefix));
+    String thisFileName = String::fromInt(tempFileCounter)+"TMP.TMP";
+    tempFileCounter++;
+    int pos = fileNameInZip.find("|");
+    if (pos >= 0) {zipFileName = fileNameInZip.substr(pos+1); fileNameInZip = fileNameInZip.substr(0,pos);}
+    unpackZipFileToFile(thisFileName.c_str(), zipFileName.c_str(), fileNameInZip.c_str());
+    lastZipFile = toLocalFileName(zipFileName);
+    lastZippedFile = fileNameInZip;
+    return thisFileName;
+  }
+  lastZipFile = "";
+  lastZippedFile = "";
+  return dosFileName(shortFileName(maybeExtendedFileName));
+}
+
+void decompressFileEnd(const String &fileName) {
+  if (fileName.endsWith("TMP.TMP")) {
+    dosRemoveFile(fileName.c_str());
+  }
+}
+
+void unpackZipFileToFile(const char *tempFileName, const char *zipFileName, const char *zippedFileName) {
+  logd("unpackZipFileToFile start <%s>,<%s>,<%s>",tempFileName,zipFileName,zippedFileName);
+  FILE *in = fopen(shortFileName(dosFileName(zipFileName)).c_str(),"rb"); if (in == NULL) return;
+  mz_zip_archive zip;  mz_zip_archive_file_stat file_stat;  mz_zip_zero_struct(&zip);
+
+  if (mz_zip_reader_init_cfile(&zip, in, 0, MZ_ZIP_FLAG_ASCII_FILENAME)) {
+    unsigned int fileCount = mz_zip_reader_get_num_files(&zip);
+    for (int i = 0; i < fileCount; i++) {
+      if (mz_zip_reader_file_stat(&zip, i, &file_stat)) {
+        String a = (const char *)file_stat.m_filename; a = unixFileName(a);
+        if (a == zippedFileName) {
+          FILE *out = fopen(tempFileName,"wb");
+          if (mz_zip_reader_extract_to_cfile(&zip, i, out, MZ_ZIP_FLAG_ASCII_FILENAME)) {
+          }
+          fclose(out);
+          break;
+        }
+      }
+    }
+    mz_zip_reader_end(&zip);
+  }
+
+  fclose(in);
+}
+
+void unpackZipFileToArray(Array<unsigned char> *arr, const char *zipFileName, const char *zippedFileName) {
+  logd("unpackZipFileToArray start <%s>,<%s>",zipFileName,zippedFileName);
+  FILE *in = fopen(shortFileName(dosFileName(zipFileName)).c_str(),"rb"); if (in == NULL) return;
+  mz_zip_archive zip;  mz_zip_archive_file_stat file_stat;  mz_zip_zero_struct(&zip);
+
+  if (mz_zip_reader_init_cfile(&zip, in, 0, MZ_ZIP_FLAG_ASCII_FILENAME)) {
+    unsigned int fileCount = mz_zip_reader_get_num_files(&zip);
+    for (int i = 0; i < fileCount; i++) {
+      if (mz_zip_reader_file_stat(&zip, i, &file_stat)) {
+        String a = (const char *)file_stat.m_filename; a = unixFileName(a);
+        if (a == zippedFileName) {
+          arr->resize(file_stat.m_uncomp_size);
+          if (mz_zip_reader_extract_to_mem(&zip,i, &((*arr)[0]), arr->size(), MZ_ZIP_FLAG_ASCII_FILENAME)) {
+          }
+          break;
+        }
+      }
+    }
+    mz_zip_reader_end(&zip);
+  }
+
+  fclose(in);
+}
 
 Array<File> getZipDirectory(const char *path, const char *zipFileName) {
 
@@ -1639,10 +1770,7 @@ Array<File> getZipDirectory(const char *path, const char *zipFileName) {
 
   String fullName = String(path) + zipFileName;
   FILE *in = fopen(shortFileName(dosFileName(fullName)).c_str(),"rb"); if (in == NULL) return ret;
-
-  mz_zip_archive zip;
-  mz_zip_archive_file_stat file_stat;
-  mz_zip_zero_struct(&zip);
+  mz_zip_archive zip;  mz_zip_archive_file_stat file_stat;  mz_zip_zero_struct(&zip);
 
   if (mz_zip_reader_init_cfile(&zip, in, 0, MZ_ZIP_FLAG_ASCII_FILENAME)) {
   
@@ -1663,8 +1791,7 @@ Array<File> getZipDirectory(const char *path, const char *zipFileName) {
         f.date.second = t->tm_sec; // 0..61
         f.date.millisecond = 0;
         free(t);
-        String a = (const char *)file_stat.m_filename; // the getting of the filename runs wrong in miniz, stack corruption or something, so we use this here
-        a = unixFileName(a);
+        String a = (const char *)file_stat.m_filename; a = unixFileName(a);
         f.name.full = a;
         f.name.extension = getExtension(a);
         f.name.name = getName(a);
@@ -1675,4 +1802,53 @@ Array<File> getZipDirectory(const char *path, const char *zipFileName) {
   }
   fclose(in);
   return ret;
+}
+
+void patchFileName(String *oldFileName, mz_zip_archive *zip, const String &zipName) {
+  mz_zip_archive_file_stat file_stat; unsigned int fileCount = mz_zip_reader_get_num_files(zip);
+  String b = toLower(unixFileName(*oldFileName)); int pos = b.find("|"); if (pos >= 0) b = b.substr(0,pos);
+  int lastSame = -1;
+  String last = "";
+  for (int i = 0; i < fileCount; i++) {
+    if (!mz_zip_reader_is_file_supported(zip,i)) continue;
+    if (mz_zip_reader_file_stat(zip, i, &file_stat)) {
+      String a = (const char *)file_stat.m_filename; 
+      a = toLower(unixFileName(a));
+      int same = 0;
+      for (int j = 0; j < a.length(); j++) {
+        int j0 = (int)a.length()-1-j;
+        int j1 = (int)b.length()-1-j;
+        if (j0<0 || j1<0) break;
+        if (a[j0]!=b[j1]) break;
+        same++;
+      }
+      if (same>lastSame) {lastSame = same; last = a;}
+    }
+  }
+  if (!last.empty()) {
+    *oldFileName = String(zipFolderPrefix) + last + "|" + toLocalFileName(zipName);
+  }
+}
+
+void patchFileName(String *fileName, const String &zipName, const String &zipFileName) {
+  if (zipName.empty()) return;
+  String zwo = shortFileName(dosFileName(zipName)); FILE *in = fopen(zwo.c_str(),"rb"); if (in == NULL) return;
+  mz_zip_archive zip; mz_zip_zero_struct(&zip);
+  if (mz_zip_reader_init_cfile(&zip, in, 0, MZ_ZIP_FLAG_ASCII_FILENAME)) {
+    patchFileName(fileName,&zip, zipName);
+    mz_zip_reader_end(&zip);
+  }
+  fclose(in);
+}
+
+void patchBinding(class FileBinding *b, const String &zipName, const String &zipFileName) {
+  if (zipName.empty()) return;
+  FILE *in = fopen(shortFileName(dosFileName(zipName)).c_str(),"rb"); if (in == NULL) return;
+  mz_zip_archive zip; mz_zip_zero_struct(&zip);
+  if (mz_zip_reader_init_cfile(&zip, in, 0, MZ_ZIP_FLAG_ASCII_FILENAME)) {
+    patchFileName(&b->fileName,&zip, zipName);
+    patchFileName(&b->fileName2,&zip, zipName);
+    mz_zip_reader_end(&zip);
+  }
+  fclose(in);
 }

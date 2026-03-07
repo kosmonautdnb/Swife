@@ -187,6 +187,19 @@ void exportObjectCSV(const char *path, const char *fileName);
 
 double updateToolTip(unsigned int *rgba, int width, int height, const char *path, const char *fileName);
 
+String toLocalFileName(const String &str);
+extern const char *zipFolderPrefix;
+extern const char *zipFolderPrefix2;
+extern String lastZipFile;
+extern String lastZippedFile;
+String decompressFileBegin(const String &maybeExtendedFileName);
+void decompressFileEnd(const String &fileName);
+void getFileArray(Array<unsigned char> *arr,const String &maybeExtendedFileName);
+String getFileString(const String &maybeExtendedFileName);
+void unpackZipFileToFile(const char *tempFileName, const char *zipFileName, const char *zippedFileName);
+void unpackZipFileToArray(Array<unsigned char> *arr, const char *zipFileName, const char *zippedFileName);
 Array<File> getZipDirectory(const char *path, const char *zipFileName);
+void patchFileName(String *fileName, const String &zipName, const String &zipFileName);
+void patchBinding(class FileBinding *b, const String &zipName, const String &zipFileName);
 
 #endif //__SERIALZE_HPP__
