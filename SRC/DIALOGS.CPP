@@ -36,6 +36,7 @@
 #include "PROPS.HPP"
 #include "PAINT.HPP"
 #include "VIEWPORT.HPP"
+#include "MENUBAR.HPP"
 #include "UTIL/LOG.HPP"
 #include "STL/SPRTEOBJ.HPP"
 #include "STL/SET.HPP"
@@ -550,6 +551,9 @@ void dialogTroubleShooting(bool openIt) {
   ImGui::BeginChild("##DIALOGTROUBLESHOOTINGCHILD",ImVec2(main_window_xres*10/12,main_window_yres/2));
   ImGui::Text(
     "Save often it is not guaranteed to be stable and maybe verify the saving.\n"
+    "\n"
+    "If you use the preview feature at loading/saving, be aware that zip previews\n"
+    "cost a lot of read/write cycles if you use an USB stick. It may wear out by that.\n"
     "\n"
     "Alpha blending is not handled well, except alpha values of 0 and 255. You have to sort\n"
     "your \"scene graph\" in order to get propper blending, the scene graph is painted\n"
@@ -1212,6 +1216,8 @@ void dialogLoadSave(bool openIt, int dialogMode) {
               fileNames[mode] = "";
               resize2(fileNames[mode],NAMEMAXHERE);
               needsRescanFiles = true;
+            } else {
+              if (!previewOn) drawToolTip(files[i].name.name.c_str());
             }
             ImGui::PopStyleColor();
             ImGui::PopStyleColor();
@@ -1261,6 +1267,8 @@ void dialogLoadSave(bool openIt, int dialogMode) {
                 }
               }
               resize2(fileNames[mode],NAMEMAXHERE);
+            } else {
+              if (!previewOn) drawToolTip((files[i].name.name + files[i].name.extension).c_str());
             }
             if (fullFileName==scrollToFileName) {ImGui::SetScrollHere();}
             ImGui::PopStyleColor();
