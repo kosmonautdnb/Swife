@@ -1725,7 +1725,7 @@ void unpackZipFileToFile(const char *tempFileName, const char *zipFileName, cons
     for (int i = 0; i < fileCount; i++) {
       if (mz_zip_reader_file_stat(&zip, i, &file_stat)) {
         String a = (const char *)file_stat.m_filename; a = unixFileName(a);
-        if (a == zippedFileName) {
+        if (toLower(a) == toLower(zippedFileName)) {
           FILE *out = fopen(tempFileName,"wb");
           if (mz_zip_reader_extract_to_cfile(&zip, i, out, MZ_ZIP_FLAG_ASCII_FILENAME)) {
           }
@@ -1750,7 +1750,7 @@ void unpackZipFileToArray(Array<unsigned char> *arr, const char *zipFileName, co
     for (int i = 0; i < fileCount; i++) {
       if (mz_zip_reader_file_stat(&zip, i, &file_stat)) {
         String a = (const char *)file_stat.m_filename; a = unixFileName(a);
-        if (a == zippedFileName) {
+        if (toLower(a) == toLower(zippedFileName)) {
           arr->resize(file_stat.m_uncomp_size);
           if (mz_zip_reader_extract_to_mem(&zip,i, &((*arr)[0]), arr->size(), MZ_ZIP_FLAG_ASCII_FILENAME)) {
           }
