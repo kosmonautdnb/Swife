@@ -1,0 +1,230 @@
+[07.03.26 01:57.23] 
+[07.03.26 01:57.23] >>>Started new log
+[07.03.26 01:57.23] ---------------------------
+[07.03.26 01:57.23] SWIFE - STARTUP
+[07.03.26 01:57.25] DEBUG: loadSkyBoxForObject:<C:/_SWIFE_/DATA/CUBEMAPS/SKYBOX6.PNG>
+[07.03.26 01:57.25] DEBUG: newBinding
+[07.03.26 01:57.25] DEBUG: FileBinding::load start with name:<C:/_SWIFE_/DATA/CUBEMAPS/SKYBOX6.PNG> and type<1>
+[07.03.26 01:57.25] DEBUG: FileBinding::reload
+[07.03.26 01:57.25] DEBUG: FileBinding::free
+[07.03.26 01:57.25] DEBUG: FileBinding::free2
+[07.03.26 01:57.25] DEBUG: FileBinding::free3
+[07.03.26 01:57.25] DEBUG: FileBinding::free4
+[07.03.26 01:57.25] DEBUG: FileBinding::free5
+[07.03.26 01:57.25] DEBUG: FileBinding::reload_
+[07.03.26 01:57.25] DEBUG: skyBoxFromHorizontalCrossImage:<2048,1536>
+[07.03.26 01:57.25] DEBUG: textureFromImageArea:<0,512,512,1024>
+[07.03.26 01:57.25] DEBUG: textureFromImageArea:<512,512,1024,1024>
+[07.03.26 01:57.25] DEBUG: textureFromImageArea:<1024,512,1536,1024>
+[07.03.26 01:57.25] DEBUG: textureFromImageArea:<1536,512,2048,1024>
+[07.03.26 01:57.25] DEBUG: textureFromImageArea:<512,0,1024,512>
+[07.03.26 01:57.25] DEBUG: textureFromImageArea:<512,1024,1024,1536>
+[07.03.26 01:57.25] DEBUG: FileBinding::reload loadskybox <C:/_SWIFE_/DATA/CUBEMAPS/SKYBOX6.PNG>
+[07.03.26 01:57.25] DEBUG: FileBinding::load end
+[07.03.26 01:57.25] DEBUG: serializeAll - start
+[07.03.26 01:57.25] DEBUG: serializeAll - end
+[07.03.26 01:57.25] DEBUG: starting..
+[07.03.26 01:58.57] DEBUG: getFileArray decompress <ZIP://Medieval Village MegaKit[Standard]/OBJ/Balcony_Cross_Corner.obj|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 01:58.57] DEBUG: unpackZipFileToArray start <C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<Medieval Village MegaKit[Standard]/OBJ/Balcony_Cross_Corner.obj>
+[07.03.26 01:58.57] DEBUG: FileBinding::load start with name:<ZIP://Medieval Village MegaKit[Standard]/OBJ/Balcony_Cross_Corner.obj|C:/MESHES/ZIPS/MEDIEV~1.ZIP> and type<2>
+[07.03.26 01:58.57] DEBUG: FileBinding::reload
+[07.03.26 01:58.57] DEBUG: FileBinding::free
+[07.03.26 01:58.57] DEBUG: FileBinding::free2
+[07.03.26 01:58.57] DEBUG: FileBinding::free3
+[07.03.26 01:58.57] DEBUG: FileBinding::free4
+[07.03.26 01:58.57] DEBUG: FileBinding::free5
+[07.03.26 01:58.57] DEBUG: FileBinding::reload_
+[07.03.26 01:58.57] DEBUG: decompressFileBegin <ZIP://Medieval Village MegaKit[Standard]/OBJ/Balcony_Cross_Corner.obj|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 01:58.57] DEBUG: unpackZipFileToFile start <0TMP.TMP>,<C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<Medieval Village MegaKit[Standard]/OBJ/Balcony_Cross_Corner.obj>
+[07.03.26 01:58.57] DEBUG: decompressFileBegin <ZIP://medieval village megakit[standard]/obj/balcony_cross_corner.mtl|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 01:58.57] DEBUG: unpackZipFileToFile start <1TMP.TMP>,<C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<medieval village megakit[standard]/obj/balcony_cross_corner.mtl>
+[07.03.26 01:58.57] DEBUG: OBJ load texture:<T_WoodTrim_BaseColor.png> and type:<map_Kd>
+[07.03.26 01:58.57] DEBUG: ZIP://medieval village megakit[standard]/gltf/t_woodtrim_basecolor.png|C:/MESHES/ZIPS/MEDIEV~1.ZIP
+[07.03.26 01:58.57] DEBUG: getFileArray decompress <ZIP://medieval village megakit[standard]/gltf/t_woodtrim_basecolor.png|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 01:58.57] DEBUG: unpackZipFileToArray start <C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<medieval village megakit[standard]/gltf/t_woodtrim_basecolor.png>
+[07.03.26 01:58.58] DEBUG: OBJ load texture:<T_WoodTrim_Roughness.png> and type:<map_Ns>
+[07.03.26 01:58.58] DEBUG: OBJ load texture:<T_WoodTrim_Normal.png> and type:<map_Bump>
+[07.03.26 01:58.58] DEBUG: FileBinding::load end
+[07.03.26 01:59.08] DEBUG: getFileArray decompress <ZIP://Medieval Village MegaKit[Standard]/OBJ/Overhang_Side_Plaster_Short_R.obj|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 01:59.09] DEBUG: unpackZipFileToArray start <C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<Medieval Village MegaKit[Standard]/OBJ/Overhang_Side_Plaster_Short_R.obj>
+[07.03.26 01:59.09] DEBUG: FileBinding::load start with name:<ZIP://Medieval Village MegaKit[Standard]/OBJ/Overhang_Side_Plaster_Short_R.obj|C:/MESHES/ZIPS/MEDIEV~1.ZIP> and type<2>
+[07.03.26 01:59.09] DEBUG: FileBinding::reload
+[07.03.26 01:59.09] DEBUG: FileBinding::free
+[07.03.26 01:59.09] DEBUG: FileBinding::free deleteTexture
+[07.03.26 01:59.09] DEBUG: id:<47> texCount:<1>
+[07.03.26 01:59.09] DEBUG: FileBinding::free2
+[07.03.26 01:59.09] DEBUG: FileBinding::free3
+[07.03.26 01:59.09] DEBUG: FileBinding::free4
+[07.03.26 01:59.09] DEBUG: FileBinding::free5
+[07.03.26 01:59.09] DEBUG: FileBinding::reload_
+[07.03.26 01:59.09] DEBUG: decompressFileBegin <ZIP://Medieval Village MegaKit[Standard]/OBJ/Overhang_Side_Plaster_Short_R.obj|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 01:59.09] DEBUG: unpackZipFileToFile start <2TMP.TMP>,<C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<Medieval Village MegaKit[Standard]/OBJ/Overhang_Side_Plaster_Short_R.obj>
+[07.03.26 01:59.09] DEBUG: decompressFileBegin <ZIP://medieval village megakit[standard]/obj/overhang_side_plaster_short_r.mtl|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 01:59.09] DEBUG: unpackZipFileToFile start <3TMP.TMP>,<C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<medieval village megakit[standard]/obj/overhang_side_plaster_short_r.mtl>
+[07.03.26 01:59.09] DEBUG: OBJ load texture:<T_WoodTrim_BaseColor.png> and type:<map_Kd>
+[07.03.26 01:59.09] DEBUG: ZIP://medieval village megakit[standard]/gltf/t_woodtrim_basecolor.png|C:/MESHES/ZIPS/MEDIEV~1.ZIP
+[07.03.26 01:59.09] DEBUG: getFileArray decompress <ZIP://medieval village megakit[standard]/gltf/t_woodtrim_basecolor.png|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 01:59.09] DEBUG: unpackZipFileToArray start <C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<medieval village megakit[standard]/gltf/t_woodtrim_basecolor.png>
+[07.03.26 01:59.10] DEBUG: OBJ load texture:<T_WoodTrim_Roughness.png> and type:<map_Ns>
+[07.03.26 01:59.10] DEBUG: OBJ load texture:<T_WoodTrim_Normal.png> and type:<map_Bump>
+[07.03.26 01:59.10] DEBUG: OBJ load texture:<T_Plaster_BaseColor.png> and type:<map_Kd>
+[07.03.26 01:59.10] DEBUG: ZIP://medieval village megakit[standard]/gltf/t_plaster_basecolor.png|C:/MESHES/ZIPS/MEDIEV~1.ZIP
+[07.03.26 01:59.10] DEBUG: getFileArray decompress <ZIP://medieval village megakit[standard]/gltf/t_plaster_basecolor.png|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 01:59.10] DEBUG: unpackZipFileToArray start <C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<medieval village megakit[standard]/gltf/t_plaster_basecolor.png>
+[07.03.26 01:59.12] DEBUG: OBJ load texture:<T_Plaster_Normal.png> and type:<map_Bump>
+[07.03.26 01:59.12] DEBUG: FileBinding::load end
+[07.03.26 01:59.22] DEBUG: getFileArray decompress <ZIP://Medieval Village MegaKit[Standard]/OBJ/Overhang_UnevenBrick_Short.obj|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 01:59.23] DEBUG: unpackZipFileToArray start <C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<Medieval Village MegaKit[Standard]/OBJ/Overhang_UnevenBrick_Short.obj>
+[07.03.26 01:59.23] DEBUG: FileBinding::load start with name:<ZIP://Medieval Village MegaKit[Standard]/OBJ/Overhang_UnevenBrick_Short.obj|C:/MESHES/ZIPS/MEDIEV~1.ZIP> and type<2>
+[07.03.26 01:59.23] DEBUG: FileBinding::reload
+[07.03.26 01:59.23] DEBUG: FileBinding::free
+[07.03.26 01:59.23] DEBUG: FileBinding::free deleteTexture
+[07.03.26 01:59.23] DEBUG: id:<47> texCount:<2>
+[07.03.26 01:59.23] DEBUG: FileBinding::free deleteTexture
+[07.03.26 01:59.23] DEBUG: id:<48> texCount:<2>
+[07.03.26 01:59.23] DEBUG: FileBinding::free2
+[07.03.26 01:59.23] DEBUG: FileBinding::free3
+[07.03.26 01:59.23] DEBUG: FileBinding::free4
+[07.03.26 01:59.23] DEBUG: FileBinding::free5
+[07.03.26 01:59.23] DEBUG: FileBinding::reload_
+[07.03.26 01:59.23] DEBUG: decompressFileBegin <ZIP://Medieval Village MegaKit[Standard]/OBJ/Overhang_UnevenBrick_Short.obj|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 01:59.23] DEBUG: unpackZipFileToFile start <4TMP.TMP>,<C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<Medieval Village MegaKit[Standard]/OBJ/Overhang_UnevenBrick_Short.obj>
+[07.03.26 01:59.23] DEBUG: decompressFileBegin <ZIP://medieval village megakit[standard]/obj/overhang_unevenbrick_short.mtl|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 01:59.23] DEBUG: unpackZipFileToFile start <5TMP.TMP>,<C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<medieval village megakit[standard]/obj/overhang_unevenbrick_short.mtl>
+[07.03.26 01:59.23] DEBUG: OBJ load texture:<T_WoodTrim_BaseColor.png> and type:<map_Kd>
+[07.03.26 01:59.23] DEBUG: ZIP://medieval village megakit[standard]/gltf/t_woodtrim_basecolor.png|C:/MESHES/ZIPS/MEDIEV~1.ZIP
+[07.03.26 01:59.23] DEBUG: getFileArray decompress <ZIP://medieval village megakit[standard]/gltf/t_woodtrim_basecolor.png|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 01:59.23] DEBUG: unpackZipFileToArray start <C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<medieval village megakit[standard]/gltf/t_woodtrim_basecolor.png>
+[07.03.26 01:59.24] DEBUG: OBJ load texture:<T_WoodTrim_Roughness.png> and type:<map_Ns>
+[07.03.26 01:59.24] DEBUG: OBJ load texture:<T_WoodTrim_Normal.png> and type:<map_Bump>
+[07.03.26 01:59.24] DEBUG: OBJ load texture:<T_Plaster_BaseColor.png> and type:<map_Kd>
+[07.03.26 01:59.24] DEBUG: ZIP://medieval village megakit[standard]/gltf/t_plaster_basecolor.png|C:/MESHES/ZIPS/MEDIEV~1.ZIP
+[07.03.26 01:59.24] DEBUG: getFileArray decompress <ZIP://medieval village megakit[standard]/gltf/t_plaster_basecolor.png|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 01:59.24] DEBUG: unpackZipFileToArray start <C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<medieval village megakit[standard]/gltf/t_plaster_basecolor.png>
+[07.03.26 01:59.25] DEBUG: OBJ load texture:<T_Plaster_Normal.png> and type:<map_Bump>
+[07.03.26 01:59.25] DEBUG: OBJ load texture:<T_UnevenBrick_BaseColor.png> and type:<map_Kd>
+[07.03.26 01:59.26] DEBUG: ZIP://medieval village megakit[standard]/gltf/t_unevenbrick_basecolor.png|C:/MESHES/ZIPS/MEDIEV~1.ZIP
+[07.03.26 01:59.26] DEBUG: getFileArray decompress <ZIP://medieval village megakit[standard]/gltf/t_unevenbrick_basecolor.png|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 01:59.26] DEBUG: unpackZipFileToArray start <C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<medieval village megakit[standard]/gltf/t_unevenbrick_basecolor.png>
+[07.03.26 01:59.27] DEBUG: OBJ load texture:<T_UnevenBrick_Roughness.png> and type:<map_Ns>
+[07.03.26 01:59.27] DEBUG: OBJ load texture:<T_UnevenBrick_Normal.png> and type:<map_Bump>
+[07.03.26 01:59.27] DEBUG: FileBinding::load end
+[07.03.26 01:59.37] DEBUG: FileBinding::free
+[07.03.26 01:59.37] DEBUG: FileBinding::free deleteTexture
+[07.03.26 01:59.37] DEBUG: id:<47> texCount:<3>
+[07.03.26 01:59.37] DEBUG: FileBinding::free deleteTexture
+[07.03.26 01:59.37] DEBUG: id:<48> texCount:<3>
+[07.03.26 01:59.37] DEBUG: FileBinding::free deleteTexture
+[07.03.26 01:59.37] DEBUG: id:<49> texCount:<3>
+[07.03.26 01:59.37] DEBUG: FileBinding::free2
+[07.03.26 01:59.37] DEBUG: FileBinding::free3
+[07.03.26 01:59.37] DEBUG: FileBinding::free4
+[07.03.26 01:59.37] DEBUG: FileBinding::free5
+[07.03.26 01:59.37] DEBUG: loadMesh:<Overhang_UnevenBrick_Short.obj|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 01:59.37] DEBUG: loadMeshForObject:<ZIP://Medieval Village MegaKit[Standard]/OBJ/Overhang_UnevenBrick_Short.obj|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 01:59.37] DEBUG: newBinding
+[07.03.26 01:59.37] DEBUG: FileBinding::load start with name:<ZIP://Medieval Village MegaKit[Standard]/OBJ/Overhang_UnevenBrick_Short.obj|C:/MESHES/ZIPS/MEDIEV~1.ZIP> and type<2>
+[07.03.26 01:59.37] DEBUG: FileBinding::reload
+[07.03.26 01:59.37] DEBUG: FileBinding::free
+[07.03.26 01:59.37] DEBUG: FileBinding::free2
+[07.03.26 01:59.37] DEBUG: FileBinding::free3
+[07.03.26 01:59.37] DEBUG: FileBinding::free4
+[07.03.26 01:59.37] DEBUG: FileBinding::free5
+[07.03.26 01:59.37] DEBUG: FileBinding::reload_
+[07.03.26 01:59.37] DEBUG: decompressFileBegin <ZIP://Medieval Village MegaKit[Standard]/OBJ/Overhang_UnevenBrick_Short.obj|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 01:59.37] DEBUG: unpackZipFileToFile start <6TMP.TMP>,<C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<Medieval Village MegaKit[Standard]/OBJ/Overhang_UnevenBrick_Short.obj>
+[07.03.26 01:59.37] DEBUG: decompressFileBegin <ZIP://medieval village megakit[standard]/obj/overhang_unevenbrick_short.mtl|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 01:59.37] DEBUG: unpackZipFileToFile start <7TMP.TMP>,<C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<medieval village megakit[standard]/obj/overhang_unevenbrick_short.mtl>
+[07.03.26 01:59.38] DEBUG: OBJ load texture:<T_WoodTrim_BaseColor.png> and type:<map_Kd>
+[07.03.26 01:59.38] DEBUG: ZIP://medieval village megakit[standard]/gltf/t_woodtrim_basecolor.png|C:/MESHES/ZIPS/MEDIEV~1.ZIP
+[07.03.26 01:59.38] DEBUG: getFileArray decompress <ZIP://medieval village megakit[standard]/gltf/t_woodtrim_basecolor.png|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 01:59.38] DEBUG: unpackZipFileToArray start <C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<medieval village megakit[standard]/gltf/t_woodtrim_basecolor.png>
+[07.03.26 01:59.39] DEBUG: OBJ load texture:<T_WoodTrim_Roughness.png> and type:<map_Ns>
+[07.03.26 01:59.39] DEBUG: OBJ load texture:<T_WoodTrim_Normal.png> and type:<map_Bump>
+[07.03.26 01:59.39] DEBUG: OBJ load texture:<T_Plaster_BaseColor.png> and type:<map_Kd>
+[07.03.26 01:59.39] DEBUG: ZIP://medieval village megakit[standard]/gltf/t_plaster_basecolor.png|C:/MESHES/ZIPS/MEDIEV~1.ZIP
+[07.03.26 01:59.39] DEBUG: getFileArray decompress <ZIP://medieval village megakit[standard]/gltf/t_plaster_basecolor.png|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 01:59.39] DEBUG: unpackZipFileToArray start <C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<medieval village megakit[standard]/gltf/t_plaster_basecolor.png>
+[07.03.26 01:59.40] DEBUG: OBJ load texture:<T_Plaster_Normal.png> and type:<map_Bump>
+[07.03.26 01:59.40] DEBUG: OBJ load texture:<T_UnevenBrick_BaseColor.png> and type:<map_Kd>
+[07.03.26 01:59.40] DEBUG: ZIP://medieval village megakit[standard]/gltf/t_unevenbrick_basecolor.png|C:/MESHES/ZIPS/MEDIEV~1.ZIP
+[07.03.26 01:59.40] DEBUG: getFileArray decompress <ZIP://medieval village megakit[standard]/gltf/t_unevenbrick_basecolor.png|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 01:59.40] DEBUG: unpackZipFileToArray start <C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<medieval village megakit[standard]/gltf/t_unevenbrick_basecolor.png>
+[07.03.26 01:59.41] DEBUG: OBJ load texture:<T_UnevenBrick_Roughness.png> and type:<map_Ns>
+[07.03.26 01:59.41] DEBUG: OBJ load texture:<T_UnevenBrick_Normal.png> and type:<map_Bump>
+[07.03.26 01:59.41] DEBUG: FileBinding::load end
+[07.03.26 02:06.27] DEBUG: getFileArray decompress <ZIP://Medieval Village MegaKit[Standard]/OBJ/Overhang_UnevenBrick_Short.obj|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 02:06.27] DEBUG: unpackZipFileToArray start <C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<Medieval Village MegaKit[Standard]/OBJ/Overhang_UnevenBrick_Short.obj>
+[07.03.26 02:06.28] DEBUG: FileBinding::load start with name:<ZIP://Medieval Village MegaKit[Standard]/OBJ/Overhang_UnevenBrick_Short.obj|C:/MESHES/ZIPS/MEDIEV~1.ZIP> and type<2>
+[07.03.26 02:06.28] DEBUG: FileBinding::reload
+[07.03.26 02:06.28] DEBUG: FileBinding::free
+[07.03.26 02:06.28] DEBUG: FileBinding::free2
+[07.03.26 02:06.28] DEBUG: FileBinding::free3
+[07.03.26 02:06.28] DEBUG: FileBinding::free4
+[07.03.26 02:06.28] DEBUG: FileBinding::free5
+[07.03.26 02:06.28] DEBUG: FileBinding::reload_
+[07.03.26 02:06.28] DEBUG: decompressFileBegin <ZIP://Medieval Village MegaKit[Standard]/OBJ/Overhang_UnevenBrick_Short.obj|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 02:06.28] DEBUG: unpackZipFileToFile start <8TMP.TMP>,<C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<Medieval Village MegaKit[Standard]/OBJ/Overhang_UnevenBrick_Short.obj>
+[07.03.26 02:06.28] DEBUG: decompressFileBegin <ZIP://medieval village megakit[standard]/obj/overhang_unevenbrick_short.mtl|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 02:06.28] DEBUG: unpackZipFileToFile start <9TMP.TMP>,<C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<medieval village megakit[standard]/obj/overhang_unevenbrick_short.mtl>
+[07.03.26 02:06.28] DEBUG: OBJ load texture:<T_WoodTrim_BaseColor.png> and type:<map_Kd>
+[07.03.26 02:06.28] DEBUG: ZIP://medieval village megakit[standard]/gltf/t_woodtrim_basecolor.png|C:/MESHES/ZIPS/MEDIEV~1.ZIP
+[07.03.26 02:06.28] DEBUG: getFileArray decompress <ZIP://medieval village megakit[standard]/gltf/t_woodtrim_basecolor.png|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 02:06.28] DEBUG: unpackZipFileToArray start <C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<medieval village megakit[standard]/gltf/t_woodtrim_basecolor.png>
+[07.03.26 02:06.29] DEBUG: OBJ load texture:<T_WoodTrim_Roughness.png> and type:<map_Ns>
+[07.03.26 02:06.29] DEBUG: OBJ load texture:<T_WoodTrim_Normal.png> and type:<map_Bump>
+[07.03.26 02:06.29] DEBUG: OBJ load texture:<T_Plaster_BaseColor.png> and type:<map_Kd>
+[07.03.26 02:06.29] DEBUG: ZIP://medieval village megakit[standard]/gltf/t_plaster_basecolor.png|C:/MESHES/ZIPS/MEDIEV~1.ZIP
+[07.03.26 02:06.29] DEBUG: getFileArray decompress <ZIP://medieval village megakit[standard]/gltf/t_plaster_basecolor.png|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 02:06.29] DEBUG: unpackZipFileToArray start <C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<medieval village megakit[standard]/gltf/t_plaster_basecolor.png>
+[07.03.26 02:06.30] DEBUG: OBJ load texture:<T_Plaster_Normal.png> and type:<map_Bump>
+[07.03.26 02:06.30] DEBUG: OBJ load texture:<T_UnevenBrick_BaseColor.png> and type:<map_Kd>
+[07.03.26 02:06.30] DEBUG: ZIP://medieval village megakit[standard]/gltf/t_unevenbrick_basecolor.png|C:/MESHES/ZIPS/MEDIEV~1.ZIP
+[07.03.26 02:06.30] DEBUG: getFileArray decompress <ZIP://medieval village megakit[standard]/gltf/t_unevenbrick_basecolor.png|C:/MESHES/ZIPS/MEDIEV~1.ZIP>
+[07.03.26 02:06.30] DEBUG: unpackZipFileToArray start <C:/MESHES/ZIPS/MEDIEV~1.ZIP>,<medieval village megakit[standard]/gltf/t_unevenbrick_basecolor.png>
+[07.03.26 02:06.31] DEBUG: OBJ load texture:<T_UnevenBrick_Roughness.png> and type:<map_Ns>
+[07.03.26 02:06.31] DEBUG: OBJ load texture:<T_UnevenBrick_Normal.png> and type:<map_Bump>
+[07.03.26 02:06.31] DEBUG: FileBinding::load end
+[07.03.26 02:06.41] DEBUG: FileBinding::free
+[07.03.26 02:06.41] DEBUG: FileBinding::free deleteTexture
+[07.03.26 02:06.41] DEBUG: id:<50> texCount:<3>
+[07.03.26 02:06.41] DEBUG: FileBinding::free deleteTexture
+[07.03.26 02:06.41] DEBUG: id:<51> texCount:<3>
+[07.03.26 02:06.41] DEBUG: FileBinding::free deleteTexture
+[07.03.26 02:06.41] DEBUG: id:<52> texCount:<3>
+[07.03.26 02:06.41] DEBUG: FileBinding::free2
+[07.03.26 02:06.41] DEBUG: FileBinding::free3
+[07.03.26 02:06.41] DEBUG: FileBinding::free4
+[07.03.26 02:06.41] DEBUG: FileBinding::free5
+[07.03.26 02:06.51] DEBUG: finishing..
+[07.03.26 02:06.51] DEBUG: freeBindings start
+[07.03.26 02:06.52] DEBUG: FileBinding::free
+[07.03.26 02:06.52] DEBUG: FileBinding::free deleteTexture
+[07.03.26 02:06.52] DEBUG: id:<2> texCount:<6>
+[07.03.26 02:06.52] DEBUG: FileBinding::free deleteTexture
+[07.03.26 02:06.52] DEBUG: id:<3> texCount:<6>
+[07.03.26 02:06.52] DEBUG: FileBinding::free deleteTexture
+[07.03.26 02:06.52] DEBUG: id:<4> texCount:<6>
+[07.03.26 02:06.52] DEBUG: FileBinding::free deleteTexture
+[07.03.26 02:06.52] DEBUG: id:<5> texCount:<6>
+[07.03.26 02:06.52] DEBUG: FileBinding::free deleteTexture
+[07.03.26 02:06.52] DEBUG: id:<6> texCount:<6>
+[07.03.26 02:06.52] DEBUG: FileBinding::free deleteTexture
+[07.03.26 02:06.52] DEBUG: id:<7> texCount:<6>
+[07.03.26 02:06.52] DEBUG: FileBinding::free2
+[07.03.26 02:06.52] DEBUG: FileBinding::free3
+[07.03.26 02:06.52] DEBUG: FileBinding::free4
+[07.03.26 02:06.52] DEBUG: FileBinding::free5
+[07.03.26 02:06.52] DEBUG: FileBinding::free
+[07.03.26 02:06.52] DEBUG: FileBinding::free deleteTexture
+[07.03.26 02:06.52] DEBUG: id:<45> texCount:<3>
+[07.03.26 02:06.52] DEBUG: FileBinding::free deleteTexture
+[07.03.26 02:06.52] DEBUG: id:<46> texCount:<3>
+[07.03.26 02:06.52] DEBUG: FileBinding::free deleteTexture
+[07.03.26 02:06.52] DEBUG: id:<47> texCount:<3>
+[07.03.26 02:06.52] DEBUG: FileBinding::free2
+[07.03.26 02:06.52] DEBUG: FileBinding::free3
+[07.03.26 02:06.52] DEBUG: FileBinding::free4
+[07.03.26 02:06.52] DEBUG: FileBinding::free5
+[07.03.26 02:06.52] DEBUG: freeBindings end
+[07.03.26 02:06.52] DEBUG: finished.
