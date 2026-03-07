@@ -1751,7 +1751,7 @@ void unpackZipFileToArray(Array<unsigned char> *arr, const char *zipFileName, co
       if (mz_zip_reader_file_stat(&zip, i, &file_stat)) {
         String a = (const char *)file_stat.m_filename; a = unixFileName(a);
         if (toLower(a) == toLower(zippedFileName)) {
-          arr->resize(file_stat.m_uncomp_size);
+          arr->resize((size_t)file_stat.m_uncomp_size);
           if (mz_zip_reader_extract_to_mem(&zip,i, &((*arr)[0]), arr->size(), MZ_ZIP_FLAG_ASCII_FILENAME)) {
           }
           break;
@@ -1781,7 +1781,7 @@ Array<File> getZipDirectory(const char *path, const char *zipFileName) {
       File f;
       f.attributes = mz_zip_reader_is_file_a_directory(&zip, i) ? DOS_ATTR_SUBDIR : DOS_ATTR_NORMAL;
       if (mz_zip_reader_file_stat(&zip, i, &file_stat)) {
-        f.size = file_stat.m_uncomp_size;
+        f.size = (long)file_stat.m_uncomp_size;
         tm *t = gmtime(&file_stat.m_time);
         f.date.day = t->tm_mday; // 1..31
         f.date.month = t->tm_mon; // 0..11
@@ -1831,6 +1831,7 @@ void patchFileName(String *oldFileName, mz_zip_archive *zip, const String &zipNa
 }
 
 void patchFileName(String *fileName, const String &zipName, const String &zipFileName) {
+  UNUSED(zipFileName);
   if (zipName.empty()) return;
   String zwo = shortFileName(dosFileName(zipName)); FILE *in = fopen(zwo.c_str(),"rb"); if (in == NULL) return;
   mz_zip_archive zip; mz_zip_zero_struct(&zip);
@@ -1842,6 +1843,7 @@ void patchFileName(String *fileName, const String &zipName, const String &zipFil
 }
 
 void patchBinding(class FileBinding *b, const String &zipName, const String &zipFileName) {
+  UNUSED(zipFileName);
   if (zipName.empty()) return;
   FILE *in = fopen(shortFileName(dosFileName(zipName)).c_str(),"rb"); if (in == NULL) return;
   mz_zip_archive zip; mz_zip_zero_struct(&zip);
