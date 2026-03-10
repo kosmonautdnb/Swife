@@ -1592,6 +1592,7 @@ void exportObject(GameObject *o) {
       fprintf(out,"<SECTIONISPATH>,%d,\n",o->sectionIsPath?1:0);
       fprintf(out,"<ISLOOPING>,%d,\n",o->isLooping?1:0);
       fprintf(out,"<INTERPOLATIONPARAM>,%f,\n",o->interpolationParam);
+      fprintf(out,"<INTERPOLATIONTYPE>,%d,\n",o->interpolationType);
     }
     FileBinding *b = getBindingById(o->fileBindingId);
     if (b != NULL) {
