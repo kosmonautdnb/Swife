@@ -1587,6 +1587,12 @@ void exportObject(GameObject *o) {
       fprintf(out,"<BILLBOARDSCALE>,%f,\n",o->billBoardScale);
       fprintf(out,"<BILLBOARDASPECT>,%f,\n",o->billBoardAspect);
     }
+    if (o->type == GAMEOBJECT_SECTION) {
+      fprintf(out,"<SECTIONLENGTH>,%d,\n",o->sectionLength);
+      fprintf(out,"<SECTIONISPATH>,%d,\n",o->sectionIsPath?1:0);
+      fprintf(out,"<ISLOOPING>,%d,\n",o->isLooping?1:0);
+      fprintf(out,"<INTERPOLATIONPARAM>,%f,\n",o->interpolationParam);
+    }
     FileBinding *b = getBindingById(o->fileBindingId);
     if (b != NULL) {
       fprintf(out,"<FILENAME>,%s,\n",escapeCSV(toLocalFileName(b->fileName)).c_str());
@@ -1624,7 +1630,10 @@ void exportObjectCSV(const char *path, const char *fileName) {
   exportObjects = true;
   for (int i = 0; i < gameObjects.size(); i++) {
     GameObject *o = gameObjects[i];
-    drawGameObject(o);
+    if (o->type == GAMEOBJECT_SECTION) 
+      exportObject(o);
+    else
+      drawGameObject(o);
   }
   exportObjects = false;
 
