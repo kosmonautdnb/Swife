@@ -33,7 +33,7 @@
 HashMap<unsigned int, const char*> iconNameForGameObjectType;
 Grid grids[MAXGRIDS];
 
-const char *gameObjectTypeNames[GAMEOBJECT_COUNT] = {"undefined", "mesh", "camera", "skybox", "path", "billboard","section","trigger","link","point","texturegrid","script","image","heightmap"};
+const char *gameObjectTypeNames[GAMEOBJECT_COUNT] = {"undefined", "mesh", "camera", "skybox", "path", "billboard","section","trigger","link","point","texturegrid","script","image","heightmap","valley"};
 const char *propertyTypeNames[GAMEOBJECTPROPERTY_COUNT] = {"undefined", "bool", "int", "float", "float4", "text", "color","links","script","repeat"};
 const char *interpolationNames[INTERPOLATION_COUNT] = {"step","linear","catmulrom"};
 
@@ -126,6 +126,7 @@ void initGameObjects() {
   iconNameForGameObjectType[GAMEOBJECT_SCRIPT] = "script";
   iconNameForGameObjectType[GAMEOBJECT_IMAGE] = "image";
   iconNameForGameObjectType[GAMEOBJECT_HEIGHTMAP] = "heightmap";
+  iconNameForGameObjectType[GAMEOBJECT_VALLEY] = "valley";
 }
 
 GameObject *GameObject::setName(const char *name) {

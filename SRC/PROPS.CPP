@@ -1044,6 +1044,55 @@ void showHeightmapProperties(GameObject *object) {
   ImGui::Separator();
 }
 
+void showValleyProperties(GameObject *object) {
+  char buffer[64];
+  showTransform(object,"##VALLEYPROP");
+  ImGui::Separator();
+  for (int i = 0; i < object->uniqueLinkIds.size(); i++) {
+    int j = getObjectsIndexByUniqueId(object->uniqueLinkIds[i]);
+    if (j >= 0) {
+      GameObject *o = gameObjects[j];
+      ImGui::Text("%d\"%s\"",j ,o->name);
+    } else {
+      ImGui::Text("<deleted>");
+    }
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.9,0.9,0.9,1));
+    sprintf(buffer,"##VALLEYPROPDEL%d",i);
+    ImGui::PushID(buffer);
+    SVG *svg = &svgs["delete"];
+    if (ImGui::ImageButton((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h))) {
+      object->uniqueLinkIds.erase(i,1);
+      renderingUpdated = true;
+      i--;
+    }
+    ImGui::PopID();
+    ImGui::PopStyleColor();
+  }
+  ImGui::Separator();
+  ImGui::Text("Available points");
+  ImGui::BeginChild("##VALLEYPROPCHILD",ImVec2(0,main_window_yres/3));
+  for (int i2 = 0; i2 < gameObjects.size(); i2++) {
+    GameObject *o = gameObjects[i2];
+    if (o->type != GAMEOBJECT_POINT) continue;
+    sprintf(buffer,"%d\"%s\"##VALLEYPROPBTN%d",i2,o->name,i2);
+    bool already = false;
+    for (int i3 = 0; i3 < object->uniqueLinkIds.size(); i3++) {
+      if (object->uniqueLinkIds[i3] == o->uniqueId) {already = true; break;}
+    }
+    ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(1,1,1,1));
+    ImGui::PushStyleColor(ImGuiCol_Text,already?ImVec4(0.5,0.5,0.5,1):ImVec4(0.0,0.0,0.0,1));
+    if (ImGui::Button(buffer) && !already) {
+      object->uniqueLinkIds.push_back(o->uniqueId);
+      renderingUpdated = true;
+    }
+    ImGui::PopStyleColor();
+    ImGui::PopStyleColor();
+  }
+  ImGui::EndChild();
+  ImGui::Separator();
+}
+
 void drawProperties() {
   int count = 0;
   int count2 = 0;
@@ -1124,6 +1173,7 @@ void drawProperties() {
       case GAMEOBJECT_SCRIPT: {showScriptProperties(first);} break;
       case GAMEOBJECT_IMAGE: {showImageProperties(first);} break;
       case GAMEOBJECT_HEIGHTMAP: {showHeightmapProperties(first);} break;
+      case GAMEOBJECT_VALLEY: {showValleyProperties(first);} break;
       default:
         showMeshProperties(first);
       }

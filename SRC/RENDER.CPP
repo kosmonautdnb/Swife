@@ -301,6 +301,7 @@ void paintRawGameObject(GameObject *o, bool showModificators) {
   case GAMEOBJECT_TEXTUREGRID: {paintTextureGrid(o,showModificators);} break;
   case GAMEOBJECT_SECTION: {if (o->sectionIsPath && o->sectionVisible) paintPath(o,showModificators);} break;
   case GAMEOBJECT_HEIGHTMAP: {paintHeightmap(o,showModificators);} break;
+  case GAMEOBJECT_VALLEY: {paintValley(o,showModificators);} break;
   }
 }
 

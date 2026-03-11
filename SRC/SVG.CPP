@@ -131,6 +131,7 @@ void loadBaseSVGs() {
   ADDICON("script","EDIT.SVG");
   ADDICON("image","CLOSE.SVG");
   ADDICON("heightmap","PAUSE.SVG");
+  ADDICON("valley","ROTATE.SVG");
   ADDICON("appicon","3D.SVG");
 
   colorIcon("appicon",0x00ffffff);

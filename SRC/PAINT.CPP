@@ -36,6 +36,7 @@
 #include "TOOLBAR.HPP"
 #include "PROPS.HPP"
 #include "STL/SPRTEOBJ.HPP"
+#include "STL/PAIR.HPP"
 #include <math.h>
 
 #define SKYBOX_LEFT 0
@@ -1357,6 +1358,7 @@ void paintHeightmap(class GameObject *o, bool showModificators) {
    
     if (doHitTest) {
       if (triangleHitTest(p10, p00, p01,collisionPoint)||triangleHitTest(p01, p11, p10,collisionPoint)) { // this doesn't work, because there are heights below the "quad"
+        // not exactly on the heightmap (maybe above or below the heightmap)
         tris[0].x = p10.x; tris[0].y = p10.y; tris[0].z = p10.z;
         tris[1].x = p00.x; tris[1].y = p00.y; tris[1].z = p00.z;
         tris[2].x = p01.x; tris[2].y = p01.y; tris[2].z = p01.z;
@@ -1365,36 +1367,273 @@ void paintHeightmap(class GameObject *o, bool showModificators) {
         tris[1].x = p11.x; tris[1].y = p11.y; tris[1].z = p11.z;
         tris[2].x = p10.x; tris[2].y = p10.y; tris[2].z = p10.z;
         addHitTestTriangles(o, HITTESTTOOL_NONE, &tris, minB, maxB);
-/*
-        int sx = i00 % width;
-        int sy = (i00/width) % height;
-        int ex = i11 % width;
-        int ey = (i11/width) % height;
-        for (int y = sy; y < ey-1; y++) {
-          for (int x = sx; x < ex-1; x++) {
-            int i00 = x + y * width;
-            int i10 = (x+1) + y * width;
-            int i11 = (x+1) + (y+1) * width;
-            int i01 = x + (y+1) * width;
-            Vector p10 = heightMapVertex(i10,heights,width,height);
-            Vector p00 = heightMapVertex(i00,heights,width,height);
-            Vector p01 = heightMapVertex(i01,heights,width,height);
-            Vector p11 = heightMapVertex(i11,heights,width,height);
-            if (triangleHitTest(p10, p00, p01,collisionPoint)) {
-              tris[0].x = p10.x; tris[0].y = p10.y; tris[0].z = p10.z;
-              tris[1].x = p00.x; tris[1].y = p00.y; tris[1].z = p00.z;
-              tris[2].x = p01.x; tris[2].y = p01.y; tris[2].z = p01.z;
-              addHitTestTriangles(o, HITTESTTOOL_NONE, &tris, minB, maxB);
-            }
-            if (triangleHitTest(p01, p11, p10,collisionPoint)) {
-              tris[0].x = p01.x; tris[0].y = p01.y; tris[0].z = p01.z;
-              tris[1].x = p11.x; tris[1].y = p11.y; tris[1].z = p11.z;
-              tris[2].x = p10.x; tris[2].y = p10.y; tris[2].z = p10.z;
-              addHitTestTriangles(o, HITTESTTOOL_NONE, &tris, minB, maxB);
-            }
-          }
+      }
+    }
+  }
+  glEnd();
+
+  alphaOff();
+
+  glEnable(GL_CULL_FACE);
+  glDisable(GL_TEXTURE_2D);
+  glBindTexture(GL_TEXTURE_2D,0);
+
+  glTranslatef(o->anchor.x,o->anchor.y,o->anchor.z);
+
+  if (showModificators) {
+    Vector minB2 = minB - o->anchor;
+    Vector maxB2 = maxB - o->anchor;
+    addHitTestScaleGizmo(o,minB2,maxB2);
+    addHitTestRotateGizmo(o,minB2,maxB2);
+    addHitTestMoveGizmo2(cameraMatrix,o,minB2,maxB2);
+  }
+
+  glPopMatrix();
+}
+
+#define VALLEYINDEX Pair<float,float>
+
+Array<Vector> valleyAttractors;
+GameObject *valleyObject = NULL;
+
+Vector valleyVertex(const VALLEYINDEX &v) {
+  Vector pos = Vector(v.first*2-1, 0, v.second*2-1);
+  Vector *p = &valleyAttractors[0];
+  int pc = valleyAttractors.size();
+  double w = 0;
+  double h = 0;
+  double a = 1;
+  if (valleyObject->scaling.z != 0) a = valleyObject->scaling.x/valleyObject->scaling.z; // no clue why
+  for (int i = 0; i < pc; i++) {
+    Vector *s = &p[i];
+    double dx = (pos.x - s->x)*s->w;
+    double dz = (pos.z - s->z)*s->w;
+    dx *= a;
+    double d = dx*dx + dz*dz;
+    d *= d;
+    if (d != 0) d = 1.0/d; else d = 100000.0;
+    h += s->y * d;
+    w += d;
+  }
+  if (w != 0) h /= w;
+  pos.y = h;
+  return pos;
+}
+
+VALLEYINDEX valleyIndex(const VALLEYINDEX &i10, const VALLEYINDEX &i00, const VALLEYINDEX &i01, const VALLEYINDEX &i11, int cx, int cy) {
+  float newX = (float)((i10.first-i00.first)*cx*0.5f+i00.first);
+  float newY = (float)((i01.second-i00.second)*cy*0.5f+i00.second);
+  return VALLEYINDEX(newX, newY);
+}
+
+bool valleyIndexIsBorder(const VALLEYINDEX &index) {
+  if (index.first == 0 || index.first == 1) return true;
+  if (index.second == 0 || index.second == 1) return true;
+  return false;
+}
+
+void paintValley(class GameObject *o, bool showModificators) {
+
+  exportObject(o);
+  valleyObject = o;
+
+  Matrix m = o->getRenderTransform();
+
+  Matrix im = inverse(m);
+
+  valleyAttractors.clear();
+  if (o->uniqueLinkIds.empty()) {
+    valleyAttractors.push_back(Vector(-1,0,-1));
+    valleyAttractors.push_back(Vector(1,0,-1));
+    valleyAttractors.push_back(Vector(1,0,1));
+    valleyAttractors.push_back(Vector(-1,0,1));
+    valleyAttractors.push_back(Vector(0,1,0));
+  } else {
+    for (int i = 0; i < o->uniqueLinkIds.size(); i++) {
+      unsigned int toLookFor = o->uniqueLinkIds[i];
+      for (int i2 = 0; i2 < gameObjects.size(); i2++) {
+        GameObject *o = gameObjects[i2];
+        if (o->uniqueId == toLookFor) {
+          Vector p = o->getRenderTransform() * Vector(0,0,0);
+          if (p.w != 0) p /= p.w; p.w = 1;
+          p.w = o->scaling.x; // size
+          valleyAttractors.push_back(p);
         }
-*/
+      }
+    }
+  }
+
+  double miny = -1;
+  double maxy = 1;
+  for (int i2 = 0; i2 < valleyAttractors.size(); i2++) {
+    double w = valleyAttractors[i2].w;
+    Vector k = im * valleyAttractors[i2].xyz();
+    if (k.w != 0) k /= k.w; k.w = 1;
+    k.w = w;
+    valleyAttractors[i2] = k;
+    if (k.y < miny) miny = k.y;
+    if (k.y > maxy) maxy = k.y;
+  }
+  o->boundingBoxMin.y = miny;
+  o->boundingBoxMax.y = maxy;
+
+  if (!isInViewport(o)) return;
+  if (justDrawBoundingBoxes) {paintTrigger(o,showModificators); return;}
+
+  Matrix cameraMatrix; glGetDoublev(GL_MODELVIEW_MATRIX, cameraMatrix.m);
+
+  glPushMatrix();
+
+  Vector minB = o->boundingBoxMin;
+  Vector maxB = o->boundingBoxMax;
+
+  glMultMatrixd(m.m);
+  if (twoSidedOn) 
+    glDisable(GL_CULL_FACE); 
+  else 
+    glEnable(GL_CULL_FACE);  
+  glDisable(GL_CULL_FACE); // force twosided
+  bool fixBorders = true;
+  float minSize = 1.f/10000.f;
+  float minSizeBorder = 1.f/100.f;
+  float f = 0.1f*2;
+
+  Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m);
+  Matrix projection; glGetDoublev(GL_PROJECTION_MATRIX, projection.m);
+  Matrix m2 = projection * modelView;
+
+  Vector camPos = inverse(cameraMatrix).getColumn(3);
+  if (camPos.w != 0) {camPos / camPos.w; camPos.w = 1;}
+  static Array<VALLEYINDEX > recurse; recurse.clear();
+  static Array<VALLEYINDEX > polys; polys.clear();
+  recurse.push_back(VALLEYINDEX(1,0));
+  recurse.push_back(VALLEYINDEX(0,0));
+  recurse.push_back(VALLEYINDEX(0,1));
+  recurse.push_back(VALLEYINDEX(1,1));
+
+  while(!recurse.empty()) {
+
+    VALLEYINDEX i11 = recurse.back(); recurse.pop_back();
+    VALLEYINDEX i01 = recurse.back(); recurse.pop_back();
+    VALLEYINDEX i00 = recurse.back(); recurse.pop_back();
+    VALLEYINDEX i10 = recurse.back(); recurse.pop_back();
+
+    Vector p00 = valleyVertex(i00);
+    Vector p10 = valleyVertex(i10);
+    Vector p01 = valleyVertex(i01);
+    Vector p11 = valleyVertex(i11);
+
+    Vector t00 = m2 * p00;
+    Vector t10 = m2 * p10;
+    Vector t01 = m2 * p01;
+    Vector t11 = m2 * p11;
+
+    int allOutOnSide = 1|2|4|8|16|32;
+    double guard = 1.01;
+    if (t00.x>=-t00.w*guard||t01.x>=-t01.w*guard||t10.x>=-t10.w*guard||t11.x>=-t11.w*guard) allOutOnSide &= ~1;
+    if (t00.y>=-t00.w*guard||t01.y>=-t01.w*guard||t10.y>=-t10.w*guard||t11.y>=-t11.w*guard) allOutOnSide &= ~2;
+    if (t00.z>=-t00.w*guard||t01.z>=-t01.w*guard||t10.z>=-t10.w*guard||t11.z>=-t11.w*guard) allOutOnSide &= ~4;
+    if (t00.x<=t00.w*guard||t01.x<=t01.w*guard||t10.x<=t10.w*guard||t11.x<=t11.w*guard) allOutOnSide &= ~8;
+    if (t00.y<=t00.w*guard||t01.y<=t01.w*guard||t10.y<=t10.w*guard||t11.y<=t11.w*guard) allOutOnSide &= ~16;
+    if (t00.z<=t00.w*guard||t01.z<=t01.w*guard||t10.z<=t10.w*guard||t11.z<=t11.w*guard) allOutOnSide &= ~32;
+    if (allOutOnSide!=0) continue;
+
+    if (t00.w != 0) {t00 /= t00.w; t00.w = 1;}
+    if (t10.w != 0) {t10 /= t10.w; t10.w = 1;}
+    if (t01.w != 0) {t01 /= t01.w; t01.w = 1;}
+    if (t11.w != 0) {t11 /= t11.w; t11.w = 1;}
+
+    Vector minp=t00,maxp=t00;
+    if (t01.x<minp.x) minp.x = t01.x;
+    if (t01.y<minp.y) minp.y = t01.y;
+    if (t10.x<minp.x) minp.x = t10.x;
+    if (t10.y<minp.y) minp.y = t10.y;
+    if (t11.x<minp.x) minp.x = t11.x;
+    if (t11.y<minp.y) minp.y = t11.y;
+    if (t01.x>maxp.x) maxp.x = t01.x;
+    if (t01.y>maxp.y) maxp.y = t01.y;
+    if (t10.x>maxp.x) maxp.x = t10.x;
+    if (t10.y>maxp.y) maxp.y = t10.y;
+    if (t11.x>maxp.x) maxp.x = t11.x;
+    if (t11.y>maxp.y) maxp.y = t11.y;
+    double size = length((maxp-minp).xy());
+
+    bool isLowestLevel = (fabs(i11.first - i00.first) <= minSize) || (fabs(i11.second - i00.second) <= minSize);
+
+    bool forceRecurse = false;
+    if (fixBorders) {
+      bool isBorder = valleyIndexIsBorder(i00) || valleyIndexIsBorder(i01) || valleyIndexIsBorder(i10) || valleyIndexIsBorder(i11);
+      bool isLowestLevelBorder = (fabs(i11.first - i00.first) <= minSizeBorder) || (fabs(i11.second - i00.second) <= minSizeBorder);
+      if (isBorder&& !isLowestLevelBorder) forceRecurse = true;
+    }
+
+    if ((size>f && !isLowestLevel)||(forceRecurse && !isLowestLevel)) {
+      recurse.push_back(valleyIndex(i10,i00,i01,i11,1,0));
+      recurse.push_back(valleyIndex(i10,i00,i01,i11,0,0));
+      recurse.push_back(valleyIndex(i10,i00,i01,i11,0,1));
+      recurse.push_back(valleyIndex(i10,i00,i01,i11,1,1));
+
+      recurse.push_back(valleyIndex(i10,i00,i01,i11,2,0));
+      recurse.push_back(valleyIndex(i10,i00,i01,i11,1,0));
+      recurse.push_back(valleyIndex(i10,i00,i01,i11,1,1));
+      recurse.push_back(valleyIndex(i10,i00,i01,i11,2,1));
+
+      recurse.push_back(valleyIndex(i10,i00,i01,i11,2,1));
+      recurse.push_back(valleyIndex(i10,i00,i01,i11,1,1));
+      recurse.push_back(valleyIndex(i10,i00,i01,i11,1,2));
+      recurse.push_back(valleyIndex(i10,i00,i01,i11,2,2));
+
+      recurse.push_back(valleyIndex(i10,i00,i01,i11,1,1));
+      recurse.push_back(valleyIndex(i10,i00,i01,i11,0,1));
+      recurse.push_back(valleyIndex(i10,i00,i01,i11,0,2));
+      recurse.push_back(valleyIndex(i10,i00,i01,i11,1,2));
+    } else {
+      polys.push_back(i10);
+      polys.push_back(i00);
+      polys.push_back(i01);
+      polys.push_back(i11);
+      if (polys.size()>MAXMEMPERALLOC/sizeof(VALLEYINDEX)) break;
+    }
+  }
+
+  Vector collisionPoint;
+  static Array<BakedVertex> tris; tris.resize(3);
+
+  alphaOn();
+  glDisable(GL_TEXTURE_2D);
+
+  glBegin(GL_QUADS);
+  glColor4ubv((GLubyte*)&o->color);
+  for (int i = 0; i < polys.size()/4; i++) {
+    const VALLEYINDEX &i10 = polys[i*4+0];
+    const VALLEYINDEX &i00 = polys[i*4+1];
+    const VALLEYINDEX &i01 = polys[i*4+2];
+    const VALLEYINDEX &i11 = polys[i*4+3];
+    Vector p10 = valleyVertex(i10);
+    Vector p00 = valleyVertex(i00);
+    Vector p01 = valleyVertex(i01);
+    Vector p11 = valleyVertex(i11);
+    Vector n1 = p11-p00;
+    Vector n2 = p10-p01;
+    Vector n = normalize(cross(n1,n2));
+    glNormal3dv(&n.x);
+//    glColor4f((rand()&255)/255.f,(rand()&255)/255.f,(rand()&255)/255.f,1);
+    glVertex3dv(&p10.x);
+    glVertex3dv(&p00.x);
+    glVertex3dv(&p01.x);
+    glVertex3dv(&p11.x);
+   
+    if (doHitTest) {
+      if (triangleHitTest(p10, p00, p01,collisionPoint)||triangleHitTest(p01, p11, p10,collisionPoint)) { // this doesn't work, because there are heights below the "quad"
+        // not exactly on the heightmap (maybe above or below the heightmap)
+        tris[0].x = p10.x; tris[0].y = p10.y; tris[0].z = p10.z;
+        tris[1].x = p00.x; tris[1].y = p00.y; tris[1].z = p00.z;
+        tris[2].x = p01.x; tris[2].y = p01.y; tris[2].z = p01.z;
+        addHitTestTriangles(o, HITTESTTOOL_NONE, &tris, minB, maxB);
+        tris[0].x = p01.x; tris[0].y = p01.y; tris[0].z = p01.z;
+        tris[1].x = p11.x; tris[1].y = p11.y; tris[1].z = p11.z;
+        tris[2].x = p10.x; tris[2].y = p10.y; tris[2].z = p10.z;
+        addHitTestTriangles(o, HITTESTTOOL_NONE, &tris, minB, maxB);
       }
     }
   }
