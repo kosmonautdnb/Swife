@@ -1644,6 +1644,41 @@ void exportObjectCSV(const char *path, const char *fileName) {
   renameTempFile(path,fileName);
 }
 
+void exportValleyCSV(const char *path, const char *fileName) {
+  logd("exportValleyCSV:<%s> <%s>",path,fileName);
+
+  int j = getObjectsIndexByUniqueId(dialogLoadSaveGameObjectUniqueId);
+  if (j<0) return;
+
+  FILE *out = createTempFile(path);
+  if (out == NULL) return;
+
+  GameObject *o = gameObjects[j];
+
+  fprintf(out,"<SWIFEVALLEYCSV>,\n");
+  fprintf(out,"<MATRIX>,");
+  Matrix m = o->getRenderTransform();
+  for (int i = 0; i < 16; i++) fprintf(out,"%f,",m.m[i]);
+  fprintf(out,"\n");
+  double a = 1.0;
+  if (o->scaling.z != 0) a = o->scaling.x/o->scaling.z;
+  fprintf(out,"<ASPECT>,%f,\n",a);
+  for (int i2 = 0; i2 < o->uniqueLinkIds.size(); i2++) {
+    unsigned int toLookFor = o->uniqueLinkIds[i2];
+    for (int i3 = 0; i3 < gameObjects.size(); i3++) {
+      if (gameObjects[i3]->uniqueId == toLookFor) {
+        Vector p = gameObjects[i3]->getRenderTransform() * Vector(0,0,0);
+        if (p.w != 0) p /= p.w; p.w = 1;
+        double s = gameObjects[i3]->scaling.x;
+        fprintf(out,"<XYZS>,%f,%f,%f,%f,\n",p.x,p.y,p.z,s);
+        break;
+      }
+    }
+  }
+  fclose(out);
+  renameTempFile(path,fileName);
+}
+
 double updateToolTip(unsigned int *rgba, int width, int height, const char *path, const char *fileName) {
   RGBAIMAGEFROMFILE(image, path, fileName);
   if (image.data != NULL && image.width > 0 && image.height > 0) {

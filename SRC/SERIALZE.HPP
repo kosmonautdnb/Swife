@@ -184,6 +184,7 @@ void loadOverlay(const char *path, const char *fileName);
 
 void exportObject(GameObject *o);
 void exportObjectCSV(const char *path, const char *fileName);
+void exportValleyCSV(const char *path, const char *fileName);
 
 double updateToolTip(unsigned int *rgba, int width, int height, const char *path, const char *fileName);
 

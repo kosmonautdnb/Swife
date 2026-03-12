@@ -1048,11 +1048,13 @@ void showValleyProperties(GameObject *object) {
   char buffer[64];
   showTransform(object,"##VALLEYPROP");
   ImGui::Separator();
+  int founds = 0;
   for (int i = 0; i < object->uniqueLinkIds.size(); i++) {
     int j = getObjectsIndexByUniqueId(object->uniqueLinkIds[i]);
     if (j >= 0) {
       GameObject *o = gameObjects[j];
       ImGui::Text("%d\"%s\"",j ,o->name);
+      founds++;
     } else {
       ImGui::Text("<deleted>");
     }
@@ -1069,6 +1071,7 @@ void showValleyProperties(GameObject *object) {
     ImGui::PopID();
     ImGui::PopStyleColor();
   }
+  if (founds>0 && propsButton("export##VALLEYPROPEXPORTCSV",strlen("export")+4)) {dialogLoadSaveSetFileNameAndPath = ""; dialogLoadSaveGameObjectUniqueId = object->uniqueId; dialogLoadSave(true, DIALOG_SAVEVALLEYCSV); renderingUpdated = true;}
   ImGui::Separator();
   ImGui::Text("Available points");
   ImGui::BeginChild("##VALLEYPROPCHILD",ImVec2(0,main_window_yres/3));
