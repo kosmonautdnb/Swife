@@ -33,6 +33,7 @@
 #include "RENDER.HPP"
 #include "HITTEST.HPP"
 #include "SVG.HPP"
+#include "PAINT.HPP"
 
 int menuBar_height = 17;
 
@@ -137,6 +138,7 @@ void drawMenuBar() {
       selected = showLinks; if (ImGui::MenuItem("Show links (properties)","",&selected)) {showLinks = !showLinks; renderingUpdated = true;}
       selected = showGrids; if (ImGui::MenuItem("Show grids","",&selected)) {showGrids = !showGrids; renderingUpdated = true;}
       selected = showOverlays; if (ImGui::MenuItem("Show overlays","",&selected)) {showOverlays = !showOverlays; renderingUpdated = true;}
+      selected = drawObjectNames; if (ImGui::MenuItem("Show names","",&selected)) {drawObjectNames = !drawObjectNames; renderingUpdated = true;}
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Object")) {
