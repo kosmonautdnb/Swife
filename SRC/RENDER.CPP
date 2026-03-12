@@ -604,7 +604,9 @@ void handleHitTest() {
               if (o->uniqueId == currentSelectedAltuniqueId) {
                 GameObject *o2 = o->clone();
                 cloneName(o2->name, o->name);
+                Quaternion r = o2->rotation;
                 getTransformForGameObjectFromCursor(o2);
+                if (ctrl) o2->rotation = r;
                 o2->selected = false;
                 gameObjects.insert(o2,0);
                 renderingUpdated = true;
