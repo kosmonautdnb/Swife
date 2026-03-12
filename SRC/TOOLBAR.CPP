@@ -41,6 +41,7 @@ int mode = MODE_UNDEFINED;
 
 int toolBar_height = 32; // below 32 seems to not work with this version of ImGui
 float cameraSpeed = 1;
+unsigned int currentSelectedAltuniqueId = 0;
 
 void drawSeparator(int x, int y, int h) {
   ImVec2 cursor = ImGui::GetCursorScreenPos();
@@ -154,7 +155,7 @@ void drawToolBar() {
       Vector newPos = imageScroll * zoom / zoomBefore;
       imageScroll += (newPos-oldPos);
     }
-    drawToolTip("zoom");
+    drawToolTip("Zoom");
     ImGui::PopItemWidth();
     if (imageZoom<0) imageZoom=0;
     if (imageZoom>10.0) imageZoom=10.0;  
@@ -162,10 +163,10 @@ void drawToolBar() {
     if (toolBarTextButton2(paintBlended?"Solid##DRAWTOOLBARBLENDING":"Blending##DRAWTOOLBARBLENDING",true)) {paintBlended = !paintBlended;}
     ImGui::SameLine();
     ImGui::Checkbox("##DRAWTOOLBARSTAMPON",&stampOn);
-    drawToolTip(stampOn?"disable stamp":"enable stamp");
+    drawToolTip(stampOn?"Disable stamp":"Enable stamp");
     ImGui::SameLine();
     ImGui::Checkbox("##DRAWTOOLBARALPHAON",&alphaCheckered);
-    drawToolTip(alphaCheckered?"alpha black":"alpha fading");
+    drawToolTip(alphaCheckered?"Alpha black":"Alpha fading");
     ImGui::SameLine();
     ImGui::Text("f=fill a=fxaa");
     ImGui::SameLine();
@@ -201,7 +202,7 @@ void drawToolBar() {
       ImGui::PushItemWidth(70);
       ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.9,0.9,0.9,1));
       ImGui::InputFloat("##CAMERASPEED",&cameraSpeed,cameraSpeed>1?1:0.1,1,2);
-      drawToolTip("camera speed");
+      drawToolTip("Camera speed");
       if (cameraSpeed < 0) cameraSpeed = 0;
       ImGui::PopStyleColor();
       ImGui::PopItemWidth();
@@ -226,7 +227,7 @@ void drawToolBar() {
     fullScreen  = (bool)toolBarTextButton((unsigned int)fullScreen,(unsigned int)false,"Edit##EDITMODE2");
     ImGui::SameLine();
     if (ImGui::Checkbox("##DRAWBOUNDINGBOXES",&justDrawBoundingBoxes)) {renderingUpdated = true;}
-    drawToolTip(justDrawBoundingBoxes ? "show normal":"just show boundingboxes");
+    drawToolTip(justDrawBoundingBoxes ? "Show normal":"Just show boundingboxes");
     ImGui::SameLine();
     drawSeparator(0,0,23);
   }

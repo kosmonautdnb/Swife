@@ -523,6 +523,8 @@ void dialogControls(bool openIt) {
     "Left Mouse select this object\n"
     "Left Mouse and shift add to selection\n"
     "Left Mouse and ctrl remove from selection\n"
+    "Left Mouse and alt place selected item\n"
+    "Left Mouse and alt and ctrl place, no rotation\n"
     "\n"
     "Tool \"scale\":\n"
     "Use shift to scale uniformly\n"

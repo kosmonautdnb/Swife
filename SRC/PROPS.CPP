@@ -1119,7 +1119,7 @@ void drawProperties() {
     ImGui::InputText("##PROPNAME",first->name,NAMEMAX);
     ImGui::SameLine();
     bool selected = uniqueIdOfSingleDisplayedObject != 0; if (ImGui::Checkbox("##PROPSINGLE",&selected)) {uniqueIdOfSingleDisplayedObject = selected ? first->uniqueId : 0 ;renderingUpdated = true;}
-    drawToolTip(!selected ? "enable single object view":"disable single object view");
+    drawToolTip(!selected ? "Enable single object view":"Disable single object view");
   }
   if (first2 != NULL && count2 == 1 && count == 0) {
     ImGui::InputText("##PROPNAME",first2->name,NAMEMAX); // section

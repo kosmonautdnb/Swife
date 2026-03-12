@@ -31,6 +31,7 @@
 #include "MENUBAR.HPP"
 #include "DIALOGS.HPP"
 #include "RENDER.HPP"
+#include "TOOLBAR.HPP"
 
 int outliner_width = 160;
 char outliner_filter[NAMEMAX] = {0};
@@ -79,10 +80,10 @@ void objectSelect(unsigned int i) {
   bool selected = gameObjects[i]->selected;
   if (t == GAMEOBJECT_SECTION) { 
     if (ImGui::Checkbox(IDINDEXED("##OBJECTSELECTSECTION",i),&gameObjects[i]->sectionOn)) {renderingUpdated = true;}
-    drawToolTip(gameObjects[i]->sectionOn?"collapse section":"uncollapse section");
+    drawToolTip(gameObjects[i]->sectionOn?"Collapse section":"Uncollapse section");
     ImGui::SameLine();
     if (ImGui::Checkbox(IDINDEXED("##OBJECTSELECTSECTIONVISIBLE",i),&gameObjects[i]->sectionVisible)) {renderingUpdated = true;}
-    drawToolTip(gameObjects[i]->sectionVisible?"section invisible":"section visible");
+    drawToolTip(gameObjects[i]->sectionVisible?"Section invisible":"Section visible");
     ImGui::SameLine();
     sectionOn = gameObjects[i]->sectionOn;
     sectionVisible = gameObjects[i]->sectionVisible;
@@ -103,7 +104,7 @@ void objectSelect(unsigned int i) {
 
   if (gameObjects[i]->type == GAMEOBJECT_LINK) {
     ImGui::Checkbox(IDINDEXED("##OBJECTSELECTLINK",i),&gameObjects[i]->showLinks);
-    drawToolTip(gameObjects[i]->showLinks?"hide links":"show links");
+    drawToolTip(gameObjects[i]->showLinks?"Hide links":"Show links");
     ImGui::SameLine();
   }
 
@@ -119,6 +120,7 @@ void objectSelect(unsigned int i) {
     gameObjects[i]->selected = !gameObjects[i]->selected;
     renderingUpdated = true; // needed
     if (shift && t == GAMEOBJECT_SECTION) {sectionSelecting = true; sectionSelectingType = gameObjects[i]->selected;}
+    currentSelectedAltuniqueId = gameObjects[i]->uniqueId;
   }
 
   if (gameObjects[i]->type == GAMEOBJECT_LINK && gameObjects[i]->showLinks) {
@@ -207,6 +209,27 @@ bool gameObjectDeleteButton(bool enabled) {
   return ret;
 }
 
+void maybeDisplayPlacementTooltip() {
+  if (mode != MODE_SELECT) return;
+  GLboolean shift,ctrl,alt;
+  glSpecialKeys(&shift,&ctrl,&alt);
+  if (!alt) return;
+  ImGui::BeginTooltip();
+  ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0.0,0.0,0.0,1));
+  bool found = false;
+  for (int i = 0; i < gameObjects.size(); i++) {
+    if (gameObjects[i]->uniqueId == currentSelectedAltuniqueId) {
+      if (!ctrl) ImGui::Text("Placing: %d\"%s\"",i,gameObjects[i]->name);
+      if (ctrl) ImGui::Text("Placing (-rotation): %d\"%s\"",i,gameObjects[i]->name);
+      found = true;
+      break;
+    }
+  }
+  if (!found) ImGui::Text("Placing: <not found>");
+  ImGui::PopStyleColor();
+  ImGui::EndTooltip();
+}
+
 void drawOutliner() {
   bool one = false; for (int i2 = 0; i2 < gameObjects.size(); i2++) if (gameObjects[i2]->selected) {one=true; break;}
   ImGui::SetNextWindowPos(ImVec2(0,menuBar_height));
@@ -222,7 +245,7 @@ void drawOutliner() {
   static bool selecty = false;
   if (one) selecty = true;
   bool markAllWithSelecty = false; ImGui::SameLine(); if (ImGui::Checkbox("##OUTLINERSELECTY",&selecty)) {markAllWithSelecty = true;}
-  drawToolTip(selecty?"deselect all":"select all");
+  drawToolTip(selecty?"Deselect all":"Select all");
   ImGui::Separator();
   ImGui::BeginChild("OUTLINERCHILD1",ImVec2(0,main_window_yres-ImGui::GetCursorScreenPos().y-18));
   String filter = toLower(String(outliner_filter));
@@ -276,5 +299,6 @@ void drawOutliner() {
   if (visibles>0) k += String("A:")+String::fromInt(visibles) + " ";
   ImGui::Text("%s",k.c_str());
   ImGui::SameLine(); if (outlinerButton("Compact",selecteds>1)) outlinerCompact();
+  maybeDisplayPlacementTooltip();
   ImGui::End();
 }

@@ -36,6 +36,7 @@ extern int mode;
 
 extern int toolBar_height;
 extern float cameraSpeed;
+extern unsigned int currentSelectedAltuniqueId;
 
 void initToolBar();
 void drawToolBar();

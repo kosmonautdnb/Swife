@@ -282,7 +282,7 @@ void drawViewport() {
             moveBy(moveV.x,moveV.y,moveV.z, move_negate);
           }
           ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTMOVENEGATE", &move_negate)) {;}
-          drawToolTip(move_negate?"move forward":"move back");
+          drawToolTip(move_negate?"Move forward":"Move back");
           if (ImGui::Button("Move and duplicate")) {
             duplicate();
             moveBy(moveV.x,moveV.y,moveV.z, move_negate);
@@ -298,7 +298,7 @@ void drawViewport() {
             scaleBy(scaleV.x,scaleV.y,scaleV.z, scale_negate);
           }
           ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTSCALENEGATE", &scale_negate)) {;}
-          drawToolTip(scale_negate?"scale up":"scale down");
+          drawToolTip(scale_negate?"Scale up":"Scale down");
         } break;
         case MODE_ROTATE: {
           if (ImGui::Button("Clear##VIEWPORTROTCLEAR")) {rotateV.set(0,0,0); rotate_negate = false;}
@@ -307,7 +307,7 @@ void drawViewport() {
             rotateBy(rotateV.x,rotateV.y,rotateV.z,rotate_negate);
           }
           ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTROTATENEGATE", &rotate_negate)) {;}
-          drawToolTip(scale_negate?"rotate forward":"rotate back");
+          drawToolTip(scale_negate?"Rotate forward":"Rotate back");
         } break;
         }
         ImGui::PopItemWidth();

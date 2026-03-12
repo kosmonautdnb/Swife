@@ -35,6 +35,7 @@
 #include "PAINT.HPP"
 #include "HITTEST.HPP"
 #include "VIEWPORT.HPP"
+#include "DIALOGS.HPP"
 #include "STL/KEYMTRIX.HPP"
 #include "STL/ARRAY.HPP"
 #include "STL/SET.HPP"
@@ -594,15 +595,34 @@ void handleHitTest() {
   switch(mode) {
     case MODE_SELECT: {
       if (h != NULL) {
-        if (placeCursor) {cursor = h->point; cursorOrientation = h->pointOrientation;}
-        if (shift) h->object->selected = true;
-        else
-        if (ctrl) h->object->selected = false;
-        else {
-          for (int i = 0; i < gameObjects.size(); i++) gameObjects[i]->selected = false;
-          h->object->selected = true;
+        if (alt) {
+          if (ImGui::IsMouseClicked(0)) {
+            cursor = h->point; cursorOrientation = h->pointOrientation;
+            if (ctrl) cursorOrientation = Quaternion();
+            for (int i = 0; i < gameObjects.size(); i++) {
+              GameObject *o =gameObjects[i];
+              if (o->uniqueId == currentSelectedAltuniqueId) {
+                GameObject *o2 = o->clone();
+                cloneName(o2->name, o->name);
+                getTransformForGameObjectFromCursor(o2);
+                o2->selected = false;
+                gameObjects.insert(o2,0);
+                renderingUpdated = true;
+                break;
+              }
+            }
+          }
+        } else {
+          if (placeCursor) {cursor = h->point; cursorOrientation = h->pointOrientation;}
+          if (shift) h->object->selected = true;
+          else
+          if (ctrl) h->object->selected = false;
+          else {
+            for (int i = 0; i < gameObjects.size(); i++) gameObjects[i]->selected = false;
+            h->object->selected = true;
+          }
+          h->object->outlinerShouldFocusThis = true;
         }
-        h->object->outlinerShouldFocusThis = true;
       } else {
         for (int i = 0; i < gameObjects.size(); i++) gameObjects[i]->selected = false;
       }
