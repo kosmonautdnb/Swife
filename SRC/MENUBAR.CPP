@@ -58,7 +58,10 @@ String timeDescString() {
   return hex(rtc_day)+"."+hex(rtc_month)+"."+hex(rtc_year)+" "+String(day[(rtc_weekday-2)&7])+" "+hex(rtc_hours)+":"+hex(rtc_minutes);
 }
 
+bool showToolTips = true;
+
 void drawToolTip(const char *fmt, ...) {
+  if (!showToolTips) return;
   if (ImGui::IsItemHovered()) {
     ImGui::BeginTooltip();
     ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0.0,0.0,0.0,1));
@@ -138,7 +141,9 @@ void drawMenuBar() {
       selected = showLinks; if (ImGui::MenuItem("Show links (properties)","",&selected)) {showLinks = !showLinks; renderingUpdated = true;}
       selected = showGrids; if (ImGui::MenuItem("Show grids","",&selected)) {showGrids = !showGrids; renderingUpdated = true;}
       selected = showOverlays; if (ImGui::MenuItem("Show overlays","",&selected)) {showOverlays = !showOverlays; renderingUpdated = true;}
-      selected = drawObjectNames; if (ImGui::MenuItem("Show names","",&selected)) {drawObjectNames = !drawObjectNames; renderingUpdated = true;}
+      selected = drawObjectNames; if (ImGui::MenuItem("Show names","",&selected,showOverlays)) {drawObjectNames = !drawObjectNames; renderingUpdated = true;}
+      ImGui::Separator();
+      selected = showToolTips; if (ImGui::MenuItem("Show tooltips","",&selected)) {showToolTips = !showToolTips;}
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Object")) {

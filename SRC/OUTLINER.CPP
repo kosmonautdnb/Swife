@@ -46,10 +46,9 @@ unsigned int layerSelection(unsigned int a, const char *dcl) {
   for (int i = 0; i < 8; i++) {
     sprintf(buffer,"%c##%s",i+'0',dcl);
     if (i != 0) ImGui::SameLine();
-
     ImGui::PushStyleColor(ImGuiCol_Button,a & (1<<i) ? color_button_on_bg:color_button_off_bg);
     ImGui::PushStyleColor(ImGuiCol_Text,a & (1<<i) ? color_button_on_text:color_button_off_text);
-    if (ImGui::Button(buffer)) a ^= 1<<i;
+    if (ImGui::Button(buffer)) a ^= 1<<i; else drawToolTip("Layer");
     ImGui::PopStyleColor();
     ImGui::PopStyleColor();
   }
@@ -93,6 +92,7 @@ void objectSelect(unsigned int i) {
     const char *icon = iconNameForGameObjectType[t]; SVG *svg = NULL; if (svgs.has(icon)) svg = &svgs[icon];
     if (svg != NULL) {
       ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h),ImVec2(0,0),ImVec2(1,1),ImVec4(1,1,1,v?1:0.5));
+      drawToolTip("%s",gameObjectTypeNames[t]);
       ImGui::SameLine();
     }
   }
@@ -239,9 +239,9 @@ void drawOutliner() {
   outlinerLayers = layerSelection(outlinerLayers,"OUTLLAY");
   if (outlinerLayers != outlinerLayersBefore) renderingUpdated = true;
   ImGui::Separator();
-  ImGui::Text(" "); ImGui::SameLine();SVG *svg = &svgs["search"];ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h));ImGui::SameLine();ImGui::InputText("##OUTLINERFILTER",outliner_filter,NAMEMAX);
-  ImGui::SameLine(); if (gameObjectDeleteButton(one)) dialogDeleteGameObjects(true);
-  if (outlinerButton("Move up",one)) {renderingUpdated = true;outlinerMoveUp();} ImGui::SameLine(); if (outlinerButton("Move down",one)) {renderingUpdated = true; outlinerMoveDown();}
+  ImGui::Text(" "); ImGui::SameLine();SVG *svg = &svgs["search"];ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h));drawToolTip("Search");ImGui::SameLine();ImGui::InputText("##OUTLINERFILTER",outliner_filter,NAMEMAX);
+  ImGui::SameLine(); if (gameObjectDeleteButton(one)) dialogDeleteGameObjects(true); else drawToolTip("Delete objects");
+  if (outlinerButton("Move up",one)) {renderingUpdated = true;outlinerMoveUp();} else drawToolTip("Move selection up in hierarchy"); ImGui::SameLine(); if (outlinerButton("Move down",one)) {renderingUpdated = true; outlinerMoveDown();} drawToolTip("Move selection down in hierarchy");
   static bool selecty = false;
   if (one) selecty = true;
   bool markAllWithSelecty = false; ImGui::SameLine(); if (ImGui::Checkbox("##OUTLINERSELECTY",&selecty)) {markAllWithSelecty = true;}

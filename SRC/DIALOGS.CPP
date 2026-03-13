@@ -497,6 +497,9 @@ void dialogAbout(bool openIt) {
     "Coded in early 2026 by\n"
     "Stefan Mader of Puls4r\n"
     "------------------------------------\n"
+    "Source is released under the most\n"
+    "common: MIT License. (open source)\n"
+    "------------------------------------\n"
     "Build date: " __DATE__ "\n"
     "Build time: " __TIME__ "\n"
     "Version: %d.%02d\n"
@@ -743,6 +746,7 @@ void dialogColor(bool openIt, unsigned int *color) {
   ImGui::SameLine();
   ImVec4 col(c.x,c.y,c.z,c.w);
   ImGui::Image((ImTextureID)0, ImVec2(64,64), ImVec2(0,0), ImVec2(1,1), col);
+  drawToolTip("Color");
   int ri = c.x * 255.0;
   int gi = c.y * 255.0;
   int bi = c.z * 255.0;
@@ -785,6 +789,7 @@ void colorItem(const String &name, const String &id, unsigned int *color, bool c
     ImGui::PushID(IDCOMBINED(id.c_str(),"imageButton_"));
     ImGui::PushStyleColor(ImGuiCol_Button,cl.w==1?ImVec4(1-cl.x,1-cl.y,1-cl.z,1):ImVec4(0,0,0,1));
     bool a = ImGui::ImageButton((ImTextureID)0, ImVec2(11,11), ImVec2(0,0), ImVec2(1,1), -1, cl,cl);
+    drawToolTip("Color");
     ImGui::PopStyleColor();
     ImGui::PopID();
     if (a) {dialogColor(true,color);}
@@ -817,14 +822,14 @@ bool displayColorWheel(Vector *color, int width) {
   Vector before = c;
   const char *id = "##COLORWHEEL";
   float k;
-  ImGui::Text("A");ImGui::SameLine();k = c.w * 255.0; if (ImGui::SliderFloat(IDCOMBINED(id,"ALPHA"),&k,0,255)) {c.w = k/255.0;}
-  ImGui::Text("R");ImGui::SameLine();k = c.x * 255.0; if (ImGui::SliderFloat(IDCOMBINED(id,"RED"),&k,0,255)) {c.x = k/255.0;}
-  ImGui::Text("G");ImGui::SameLine();k = c.y * 255.0; if (ImGui::SliderFloat(IDCOMBINED(id,"GREEN"),&k,0,255)) {c.y = k/255.0;}
-  ImGui::Text("B");ImGui::SameLine();k = c.z * 255.0; if (ImGui::SliderFloat(IDCOMBINED(id,"BLUE"),&k,0,255)) {c.z = k/255.0;}
+  ImGui::Text("A");drawToolTip("Alpha");ImGui::SameLine();k = c.w * 255.0; if (ImGui::SliderFloat(IDCOMBINED(id,"ALPHA"),&k,0,255)) {c.w = k/255.0;}
+  ImGui::Text("R");drawToolTip("Red");ImGui::SameLine();k = c.x * 255.0; if (ImGui::SliderFloat(IDCOMBINED(id,"RED"),&k,0,255)) {c.x = k/255.0;}
+  ImGui::Text("G");drawToolTip("Green");ImGui::SameLine();k = c.y * 255.0; if (ImGui::SliderFloat(IDCOMBINED(id,"GREEN"),&k,0,255)) {c.y = k/255.0;}
+  ImGui::Text("B");drawToolTip("Blue");ImGui::SameLine();k = c.z * 255.0; if (ImGui::SliderFloat(IDCOMBINED(id,"BLUE"),&k,0,255)) {c.z = k/255.0;}
   float h,s,l; getHsl(c,&h,&s,&l);
-  ImGui::Text("H");ImGui::SameLine();k = h*360.0;  if (ImGui::SliderFloat(IDCOMBINED(id,"HUE"),&k,0,360)) {double w = c.w; h = k/360.0; updateColorWheel(h,0,0,&h,&s,&l); c = hsl(h,s,l); c.w = w; getHsl(c,&h,&s,&l); updateColorWheel(h,0,0,NULL,NULL,NULL);}
-  ImGui::Text("S");ImGui::SameLine();k = s;  if (ImGui::SliderFloat(IDCOMBINED(id,"SAT"),&k,0,1)) {double w = c.w; s = k; c = hsl(h,s,l); c.w = w;}
-  ImGui::Text("L");ImGui::SameLine();k = l;  if (ImGui::SliderFloat(IDCOMBINED(id,"LIT"),&k,0,1)) {double w = c.w; l = k; c = hsl(h,s,l); c.w = w;}
+  ImGui::Text("H");drawToolTip("Hue");ImGui::SameLine();k = h*360.0;  if (ImGui::SliderFloat(IDCOMBINED(id,"HUE"),&k,0,360)) {double w = c.w; h = k/360.0; updateColorWheel(h,0,0,&h,&s,&l); c = hsl(h,s,l); c.w = w; getHsl(c,&h,&s,&l); updateColorWheel(h,0,0,NULL,NULL,NULL);}
+  ImGui::Text("S");drawToolTip("Saturation");ImGui::SameLine();k = s;  if (ImGui::SliderFloat(IDCOMBINED(id,"SAT"),&k,0,1)) {double w = c.w; s = k; c = hsl(h,s,l); c.w = w;}
+  ImGui::Text("L");drawToolTip("Lightness");ImGui::SameLine();k = l;  if (ImGui::SliderFloat(IDCOMBINED(id,"LIT"),&k,0,1)) {double w = c.w; l = k; c = hsl(h,s,l); c.w = w;}
   ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0,0,0,0));
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered,ImVec4(0,0,0,0));
   ImGui::PushStyleColor(ImGuiCol_ButtonActive,ImVec4(0,0,0,0));
@@ -842,6 +847,7 @@ bool displayColorWheel(Vector *color, int width) {
   ImVec4 col(c.x,c.y,c.z,c.w);
   ImGui::Text("Color");
   ImGui::Image((ImTextureID)0, ImVec2(64,64), ImVec2(0,0), ImVec2(1,1), col);
+  drawToolTip("Color");
   int ri = c.x * 255.0;
   int gi = c.y * 255.0;
   int bi = c.z * 255.0;
@@ -1480,9 +1486,9 @@ void dialogGridSettings(bool openIt) {
   Grid *grid = &grids[0];
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(1,0));
   ImGui::Text("Grid offset");
-  if (vectorInput(" XYZ",&grid->gridPos,"##DIALOGGRIDSETTINGSISGRIDPOS")) {renderingUpdated = true;}
+  if (vectorInput(" XYZ",&grid->gridPos,"##DIALOGGRIDSETTINGSISGRIDPOS","Grid center")) {renderingUpdated = true;}
   ImGui::Text("Apply to position");
-  if (vectorInput(" XYZ",&grid->posGranularity,"##DIALOGGRIDSETTINGSISGRIDTR")) {renderingUpdated = true;}
+  if (vectorInput(" XYZ",&grid->posGranularity,"##DIALOGGRIDSETTINGSISGRIDTR",NULL)) {renderingUpdated = true;}
   ImGui::Text(" Grid on X"); ImGui::SameLine();if (ImGui::Checkbox("##DIALOGGRIDSETTINGSISGRIDTX",&grid->posXEnabled)) {renderingUpdated = true;}
   ImGui::SameLine();
   ImGui::Text("Grid on Y"); ImGui::SameLine();if (ImGui::Checkbox("##DIALOGGRIDSETTINGSISGRIDTY",&grid->posYEnabled)) {renderingUpdated = true;}
@@ -1490,7 +1496,7 @@ void dialogGridSettings(bool openIt) {
   ImGui::Text("Grid on Z"); ImGui::SameLine();if (ImGui::Checkbox("##DIALOGGRIDSETTINGSISGRIDTZ",&grid->posZEnabled)) {renderingUpdated = true;}
   ImGui::Separator();
   ImGui::Text("Apply to scaling");
-  if (vectorInput(" XYZ",&grid->scaleGranularity,"##DIALOGGRIDSETTINGSISGRIDSC")) {renderingUpdated = true;}
+  if (vectorInput(" XYZ",&grid->scaleGranularity,"##DIALOGGRIDSETTINGSISGRIDSC",NULL)) {renderingUpdated = true;}
   ImGui::Text(" Grid on X"); ImGui::SameLine();if (ImGui::Checkbox("##DIALOGGRIDSETTINGSISGRIDSX",&grid->scaleXEnabled)) {renderingUpdated = true;}
   ImGui::SameLine();
   ImGui::Text("Grid on Y"); ImGui::SameLine();if (ImGui::Checkbox("##DIALOGGRIDSETTINGSISGRIDSY",&grid->scaleYEnabled)) {renderingUpdated = true;}

@@ -52,11 +52,12 @@ void drawSeparator(int x, int y, int h) {
 
 class ToolBarButton {
 public:
-  ToolBarButton() {this->svgId[0] = NULL; toggleState = false; selected = false; mode = MODE_UNDEFINED;}
-  ToolBarButton(const char *svgId0, const char *svgId1 = NULL) {this->svgId[0] = svgId0;this->svgId[1] = svgId1; toggleState = false; selected = false; mode = MODE_UNDEFINED;}
+  ToolBarButton() {this->svgId[0] = NULL; toggleState = false; selected = false; mode = MODE_UNDEFINED; toolTip = NULL;}
+  ToolBarButton(const char *svgId0, const char *svgId1 = NULL) {this->svgId[0] = svgId0;this->svgId[1] = svgId1; toggleState = false; selected = false; mode = MODE_UNDEFINED; toolTip = NULL;}
   int mode;
   bool selected;
   const char *svgId[2];
+  const char *toolTip;
   bool toggleState;
   bool isSingle() {
     return (svgId[1] == NULL) && (svgId[0] != NULL);
@@ -79,7 +80,7 @@ public:
       selectionCounter = 0; // also a little bit displaced here
       renderingUpdated = true;
       ret = true;
-    }
+    } else if (toolTip != NULL) drawToolTip(toolTip);
     ImGui::PopID();
     ImGui::PopStyleColor();
     return ret;
@@ -89,16 +90,16 @@ public:
 Array<ToolBarButton> toolBarButtons;
 
 #define TOOLBARTOGGLEBUTTON(__val0__,__val1__) toolBarButtons.push_back(ToolBarButton(__val0__,__val1__));
-#define TOOLBARSELECTBUTTON(__val0__,__mode__) {toolBarButtons.push_back(ToolBarButton(__val0__));toolBarButtons.back().mode = __mode__;}
+#define TOOLBARSELECTBUTTON(__val0__,__mode__,__toolTip__) {toolBarButtons.push_back(ToolBarButton(__val0__));toolBarButtons.back().mode = __mode__;toolBarButtons.back().toolTip = __toolTip__;}
 #define TOOLBARPLACEHOLDER() toolBarButtons.push_back(ToolBarButton());
 
 void initToolBar() {
   TOOLBARTOGGLEBUTTON("play","pause");
   TOOLBARPLACEHOLDER();
-  TOOLBARSELECTBUTTON("select",MODE_SELECT);
-  TOOLBARSELECTBUTTON("move",MODE_MOVE);
-  TOOLBARSELECTBUTTON("scale",MODE_SCALE);
-  TOOLBARSELECTBUTTON("rotate",MODE_ROTATE);
+  TOOLBARSELECTBUTTON("select",MODE_SELECT,"Select/Place");
+  TOOLBARSELECTBUTTON("move",MODE_MOVE,"Move");
+  TOOLBARSELECTBUTTON("scale",MODE_SCALE,"Scale");
+  TOOLBARSELECTBUTTON("rotate",MODE_ROTATE,"Rotate");
   TOOLBARPLACEHOLDER();
 }
 
@@ -160,7 +161,7 @@ void drawToolBar() {
     if (imageZoom<0) imageZoom=0;
     if (imageZoom>10.0) imageZoom=10.0;  
     ImGui::SameLine();
-    if (toolBarTextButton2(paintBlended?"Solid##DRAWTOOLBARBLENDING":"Blending##DRAWTOOLBARBLENDING",true)) {paintBlended = !paintBlended;}
+    if (toolBarTextButton2(paintBlended?"Solid##DRAWTOOLBARBLENDING":"Blending##DRAWTOOLBARBLENDING",true)) {paintBlended = !paintBlended;} else drawToolTip("Stamp is solid or with transparency");
     ImGui::SameLine();
     ImGui::Checkbox("##DRAWTOOLBARSTAMPON",&stampOn);
     drawToolTip(stampOn?"Disable stamp":"Enable stamp");
@@ -168,7 +169,7 @@ void drawToolBar() {
     ImGui::Checkbox("##DRAWTOOLBARALPHAON",&alphaCheckered);
     drawToolTip(alphaCheckered?"Alpha black":"Alpha fading");
     ImGui::SameLine();
-    ImGui::Text("f=fill a=fxaa");
+    ImGui::Text("f=fill a=fxaa"); drawToolTip("Press <f> to fill or <a> for antialiasing at mouse position");
     ImGui::SameLine();
     if (binding != NULL && toolBarTextButton2("Save image##DRAWTOOLBARSAVEIMAGE",binding->updated)) {
       paintingSaveOn = true;
@@ -191,9 +192,9 @@ void drawToolBar() {
     if (!isEga) ImGui::SameLine();
     if (currentCamera == CAMERA_USER) {
       Camera *c = &cameras[currentCamera];
-      c->ortho = (bool)toolBarTextButton((unsigned int)c->ortho,(unsigned int)false,"Persp##ORTHO1");
+      c->ortho = (bool)toolBarTextButton((unsigned int)c->ortho,(unsigned int)false,"Persp##ORTHO1"); drawToolTip("Perspective camera");
       ImGui::SameLine();
-      c->ortho = (bool)toolBarTextButton((unsigned int)c->ortho,(unsigned int)true,"Ortho##ORTHO2");
+      c->ortho = (bool)toolBarTextButton((unsigned int)c->ortho,(unsigned int)true,"Ortho##ORTHO2"); drawToolTip("Orthographic camera (needs Ortho scale)");
       ImGui::SameLine();
       SVG *svg = &svgs["cameraspeed"];                        
     
@@ -222,9 +223,9 @@ void drawToolBar() {
       drawSeparator(0,0,23);
       ImGui::SameLine();
     }
-    fullScreen = (bool)toolBarTextButton((unsigned int)fullScreen,(unsigned int)true,"View##EDITMODE1");
+    fullScreen = (bool)toolBarTextButton((unsigned int)fullScreen,(unsigned int)true,"View##EDITMODE1"); drawToolTip("Fullscreen view");
     ImGui::SameLine();
-    fullScreen  = (bool)toolBarTextButton((unsigned int)fullScreen,(unsigned int)false,"Edit##EDITMODE2");
+    fullScreen  = (bool)toolBarTextButton((unsigned int)fullScreen,(unsigned int)false,"Edit##EDITMODE2"); drawToolTip("Editor view");
     ImGui::SameLine();
     if (ImGui::Checkbox("##DRAWBOUNDINGBOXES",&justDrawBoundingBoxes)) {renderingUpdated = true;}
     drawToolTip(justDrawBoundingBoxes ? "Show normal":"Just show boundingboxes");

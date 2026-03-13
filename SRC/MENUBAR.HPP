@@ -27,6 +27,7 @@
 #include "STL/STRING.HPP"
 
 extern int menuBar_height;
+extern bool showToolTips;
 
 String timeDescString();
 

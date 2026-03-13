@@ -277,7 +277,7 @@ void drawViewport() {
         switch(mode) {
         case MODE_MOVE: {
           if (ImGui::Button("Clear##VIEWPORTMOVECLEAR")) {moveV.set(0,0,0); move_negate = false;}
-          ImGui::SameLine();ImGui::Text2("MoveXYZ"); ImGui::SameLine(); vectorInput("",&moveV,"##VIEWPORTMOVE");
+          ImGui::SameLine();ImGui::Text2("MoveXYZ"); ImGui::SameLine(); vectorInput("",&moveV,"##VIEWPORTMOVE",NULL);
           if (ImGui::Button(!move_negate ? "Move forward##VIEWPORTMOVEAPPLY" : "Move back##VIEWPORTMOVEAPPLY")) {
             moveBy(moveV.x,moveV.y,moveV.z, move_negate);
           }
@@ -290,7 +290,7 @@ void drawViewport() {
         } break;
         case MODE_SCALE: {
           if (ImGui::Button("Clear##VIEWPORTSCALECLEAR")) {scaleV.set(1,1,1); scale_negate = false;}
-          ImGui::SameLine();ImGui::Text2("ScaleXYZ"); ImGui::SameLine(); vectorInput("",&scaleV,"##VIEWPORTSCALE");
+          ImGui::SameLine();ImGui::Text2("ScaleXYZ"); ImGui::SameLine(); vectorInput("",&scaleV,"##VIEWPORTSCALE",NULL);
           if (scaleV.x < minScale) scaleV.x = minScale;
           if (scaleV.y < minScale) scaleV.y = minScale; 
           if (scaleV.z < minScale) scaleV.z = minScale;
@@ -302,7 +302,7 @@ void drawViewport() {
         } break;
         case MODE_ROTATE: {
           if (ImGui::Button("Clear##VIEWPORTROTCLEAR")) {rotateV.set(0,0,0); rotate_negate = false;}
-          ImGui::SameLine();ImGui::Text2("RotABC"); ImGui::SameLine(); vectorInput("",&rotateV,"##VIEWPORTROT");
+          ImGui::SameLine();ImGui::Text2("RotABC"); ImGui::SameLine(); vectorInput("",&rotateV,"##VIEWPORTROT",NULL);
           if (ImGui::Button(!rotate_negate ? "Rotate forward##VIEWPORTROTAPPLY" : "Rotate back##VIEWPORTROTAPPLY")) {
             rotateBy(rotateV.x,rotateV.y,rotateV.z,rotate_negate);
           }
@@ -316,42 +316,40 @@ void drawViewport() {
     drawCameraRotationGizmo();
     if (currentCamera == CAMERA_USER) {
       ImGui::Text2("Camera"); ImGui::SameLine();
-      if (ImGui::Checkbox("##VIEWPORTOVERLAYON",&viewportOn)) {;}
+      if (ImGui::Checkbox("##VIEWPORTOVERLAYON",&viewportOn)) {;} else drawToolTip("Show camera settings");
       if (viewportOn) {
         ImGui::BeginChild("VIEWPORTSETTING");
         Camera *c = &cameras[currentCamera];
         ImGui::PushItemWidth(15*7);
-         ImGui::Text2("PosXYZ"); ImGui::SameLine(); if (vectorInput("",&c->position,"##VIEWPORTCAM")) {renderingUpdated = true;}
+         ImGui::Text2("PosXYZ"); drawToolTip("Camera position"); ImGui::SameLine(); if (vectorInput("",&c->position,"##VIEWPORTCAM",NULL)) {renderingUpdated = true;}
         Vector yawPitchRoll = c->rotation.getYawPitchRoll()*180/PI;
-         ImGui::Text2("RotABC"); ImGui::SameLine(); if (vectorInput("",&yawPitchRoll,"##VIEWPORTYAWPITCHROLL")) {
+         ImGui::Text2("RotABC"); drawToolTip("Camera rotation"); ImGui::SameLine(); if (vectorInput("",&yawPitchRoll,"##VIEWPORTYAWPITCHROLL",NULL)) {
           yawPitchRoll *= PI/180;
           c->rotation.yawPitchRoll(yawPitchRoll.x,yawPitchRoll.y,yawPitchRoll.z);
           renderingUpdated = true;
         }
         if (!c->ortho) {
-          ImGui::Text2("Fov"); ImGui::SameLine(); if (ImGui::InputFloat("##VIEWPORTFOV",&c->fov,10,10)) {renderingUpdated = true;}
+          ImGui::Text2("Fov"); drawToolTip("Camera field of view in degrees"); ImGui::SameLine(); if (ImGui::InputFloat("##VIEWPORTFOV",&c->fov,10,10)) {renderingUpdated = true;}
         } else {
-          ImGui::Text2("Ortho scale"); ImGui::SameLine(); if (ImGui::InputFloat("##VIEWPORTORTHOSCALE",&c->orthoScale,10,10)) {renderingUpdated = true;}
+          ImGui::Text2("Ortho scale"); drawToolTip("Orthographic zoom"); ImGui::SameLine(); if (ImGui::InputFloat("##VIEWPORTORTHOSCALE",&c->orthoScale,10,10)) {renderingUpdated = true;}
         }
         if (c->orthoScale < 0) c->orthoScale = 0;
         if (c->fov < 1) c->fov = 1; if (c->fov>180) c->fov = 180;
-        ImGui::Text2("Aspect ratio"); ImGui::SameLine();
-    
-        if (ImGui::InputFloat("##VIEWPORTASPECTRATIO",&c->aspect,0.1,0.1)) {renderingUpdated = true;}
+        ImGui::Text2("Aspect ratio"); drawToolTip("Camera aspect ratio (0 equals monitor aspect ratio)"); ImGui::SameLine(); if (ImGui::InputFloat("##VIEWPORTASPECTRATIO",&c->aspect,0.1,0.1)) {renderingUpdated = true;}
         ImGui::PopItemWidth();
         ImGui::PushItemWidth(9*7);
-        ImGui::Text2("Near plane"); ImGui::SameLine();
+        ImGui::Text2("Near plane"); drawToolTip("Camera near plane (be careful here)"); ImGui::SameLine();
         if (ImGui::InputFloat("##VIEWPORTNEAR",&c->nearPlane)) {renderingUpdated = true;} if (c->nearPlane < 0.00001) c->nearPlane = 0.00001;
-        ImGui::Text2("Far plane"); ImGui::SameLine();
+        ImGui::Text2("Far plane"); drawToolTip("Camera far plane (be careful here)"); ImGui::SameLine();
         if (ImGui::InputFloat("##VIEWPORTFAR",&c->farPlane)) {renderingUpdated = true;} if (c->farPlane < c->nearPlane+0.00001) c->farPlane = c->nearPlane + 0.00001;
-        ImGui::Text2("Background"); ImGui::SameLine();
+        ImGui::Text2("Background"); drawToolTip("Viewport background color"); ImGui::SameLine();
         colorItem("","##VIEWPORTBACKGROUND", &clearColor, true);
         ImGui::PopItemWidth();
-        ImGui::Text2("Cursor"); ImGui::SameLine(); if (vectorInput("",&cursor,"##VIEWPORTCURSOR")) {renderingUpdated = true; cursorOrientation = Quaternion();} 
-        ImGui::SameLine(); bool isUp = cursorOrientation == Quaternion(); ImGui::Text2("Cursor up"); ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTCURSORNORMALUP",&isUp)) {if (isUp) {cursorOrientation = Quaternion(); renderingUpdated = true;}}
+        ImGui::Text2("Cursor"); drawToolTip("Object spawn point"); ImGui::SameLine(); if (vectorInput("",&cursor,"##VIEWPORTCURSOR",NULL)) {renderingUpdated = true; cursorOrientation = Quaternion();} 
+        ImGui::SameLine(); bool isUp = cursorOrientation == Quaternion(); ImGui::Text2("Cursor up"); ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTCURSORNORMALUP",&isUp)) {if (isUp) {cursorOrientation = Quaternion(); renderingUpdated = true;}} drawToolTip(isUp?"Objects spawning straight":"Objects spawning rotated");
         if (mode == MODE_SELECT) {
-          ImGui::SameLine(); ImGui::Text2("Place cursor"); 
-          ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTPLACECURSOR",&placeCursor)) {renderingUpdated = true;}
+          ImGui::SameLine(); ImGui::Text2("Place cursor");
+          ImGui::SameLine(); if (ImGui::Checkbox("##VIEWPORTPLACECURSOR",&placeCursor)) {renderingUpdated = true;} drawToolTip(placeCursor?"Don't update cursor at tipping":"Place cursor to mouse pos at tipping");
         }
         ImGui::EndChild();
       }

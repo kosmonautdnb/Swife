@@ -67,9 +67,10 @@ void addPreviousColor(const Vector &col) {
   }
 }
 
-bool vectorInput(const String &name,Vector *v, const String &dcl) {
+bool vectorInput(const String &name,Vector *v, const String &dcl, const char *toolTip) {
   bool ret = false;
   ImGui::Text("%s",name.c_str());
+  if (toolTip != NULL) drawToolTip(toolTip);
   ImGui::SameLine();
   ImGui::PushItemWidth(40);
   float k;
@@ -83,9 +84,10 @@ bool vectorInput(const String &name,Vector *v, const String &dcl) {
   return ret;
 }
 
-bool vectorInput2(const String &name,Vector *v, const String &dcl) {
+bool vectorInput2(const String &name,Vector *v, const String &dcl, const char *toolTip) {
   bool ret = false;
   ImGui::Text("%s",name.c_str());
+  if (toolTip != NULL) drawToolTip(toolTip);
   ImGui::SameLine();
   ImGui::PushItemWidth(32);
   float k;
@@ -99,9 +101,10 @@ bool vectorInput2(const String &name,Vector *v, const String &dcl) {
   return ret;
 }
 
-bool quaternionInput(const char *name,Quaternion *q, const String &dcl) {
+bool quaternionInput(const char *name,Quaternion *q, const String &dcl, const char *toolTip) {
   bool ret = false;
   ImGui::Text("%s",name);
+  if (toolTip != NULL) drawToolTip(toolTip);
   ImGui::SameLine();
   ImGui::PushItemWidth(40);
   float k;
@@ -119,9 +122,10 @@ bool quaternionInput(const char *name,Quaternion *q, const String &dcl) {
   return ret;
 }
 
-bool quaternionInput2(const char *name,Quaternion *q, const String &dcl) {
+bool quaternionInput2(const char *name,Quaternion *q, const String &dcl, const char *toolTip) {
   bool ret = false;
   ImGui::Text("%s",name);
+  if (toolTip != NULL) drawToolTip(toolTip);
   ImGui::SameLine();
   ImGui::PushItemWidth(32);
   float k;
@@ -200,7 +204,7 @@ bool editProperty(GameObject *o, GameObjectProperty *p, int i) {
           if (ImGui::ImageButton((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h))) {
             p->goLinks.erase(i2,1);
             i2--;
-          }
+          } else drawToolTip("Delete link");
           ImGui::PopID();
         }
       }
@@ -236,10 +240,10 @@ bool editProperty(GameObject *o, GameObjectProperty *p, int i) {
       }
 
       if (!p->goCheck1) {   
-        sprintf(buffer,"##PROPERTYEDITm%d",i);if (vectorInput2("M",&p->goMove,buffer)) {renderingUpdated=true;}
-        sprintf(buffer,"##PROPERTYEDITs%d",i);if (vectorInput2("S",&p->goScale,buffer)) {renderingUpdated=true;}
-        sprintf(buffer,"##PROPERTYEDITr%d",i);if (quaternionInput2("R",&p->goRotate,buffer)) {renderingUpdated=true;}
-        sprintf(buffer,"##PROPERTYEDITa%d",i);if (vectorInput2("A",&p->goAnchor,buffer)) {renderingUpdated=true;}
+        sprintf(buffer,"##PROPERTYEDITm%d",i);if (vectorInput2("M",&p->goMove,buffer,"Move")) {renderingUpdated=true;}
+        sprintf(buffer,"##PROPERTYEDITs%d",i);if (vectorInput2("S",&p->goScale,buffer,"Scale")) {renderingUpdated=true;}
+        sprintf(buffer,"##PROPERTYEDITr%d",i);if (quaternionInput2("R",&p->goRotate,buffer,"Rotate")) {renderingUpdated=true;}
+        sprintf(buffer,"##PROPERTYEDITa%d",i);if (vectorInput2("A",&p->goAnchor,buffer,"Anchor point")) {renderingUpdated=true;}
       }
       if (p->goCheck1) {   
         int id = p->goLinks.empty() ? 0 : p->goLinks[0];
@@ -307,6 +311,7 @@ bool editProperty(GameObject *o, GameObjectProperty *p, int i) {
   sprintf(buffer,"##PROPERTYEDIT%d_",i);
   ImGui::PushID(buffer);
   bool ret = ImGui::ImageButton((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h));
+  drawToolTip("Delete property");
   ImGui::PopID();
   ImGui::PopStyleColor();
   ImGui::PopStyleColor();
@@ -333,7 +338,7 @@ void bindingReloadAndMakeUnique(GameObject *object, FileBinding *binding,const c
 void showSkyBoxProperties(GameObject *object) {
   ImGui::Text("Transform");
   Quaternion rotation = object->rotation;
-  if (quaternionInput("R.",&rotation,"##SKYBOXPROPROTATION")) {renderingUpdated = true;}
+  if (quaternionInput("R.",&rotation,"##SKYBOXPROPROTATION","Rotation")) {renderingUpdated = true;}
   object->rotation = rotation;
   colorItem("C.","##SKYBOXPROPCOLOR",&object->color, true);
   ImGui::Separator();
@@ -375,23 +380,23 @@ Vector clampScale(const Vector &v) {
 void showTransform(GameObject *object, const char *id) {
   ImGui::Text("Transform");
   Vector anchor = object->anchor;
-  if (vectorInput("A.",&anchor,IDCOMBINED(id,"ANCHOR"))) {renderingUpdated = true;}
+  if (vectorInput("A.",&anchor,IDCOMBINED(id,"ANCHOR"),"Achor point")) {renderingUpdated = true;}
   object->anchor = anchor;
-  if (propsButton(("Center anchor"+String(id)+"USEGRID").c_str(),strlen("Center anchor")+4)) {object->anchor = (object->boundingBoxMin+object->boundingBoxMax)*0.5; renderingUpdated = true;}
+  if (propsButton(("Center anchor"+String(id)+"USEGRID").c_str(),strlen("Center anchor")+4)) {object->anchor = (object->boundingBoxMin+object->boundingBoxMax)*0.5; renderingUpdated = true;} else drawToolTip("Anchor point to object center");
   ImGui::Separator();
   Vector translation = object->translation;
   Vector scaling = object->scaling;
   Quaternion rotation = object->rotation;
-  if (vectorInput("P.",&translation,IDCOMBINED(id,"TRANSLATION"))) {renderingUpdated = true;}
-  if (vectorInput("S.",&scaling,IDCOMBINED(id,"SCALING"))) {renderingUpdated = true;}
-  if (quaternionInput("R.",&rotation,IDCOMBINED(id,"ROTATION"))) {renderingUpdated = true;}
+  if (vectorInput("P.",&translation,IDCOMBINED(id,"TRANSLATION"),"Position")) {renderingUpdated = true;}
+  if (vectorInput("S.",&scaling,IDCOMBINED(id,"SCALING"),"Scaling")) {renderingUpdated = true;}
+  if (quaternionInput("R.",&rotation,IDCOMBINED(id,"ROTATION"),"Rotation")) {renderingUpdated = true;}
   object->translation = translation;  
   object->scaling = clampScale(scaling);  
   object->rotation = rotation;
   colorItem("C.",String(id)+String("COLOR"),&object->color, true);
-  if (propsButton(("Quantize"+String(id)+"BAKEGRID").c_str(),strlen("Grid off")+14)) {applyGrid(&grids[object->gridId],&object->translation,&object->scaling,&object->rotation); object->useGrid = false; renderingUpdated = true;}
+  if (propsButton(("Quantize"+String(id)+"BAKEGRID").c_str(),strlen("Grid off")+14)) {applyGrid(&grids[object->gridId],&object->translation,&object->scaling,&object->rotation); object->useGrid = false; renderingUpdated = true;} else drawToolTip("Snap to grid and bake");
   ImGui::SameLine();
-  if (propsButton(((object->useGrid?"Grid off":"Use grid")+String(id)+"USEGRID").c_str(),strlen("Grid off")+4)) {object->useGrid = !object->useGrid; renderingUpdated = true;}
+  if (propsButton(((object->useGrid?"Grid off":"Use grid")+String(id)+"USEGRID").c_str(),strlen("Grid off")+4)) {object->useGrid = !object->useGrid; renderingUpdated = true;} else drawToolTip("Snap to grid");
   ImGui::Separator();
 }
 
@@ -511,8 +516,8 @@ void showCameraProperties(GameObject *object) {
   ImGui::Text("Size"); ImGui::SameLine(); float k = object->scaling.x; if (ImGui::InputFloat("##CAMERAPROPSCALE",&k)) {renderingUpdated = true;} if (k<0.001) k = 0.001; object->scaling = clampScale(Vector(k,k,k)); 
   GameObject *followObject = NULL;
   if (object->uniqueLinkIds.size() != 1) {
-    if (vectorInput("P.",&object->camera.position,"##CAMERAPROPTRANSLATION")) {renderingUpdated = true;}
-    if (quaternionInput("R.",&object->camera.rotation,"##CAMERAPROPROTATION")) {renderingUpdated = true;}
+    if (vectorInput("P.",&object->camera.position,"##CAMERAPROPTRANSLATION","Position")) {renderingUpdated = true;}
+    if (quaternionInput("R.",&object->camera.rotation,"##CAMERAPROPROTATION","Rotation")) {renderingUpdated = true;}
   } else {
     ImGui::Text("P.%0.2f %0.2f %0.2f",object->camera.position.x,object->camera.position.y,object->camera.position.z);
     Vector v = object->camera.rotation.getYawPitchRoll()*180.0/PI;
@@ -627,10 +632,10 @@ void showBillboardProperties(GameObject *object) {
   ImGui::Text("Billboard");
   if (isTexture) ImGui::Text(" Rotate around Z"); ImGui::SameLine(); if (ImGui::Checkbox("##BILLBOARDPROPROTATEZ",&object->billBoardRotateZ)) {renderingUpdated = true;}
   Vector anchor = object->anchor;
-  if (vectorInput("A.",&anchor,"##BILLBOARDPROPANCHOR")) {renderingUpdated = true;}
+  if (vectorInput("A.",&anchor,"##BILLBOARDPROPANCHOR","Anchor point")) {renderingUpdated = true;}
   object->anchor = anchor;
   Vector translation = object->translation;
-  if (vectorInput("P.",&translation,"##BILLBOARDPROPTRANSLATION")) {renderingUpdated = true;}
+  if (vectorInput("P.",&translation,"##BILLBOARDPROPTRANSLATION","Position")) {renderingUpdated = true;}
   object->translation = translation;
   if (isTexture) {ImGui::Text("Rotation"); ImGui::SameLine(); if (ImGui::InputFloat("##BILLBOARDPROPROTATION",&object->billBoardRotation)) {renderingUpdated = true;}}
   ImGui::PushItemWidth(9*7);
@@ -696,7 +701,7 @@ void showPointProperties(GameObject *object) {
   ImGui::Text("Extended"); ImGui::SameLine(); if (ImGui::Checkbox("##POINTPROPEXTENDED",&object->pointHasTransform)) {renderingUpdated = true;}
   if (!object->pointHasTransform) {
     Vector translation = object->translation;
-    if (vectorInput("P.",&translation,"##POINTROPTRANSLATION")) {renderingUpdated = true;}
+    if (vectorInput("P.",&translation,"##POINTROPTRANSLATION","Position")) {renderingUpdated = true;}
     object->translation = translation;
     ImGui::PushItemWidth(9*7);
     float k=0;
@@ -710,7 +715,7 @@ void showPointProperties(GameObject *object) {
   }
   ImGui::Separator();
   ImGui::Text("Point orientation");
-  if (vectorInput("",&object->additionalRotation,"##POINTPROPROTATION2")) {renderingUpdated = true;}
+  if (vectorInput("",&object->additionalRotation,"##POINTPROPROTATION2",NULL)) {renderingUpdated = true;}
   ImGui::Separator();
 }
 
@@ -789,8 +794,8 @@ void displayTextureGridSelect(GameObject *object, FileBinding *binding) {
       ImGui::Text("None selected");
     else
       ImGui::Text("Selected Tile %d",binding->selected);
-    ImGui::Text("Show structure"); ImGui::SameLine(); if (ImGui::Checkbox("##TEXTUREGRIDPROPLOADSHOWSTRUCTURE",&object->showStructure)) {renderingUpdated = true;}
-    static bool x2 = false; ImGui::Text("X2"); ImGui::SameLine(); ImGui::Checkbox("##TEXTUREGRIDPROPLOADX2",&x2);
+    ImGui::Text("Show structure"); ImGui::SameLine(); if (ImGui::Checkbox("##TEXTUREGRIDPROPLOADSHOWSTRUCTURE",&object->showStructure)) {renderingUpdated = true;} drawToolTip(object->showStructure ? "Normal texturegrid":"Hilight texturegrid cells (checkered)");
+    static bool x2 = false; ImGui::Text("X2"); ImGui::SameLine(); ImGui::Checkbox("##TEXTUREGRIDPROPLOADX2",&x2); drawToolTip(x2?"Normal sized items":"Double sized items"); 
     ImGui::SameLine();
     float tx0=0,ty0=0,tx1=0,ty1=0;
     if (binding->selected>=0&&binding->textureAtlasTileCountX>0&&binding->originalWidth>0&&binding->originalHeight>0&&binding->textureAtlasTileWidth>0) {
@@ -886,21 +891,21 @@ void showImageProperties(GameObject *object) {
   ImGui::Separator();
   float k;
   ImGui::PushItemWidth(40);
-  ImGui::Text("Scroll"); ImGui::SameLine(); k = imageScroll.x; if (ImGui::InputFloat("##IMAGEPROPSCROLLX",&k)) {imageScroll.x = k;}
+  ImGui::Text("Scroll"); drawToolTip("Image origin"); ImGui::SameLine(); k = imageScroll.x; if (ImGui::InputFloat("##IMAGEPROPSCROLLX",&k)) {imageScroll.x = k;}
   ImGui::SameLine(); k = imageScroll.y; if (ImGui::InputFloat("##IMAGEPROPSCROLLY",&k)) {imageScroll.y = k;}
   ImGui::Separator();
 
   ImGui::Text("Pencil");
   ImGui::SameLine();
-  if (propsButton("Use##IMAGEPROPUSEPENCIL",strlen("Use")+4)) {pencilUpdated = true;}
+  if (propsButton("Use##IMAGEPROPUSEPENCIL",strlen("Use")+4)) {pencilUpdated = true;} else drawToolTip("Use pencil as stamp");
 
   ImGui::Text("Rectangle");
   ImGui::SameLine();
-  if (ImGui::Checkbox("##IMAGEPROPPENCILISRECT",&pencilIsRect)) {pencilUpdated = true;}
+  if (ImGui::Checkbox("##IMAGEPROPPENCILISRECT",&pencilIsRect)) {pencilUpdated = true;} else drawToolTip(pencilIsRect?"Round pencil":"Quadratic pencil");
 
   ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.9,0.9,0.9,1));
   ImGui::PushItemWidth(64);
-  ImGui::Text("Size"); ImGui::SameLine(); if (ImGui::InputInt("##IMAGEPROPPENCILSIZE",&pencilSize,2,2)) {pencilUpdated = true;}
+  ImGui::Text("Size"); ImGui::SameLine(); if (ImGui::InputInt("##IMAGEPROPPENCILSIZE",&pencilSize,2,2)) {pencilUpdated = true;} else drawToolTip("Pencil size");
   pencilSize -= 1;
   pencilSize &= ~1;
   pencilSize += 1;
@@ -912,11 +917,11 @@ void showImageProperties(GameObject *object) {
 
   if (stampOn) {
     ImGui::Text("Stamp colored"); ImGui::SameLine(); ImGui::Checkbox("##IMAGEPROPSTAMPCOLORED",&stampColored);
-    if (propsButton("FlipY##IMAGEPROPFLIPY",strlen("FlipY")+4)) {paintFlipY = true;}
+    if (propsButton("FlipY##IMAGEPROPFLIPY",strlen("FlipY")+4)) {paintFlipY = true;} else drawToolTip("Mirror stamp verticaly");
     ImGui::SameLine();
-    if (propsButton("FlipX##IMAGEPROPFLIPX",strlen("FlipX")+2+strlen("FlipY")+4)) {paintFlipX = true;}
+    if (propsButton("FlipX##IMAGEPROPFLIPX",strlen("FlipX")+2+strlen("FlipY")+4)) {paintFlipX = true;} else drawToolTip("Mirror stamp horizontaly");
     ImGui::SameLine();
-    if (propsButton("Circ##IMAGEPROPROT",strlen("Circ")+2+strlen("FlipX")+2+strlen("FlipY")+4)) {paintRotate = true;}
+    if (propsButton("Circ##IMAGEPROPROT",strlen("Circ")+2+strlen("FlipX")+2+strlen("FlipY")+4)) {paintRotate = true;} else drawToolTip("Rotate stamp by 90 degrees");
   }
   ImGui::PopItemWidth();
   ImGui::Separator();
@@ -928,6 +933,7 @@ void showImageProperties(GameObject *object) {
     if (ImGui::ImageButton((ImTextureID)0,ImVec2(24,12),ImVec2(0,0),ImVec2(1,1),-1,ImVec4(r,1,1,1),col) || (ImGui::IsItemHovered() && ImGui::IsMouseDown(1))) {
       paintColor = previousPaintColors[i];
     }
+    drawToolTip("Previous color");
     ImGui::PopID();
   }
   ImGui::Text("Paint color");
@@ -1086,7 +1092,7 @@ void showValleyProperties(GameObject *object) {
       object->uniqueLinkIds.erase(i,1);
       renderingUpdated = true;
       i--;
-    }
+    } else drawToolTip("Delete point");
     ImGui::PopID();
     ImGui::PopStyleColor();
   }
@@ -1137,7 +1143,7 @@ void drawProperties() {
   if (!(strlen(selectedGroupName)!=0&&count2==0&&count==1)) ImGui::Text("Properties"); else ImGui::Text("%s",selectedGroupName);
   if (first != NULL && count == 1) {
     const char *icon = iconNameForGameObjectType[first->type]; SVG *svg = NULL; if (svgs.has(icon)) svg = &svgs[icon];
-    if (svg != NULL) {ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h)); ImGui::SameLine();}
+    if (svg != NULL) {ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h)); drawToolTip("%s",gameObjectTypeNames[first->type]);ImGui::SameLine();}
     ImGui::InputText("##PROPNAME",first->name,NAMEMAX);
     ImGui::SameLine();
     bool selected = uniqueIdOfSingleDisplayedObject != 0; if (ImGui::Checkbox("##PROPSINGLE",&selected)) {uniqueIdOfSingleDisplayedObject = selected ? first->uniqueId : 0 ;renderingUpdated = true;}
@@ -1201,7 +1207,7 @@ void drawProperties() {
       }
     }
     ImGui::Text("Properties");
-    SVG *svg = &svgs["search"];ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h));ImGui::SameLine();ImGui::InputText("##PROPERTIESFILTER",properties_filter,NAMEMAX);
+    SVG *svg = &svgs["search"];ImGui::Image((ImTextureID)svg->glHandle,ImVec2(svg->w,svg->h));drawToolTip("Search");ImGui::SameLine();ImGui::InputText("##PROPERTIESFILTER",properties_filter,NAMEMAX);
     ImGui::Separator();
     ImGui::Separator();
     String filter = toLower(String(properties_filter));
@@ -1220,7 +1226,7 @@ void drawProperties() {
         }
         if (filter.empty() && propsButton(IDINDEXED("Add property##",i2),strlen("Add property")+6)) {
           dialogAddProperty(true, gameObjects[i2]);
-        }
+        } else drawToolTip("Add a property to this object");
         ImGui::Separator();
         ImGui::Separator();
       }
