@@ -501,6 +501,11 @@ void dialogAbout(bool openIt) {
     "Build time: " __TIME__ "\n"
     "Version: %d.%02d\n"
     "------------------------------------\n"
+    "Swife is not coded very \"good\"\n"
+    "It's just a proof of concept, since\n"
+    "there where almost no other options\n"
+    "to place objects in 3D space.\n"
+    "------------------------------------\n"
     "This program is freeware.\n"
   ,version / 100, version % 100
   );
