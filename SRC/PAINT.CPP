@@ -1434,8 +1434,6 @@ void paintHeightmap(class GameObject *o, bool showModificators) {
   glPopMatrix();
 }
 
-#define VALLEYINDEX Pair<float,float>
-
 Array<Vector> valleyAttractors;
 GameObject *valleyObject = NULL;
 

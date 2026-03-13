@@ -65,7 +65,8 @@ enum GAMEOBJECTPROPERTY {
   GAMEOBJECTPROPERTY_LINKS = 7,
   GAMEOBJECTPROPERTY_SCRIPT = 8,
   GAMEOBJECTPROPERTY_REPEAT = 9,
-  GAMEOBJECTPROPERTY_COUNT = 10
+  GAMEOBJECTPROPERTY_VALLEY = 10,
+  GAMEOBJECTPROPERTY_COUNT = 11
 };
 extern const char *propertyTypeNames[GAMEOBJECTPROPERTY_COUNT];
 
@@ -114,6 +115,7 @@ public:
   case GAMEOBJECTPROPERTY_LINKS: {S_ARRAY("goLinks",(__o__)->goLinks,S_UINT(NULL,(__o__)->goLinks[i]));} break;\
   case GAMEOBJECTPROPERTY_SCRIPT: {S_UINT("goUniqueId",(__o__)->goUniqueId);} break;\
   case GAMEOBJECTPROPERTY_REPEAT: {S_BOOL("goCheck1",(__o__)->goCheck1);S_INT("goRepeat",(__o__)->goRepeat);S_VECTOR("goAnchor",(__o__)->goAnchor);S_VECTOR("goMove",(__o__)->goMove);S_VECTOR("goScale",(__o__)->goScale);S_QUATERNION("goRotate",(__o__)->goRotate);S_ARRAY("goLinks",(__o__)->goLinks,S_UINT(NULL,(__o__)->goLinks[i]));} break;\
+  case GAMEOBJECTPROPERTY_VALLEY: {S_BOOL("goCheck1",(__o__)->goCheck1);S_UINT("goUniqueId",(__o__)->goUniqueId);} break;\
   }\
   S_OBJECT_CLOSE();
 

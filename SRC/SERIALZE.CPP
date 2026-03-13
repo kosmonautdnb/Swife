@@ -49,7 +49,7 @@
 #include "UTIL/LOG.HPP"
 #include <math.h>
 
-int version = 105;
+int version = 106;
 
 const char *fileTypeNames[FILETYPE_COUNT] = {"none","skybox","mesh","billboard","texturegrid","textureatlas","heightmap","overlay"};
 
@@ -1309,6 +1309,7 @@ void loadGameObjects(const char *path, const char *fileName) {
     }
     for (int i2 = 0; i2 < o->properties.size(); i2++) {
       switch(o->properties[i2].type) {
+        case GAMEOBJECTPROPERTY_VALLEY:
         case GAMEOBJECTPROPERTY_SCRIPT: {
           o->properties[i2].goUniqueId = newUniqueId(o->properties[i2].goUniqueId, remapGameObjects,currentUniqueGameObjectId);
         } break;
@@ -1369,6 +1370,7 @@ void saveGameObjects(const char *path, const char *fileName) {
       }
       for (int i2 = 0; i2 < o->properties.size(); i2++) {
         switch(o->properties[i2].type) {
+          case GAMEOBJECTPROPERTY_VALLEY:
           case GAMEOBJECTPROPERTY_SCRIPT: {
             unsigned int id = o->properties[i2].goUniqueId;
             for (int i3 = 0; i3 < gameObjects.size(); i3++) {

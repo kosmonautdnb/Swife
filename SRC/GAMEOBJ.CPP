@@ -34,7 +34,7 @@ HashMap<unsigned int, const char*> iconNameForGameObjectType;
 Grid grids[MAXGRIDS];
 
 const char *gameObjectTypeNames[GAMEOBJECT_COUNT] = {"undefined", "mesh", "camera", "skybox", "path", "billboard","section","trigger","link","point","texturegrid","script","image","heightmap","valley"};
-const char *propertyTypeNames[GAMEOBJECTPROPERTY_COUNT] = {"undefined", "bool", "int", "float", "float4", "text", "color","links","script","repeat"};
+const char *propertyTypeNames[GAMEOBJECTPROPERTY_COUNT] = {"undefined", "bool", "int", "float", "float4", "text", "color","links","script","repeat","valley"};
 const char *interpolationNames[INTERPOLATION_COUNT] = {"step","linear","catmulrom"};
 
 

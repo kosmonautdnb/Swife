@@ -329,7 +329,7 @@ void dialogAddProperty(bool openIt, class GameObject *object) {
     for (int j = 0; j < gameObjects.size(); j++) {
       if (gameObjects[j]==o) {ImGui::Text("Please select script for object: %d\"%s\"",j,o->name); break;}
     }
-    ImGui::BeginChild("DIALOGADDPROPERTYLINKSCHILD",ImVec2(main_window_xres/3,main_window_yres/6));
+    ImGui::BeginChild("DIALOGADDPROPERTYSCRIPTSCHILD",ImVec2(main_window_xres/3,main_window_yres/6));
     int count = 0;
     for(int i = 0; i < gameObjects.size(); i++) {
       if (gameObjects[i]->type == GAMEOBJECT_SCRIPT && gameObjects[i] != o) {
@@ -343,6 +343,27 @@ void dialogAddProperty(bool openIt, class GameObject *object) {
     ImGui::EndChild();
     if (count == 0) {
       ImGui::Text("Currently no scripts in the project.");
+    }
+  } break;
+  case GAMEOBJECTPROPERTY_VALLEY: {
+    ImGui::Text(""); // SameLine before
+    for (int j = 0; j < gameObjects.size(); j++) {
+      if (gameObjects[j]==o) {ImGui::Text("Please select valley for object: %d\"%s\"",j,o->name); break;}
+    }
+    ImGui::BeginChild("DIALOGADDPROPERTYVALLEYCHILD",ImVec2(main_window_xres/3,main_window_yres/6));
+    int count = 0;
+    for(int i = 0; i < gameObjects.size(); i++) {
+      if (gameObjects[i]->type == GAMEOBJECT_VALLEY && gameObjects[i] != o) {
+        String a = (gameObjects[i]->uniqueId == p.goUniqueId ? ">" : " ") + String::fromInt(i) + "\"" + gameObjects[i]->name + "\"##DIALOGADDPROPERTYVALLEYBUTTON";
+        if (ImGui::Button(a.c_str())) {
+          p.goUniqueId = gameObjects[i]->uniqueId;
+        }
+        count++;
+      }
+    }
+    ImGui::EndChild();
+    if (count == 0) {
+      ImGui::Text("Currently no valleys in the project.");
     }
   } break;
   }

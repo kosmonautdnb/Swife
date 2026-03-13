@@ -373,6 +373,80 @@ void paintSimpleGameObject(GameObject *o, bool showModificators) {
           j--;
         }
       } break;
+      case GAMEOBJECTPROPERTY_VALLEY: {
+        GameObject *o2 = getObjectByUniqueId(o->properties[j].goUniqueId);
+        if (o2 == NULL) break;
+        Matrix m = o2->getRenderTransform();
+        Matrix im = inverse(m);
+        bool withRotation = o->properties[j].goCheck1;
+
+        valleyAttractors.clear();
+        for (int i = 0; i < o2->uniqueLinkIds.size(); i++) {
+          unsigned int toLookFor = o2->uniqueLinkIds[i];
+          for (int i2 = 0; i2 < gameObjects.size(); i2++) {
+            GameObject *o3 = gameObjects[i2];
+            if (o3->uniqueId == toLookFor) {
+              Vector p = o3->getRenderTransform() * Vector(0,0,0);
+              if (p.w != 0) p /= p.w; p.w = 1;
+              p.w = o3->scaling.x; // size
+              valleyAttractors.push_back(p);
+            }
+          }
+        }
+
+        for (int i2 = 0; i2 < valleyAttractors.size(); i2++) {
+          double w = valleyAttractors[i2].w;
+          Vector k = im * valleyAttractors[i2].xyz();
+          if (k.w != 0) k /= k.w; k.w = 1;
+          k.w = w;
+          valleyAttractors[i2] = k;
+        }
+
+        valleyObject = o2;
+
+        for (int i3 = 0; i3 < transforms.size(); i3++) {
+
+          Vector origin = mt * transforms[i3] * Vector(0,0,0); // world space origin
+          if (origin.w != 0) origin /= origin.w; origin.w = 1;
+
+          Vector index = im * origin; // valley space origin
+          if (index.w != 0) index /= index.w; index.w = 1;
+
+          Vector newOrigin = valleyVertex(Pair<float,float>(index.x*0.5+0.5,index.z*0.5+0.5));
+          Vector oldOrigin = Vector(index.x,0,index.z);
+
+          newOrigin = m * newOrigin; // worldspace again
+          oldOrigin = m * oldOrigin;
+
+          if (newOrigin.w != 0) newOrigin /= newOrigin.w; newOrigin.w = 1;
+          if (oldOrigin.w != 0) oldOrigin /= oldOrigin.w; oldOrigin.w = 1;
+
+          Matrix rot;
+          if (withRotation) {
+            Vector newOriginX0 = valleyVertex(Pair<float,float>(index.x*0.5+0.5-0.001,index.z*0.5+0.5));
+            Vector newOriginX1 = valleyVertex(Pair<float,float>(index.x*0.5+0.5+0.001,index.z*0.5+0.5));
+            Vector newOriginZ0 = valleyVertex(Pair<float,float>(index.x*0.5+0.5,index.z*0.5+0.5-0.001));
+            Vector newOriginZ1 = valleyVertex(Pair<float,float>(index.x*0.5+0.5,index.z*0.5+0.5+0.001));
+            newOriginX0 = invmt * m * newOriginX0;
+            newOriginX1 = invmt * m * newOriginX1;
+            newOriginZ0 = invmt * m * newOriginZ0;
+            newOriginZ1 = invmt * m * newOriginZ1;
+            if (newOriginX0.w != 0) newOriginX0 /= newOriginX0.w; newOriginX0.w = 1;
+            if (newOriginX1.w != 0) newOriginX1 /= newOriginX1.w; newOriginX1.w = 1;
+            if (newOriginZ0.w != 0) newOriginZ0 /= newOriginZ0.w; newOriginZ0.w = 1;
+            if (newOriginZ1.w != 0) newOriginZ1 /= newOriginZ1.w; newOriginZ1.w = 1;
+            rot = rotationMatrixFromNormal(normalize(cross(newOriginZ1-newOriginZ0,newOriginX1-newOriginX0)));
+          }
+
+          Matrix t; t.translate(newOrigin - oldOrigin);
+          transforms[i3] = invmt * t * mt * transforms[i3] * rot;
+        }
+
+        if (doBaking) {
+          o->properties.erase(j,1);
+          j--;
+        }
+      } break;
     }
   }
 

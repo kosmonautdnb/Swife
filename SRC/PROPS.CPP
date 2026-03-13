@@ -280,6 +280,25 @@ bool editProperty(GameObject *o, GameObjectProperty *p, int i) {
       }
       ImGui::PopItemWidth();
     } break;
+    case GAMEOBJECTPROPERTY_VALLEY: {
+      ImGui::Text("Valley:");
+      bool found = false;
+      for (int j = 0; j < gameObjects.size(); j++) {
+        if (gameObjects[j]->uniqueId == p->goUniqueId) {
+          ImGui::Text("%d\"%s\"",j,gameObjects[j]->name);
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        ImGui::Text("<not found>");
+      }
+      ImGui::Text("Use rotation");ImGui::SameLine();if (ImGui::Checkbox(IDINDEXED("##PROPERTYVALLEYCHECK",i),&p->goCheck1)) {renderingUpdated = true;}
+      if (propsButton(IDINDEXED("Bake all##PROPERTYEDITVALLEYBAKEALL",i),strlen("Bake all") + 2 + 4)) {
+        o->bakeAllProperties = true;
+        renderingUpdated = true;
+      }
+    } break;
   }
   ImGui::SameLine();
   SVG *svg = &svgs["delete"];

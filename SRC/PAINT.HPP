@@ -24,6 +24,10 @@
 #ifndef __PAINT_HPP__
 #define __PAINT_HPP__
 
+#include "STL/VECTOR.HPP"
+#include "STL/ARRAY.HPP"
+#include "STL/PAIR.HPP"
+
 extern bool justDrawBoundingBoxes;
 extern bool drawObjectNames;
 extern unsigned int gridTexture;
@@ -58,5 +62,10 @@ void paintOverlay(class GameObject *o);
 
 void alphaOn();
 void alphaOff();
+
+typedef Pair<float,float> VALLEYINDEX;
+extern Array<Vector> valleyAttractors;
+extern class GameObject *valleyObject;
+Vector valleyVertex(const VALLEYINDEX &v);
 
 #endif //__PAINT_HPP__
