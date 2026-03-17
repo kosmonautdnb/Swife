@@ -628,10 +628,11 @@ void drawSelecting(bool tiny) {
   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
   glBegin(GL_QUADS);
   glColor4f(1,0,0,0.25);
-  glVertex3f(1,1,0);
-  glVertex3f(-1,1,0);
-  glVertex3f(-1,-1,0);
-  glVertex3f(1,-1,0);
+  float z = -1;
+  glVertex3f(1,1,z);
+  glVertex3f(-1,1,z);
+  glVertex3f(-1,-1,z);
+  glVertex3f(1,-1,z);
   glEnd();
   glPopMatrix();
   glMatrixMode(GL_PROJECTION);
