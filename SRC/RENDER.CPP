@@ -613,7 +613,7 @@ void drawOverlays() {
 }
 
 void drawSelecting(bool tiny) {
-  glStencilFunc(GL_LESS,0x40,0xffffffff);
+  glStencilFunc(GL_EQUAL,0x80,0x80);
   glStencilOp(GL_KEEP,GL_KEEP,GL_KEEP);
   glEnable(GL_STENCIL_TEST);
   int tx = tiny ? renderTinyDividerX : 1;
@@ -648,8 +648,7 @@ void drawSelecting(bool tiny) {
 
 void drawShadows(bool tiny) {
   if (!shadowsOn) return;
-  glStencilFunc(GL_LESS,0x20,0x3f);
-  glStencilMask(0x3f);
+  glStencilFunc(GL_LESS,0x40,0x7f);
   glStencilOp(GL_KEEP,GL_KEEP,GL_KEEP);
   glEnable(GL_STENCIL_TEST);
   int tx = tiny ? renderTinyDividerX : 1;
@@ -680,7 +679,6 @@ void drawShadows(bool tiny) {
   glMatrixMode(GL_MODELVIEW);
   glDisable(GL_STENCIL_TEST);
   glDisable(GL_BLEND);
-  glStencilMask(0xffffffff);
 }
 
 unsigned int selectionCounter = 0;
@@ -1067,7 +1065,7 @@ void drawScene() {
     enableFrameBuffer(tiny); cameras[currentCamera].applyToGL(); // needed after enableFrameBuffer(tiny) because of aspect ratio
   
     glClearDepth(1.f);
-    glClearStencil(0x20);
+    glClearStencil(0x40);
     glClearColor((clearColor & 255)/255.0,((clearColor>>8) & 255)/255.0,((clearColor>>16) & 255)/255.0,((clearColor>>24) & 255)/255.0);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
     clearShadowVolumes();

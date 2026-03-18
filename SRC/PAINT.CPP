@@ -105,7 +105,7 @@ void paintShadowVolume(Array<BakedVertex> *triangles, const Matrix &modelMatrix,
   glPushMatrix();
   glLoadMatrixd(modelMatrix.m);
   glStencilFunc(GL_ALWAYS,0x00,0xffffffff);
-  glStencilMask(0x3f);
+  glStencilMask(0x7f);
   glEnable(GL_STENCIL_TEST);
   glDepthMask(GL_FALSE);
   glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE);
@@ -116,7 +116,7 @@ void paintShadowVolume(Array<BakedVertex> *triangles, const Matrix &modelMatrix,
   if (v0.w != 0) v0 /= v0.w; v0.w = 1;
   if (vl.w != 0) vl /= vl.w; vl.w = 1;
   Vector shadowDir = normalize(vl-v0);
-  Vector capAdd = shadowDir * 100;
+  Vector capAdd = shadowDir * cameras[currentCamera].farPlane/3;
   Vector baseAdd = Vector();
   for (int side = 0; side < 2; side++) {
     glFrontFace(side == 0 ? GL_CCW : GL_CW);
