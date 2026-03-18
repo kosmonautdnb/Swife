@@ -109,6 +109,7 @@ void paintShadowVolume(Array<BakedVertex> *triangles, const Matrix &modelMatrix,
   glEnable(GL_STENCIL_TEST);
   glDepthMask(GL_FALSE);
   glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE);
+  glDepthFunc(GL_LESS);      
   Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m);
   Vector v0 = inverse(modelView)*cameraMatrix*Vector(0,0,0);
   Vector vl = inverse(modelView)*cameraMatrix*normalize(-lightDir);
@@ -116,7 +117,7 @@ void paintShadowVolume(Array<BakedVertex> *triangles, const Matrix &modelMatrix,
   if (vl.w != 0) vl /= vl.w; vl.w = 1;
   Vector shadowDir = normalize(vl-v0);
   Vector capAdd = shadowDir * 100;
-  Vector baseAdd = normalize(capAdd)*0.01;
+  Vector baseAdd = Vector();
   for (int side = 0; side < 2; side++) {
     glFrontFace(side == 0 ? GL_CCW : GL_CW);
     glStencilOp(GL_KEEP,side == 0 ? GL_DECR : GL_INCR,GL_KEEP);
@@ -148,6 +149,7 @@ void paintShadowVolume(Array<BakedVertex> *triangles, const Matrix &modelMatrix,
     }
     glEnd();
   }
+  glDepthFunc(GL_LEQUAL);      
   glFrontFace(GL_CCW);
   glDepthMask(GL_TRUE);
   glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
