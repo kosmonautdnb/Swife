@@ -42,6 +42,7 @@
 #include <math.h>
 
 double stretchy = 1.0;
+Vector lightDir(1,1,1);
 
 Camera cameras[CAMERA_COUNT];
 int currentCamera = 0;
@@ -474,12 +475,23 @@ void paintSimpleGameObject(GameObject *o, bool showModificators) {
   o->parentTransform = restore;
 }
 
+bool stencilMarkMode = false;
+void stencilMarkModeOn() {
+  stencilMarkMode = true;
+  glStencilFunc(GL_ALWAYS,0x80,0xffffffff);
+  glStencilOp(GL_REPLACE,GL_REPLACE,GL_REPLACE);
+  glStencilMask(0x80);
+  glEnable(GL_STENCIL_TEST);
+}
+
+void stencilMarkModeOff() {
+  stencilMarkMode = false;
+  glDisable(GL_STENCIL_TEST);
+  glStencilMask(0xffffffff);
+}
+
 void drawGameObject(GameObject *o) {
-  if (o->selected) {
-    glStencilFunc(GL_ALWAYS,0x01,0xffffffff);
-    glStencilOp(GL_REPLACE,GL_REPLACE,GL_REPLACE);
-    glEnable(GL_STENCIL_TEST);
-  }
+  if (o->selected) stencilMarkModeOn();
   switch(o->type) {
   case GAMEOBJECT_LINK: {
     // no recursion allowed in WatcomC
@@ -527,7 +539,7 @@ void drawGameObject(GameObject *o) {
   default:
     paintSimpleGameObject(o, true);
   }
-  glDisable(GL_STENCIL_TEST);
+  stencilMarkModeOff();
 }
 
 void drawSkyBox() {
@@ -540,13 +552,9 @@ void drawSkyBox() {
     } else if (o->uniqueId != uniqueIdOfSingleDisplayedObject) continue;
 
     if (o->type == GAMEOBJECT_SKYBOX) {
-      if (o->selected) {
-        glStencilFunc(GL_ALWAYS,0x01,0xffffffff);
-        glStencilOp(GL_REPLACE,GL_KEEP,GL_REPLACE);
-        glEnable(GL_STENCIL_TEST);
-      }
+      if (o->selected) stencilMarkModeOn();
       paintSkyBox(o);
-      glDisable(GL_STENCIL_TEST);
+      stencilMarkModeOff();
     }
   }
 }
@@ -575,13 +583,9 @@ void drawGameObjectLinks(GameObject *o) {
         if (gameObjects[k]->uniqueId == o->properties[i].goLinks[j]) {o2 = gameObjects[k]; break;}
       }
       if (o2 != NULL) {
-        if (o->selected) {
-          glStencilFunc(GL_ALWAYS,0x01,0xffffffff);
-          glStencilOp(GL_REPLACE,GL_REPLACE,GL_REPLACE);
-          glEnable(GL_STENCIL_TEST);
-        }
+        if (o->selected) stencilMarkModeOn();
         paintLink(o,o2);
-        glDisable(GL_STENCIL_TEST);
+        stencilMarkModeOff();
       }
     }
   }
@@ -609,7 +613,7 @@ void drawOverlays() {
 }
 
 void drawSelecting(bool tiny) {
-  glStencilFunc(GL_EQUAL,0x01,0xffffffff);
+  glStencilFunc(GL_LESS,0x40,0xffffffff);
   glStencilOp(GL_KEEP,GL_KEEP,GL_KEEP);
   glEnable(GL_STENCIL_TEST);
   int tx = tiny ? renderTinyDividerX : 1;
@@ -640,6 +644,43 @@ void drawSelecting(bool tiny) {
   glMatrixMode(GL_MODELVIEW);
   glDisable(GL_STENCIL_TEST);
   glDisable(GL_BLEND);
+}
+
+void drawShadows(bool tiny) {
+  if (!shadowsOn) return;
+  glStencilFunc(GL_LESS,0x20,0x3f);
+  glStencilMask(0x3f);
+  glStencilOp(GL_KEEP,GL_KEEP,GL_KEEP);
+  glEnable(GL_STENCIL_TEST);
+  int tx = tiny ? renderTinyDividerX : 1;
+  int ty = tiny ? renderTinyDividerY : 1;
+  int x0 = (outliner_width)/tx;
+  int x1 = (main_window_xres-properties_width)/tx;
+  int y0 = (menuBar_height + toolBar_height)/ty;
+  int y1 = (main_window_yres-timeLine_height)/ty;
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+  glBegin(GL_QUADS);
+  glColor4f(0,0,0,0.5);
+  float z = -1;
+  glVertex3f(1,1,z);
+  glVertex3f(-1,1,z);
+  glVertex3f(-1,-1,z);
+  glVertex3f(1,-1,z);
+  glEnd();
+  glPopMatrix();
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glMatrixMode(GL_MODELVIEW);
+  glDisable(GL_STENCIL_TEST);
+  glDisable(GL_BLEND);
+  glStencilMask(0xffffffff);
 }
 
 unsigned int selectionCounter = 0;
@@ -931,6 +972,7 @@ void handleTool() {
 bool lightOn = true;
 bool texturedOn = true;
 bool twoSidedOn = false;
+bool shadowsOn = false;
 bool showLinks = true;
 bool showGrids = true;
 
@@ -945,7 +987,7 @@ void lightSetup(bool on) {
   glEnable(GL_LIGHT0);
   glEnable(GL_COLOR_MATERIAL);
 
-  float dir[4] = {1,1,1,0};
+  float dir[4] = {lightDir.x,lightDir.y,lightDir.z,0};
   float one[4] = {1,1,1,0};
   float zero[4] = {0,0,0,0};
   float darker[4] = {0.5,0.5,0.5,0};
@@ -1025,9 +1067,10 @@ void drawScene() {
     enableFrameBuffer(tiny); cameras[currentCamera].applyToGL(); // needed after enableFrameBuffer(tiny) because of aspect ratio
   
     glClearDepth(1.f);
-    glClearStencil(0);
+    glClearStencil(0x20);
     glClearColor((clearColor & 255)/255.0,((clearColor>>8) & 255)/255.0,((clearColor>>16) & 255)/255.0,((clearColor>>24) & 255)/255.0);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+    clearShadowVolumes();
 
     drawProblems = 0;
     drawSkyBox();
@@ -1039,11 +1082,13 @@ void drawScene() {
     drawLinks();
     drawGameObjects();
     lightSetup(false);
+    renderShadowVolumes();
     paintCursor();
     renderedTriangles = glDrawnTrianglesFrame;
-    
+
     drawOverlays();
     drawSelecting(tiny);
+    drawShadows(tiny);
 
     if (hitTestOn) handleHitTest();
 

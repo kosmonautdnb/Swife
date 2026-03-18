@@ -71,6 +71,8 @@ enum CAMERAS {
   CAMERA_COUNT = 3
 };
 
+extern Vector lightDir;
+
 extern Camera cameras[CAMERA_COUNT];
 extern int currentCamera;
 
@@ -85,6 +87,7 @@ extern int drawProblems;
 extern bool lightOn;
 extern bool texturedOn;
 extern bool twoSidedOn;
+extern bool shadowsOn;
 extern bool showLinks;
 extern bool showGrids;
 extern int renderMouseClicksOff;
@@ -99,6 +102,10 @@ void initRendering();
 
 void drawGameObject(class GameObject *o);
 void drawScene();
+
+extern bool stencilMarkMode;
+void stencilMarkModeOn();
+void stencilMarkModeOff();
 
 #endif //__RENDER_HPP__
 

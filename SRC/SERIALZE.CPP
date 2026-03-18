@@ -712,6 +712,7 @@ bool loadMeshForBinding(const String &fileName, FileBinding *binding) {
     }
     delete obj;
     stopLoadingBar();
+    buildShadowInformation(binding->triangles);
     return true;
   }
   if (b.endsWith(".glb")) {
@@ -728,6 +729,7 @@ bool loadMeshForBinding(const String &fileName, FileBinding *binding) {
     gltfProcessScene(binding,r,r->defaultScene);
     delete r;
     stopLoadingBar();
+    buildShadowInformation(binding->triangles);
     return true;
   }
   return false;
@@ -1900,4 +1902,73 @@ void patchBinding(class FileBinding *b, const String &zipName, const String &zip
     mz_zip_reader_end(&zip);
   }
   fclose(in);
+}
+
+int hashpair_compare(const void *a, const void *b)
+{
+  Pair<unsigned int,unsigned int> *p = (Pair<unsigned int,unsigned int> *)a;
+  Pair<unsigned int,unsigned int> *q = (Pair<unsigned int,unsigned int> *)b;
+  return (int)p->first - (int)q->first;
+}
+
+void buildShadowInformation(Array<BakedVertex> &triangles) {
+  Array<Pair<unsigned int, unsigned int> > hashes;
+  hashes.resize(triangles.size());
+  for (int i = 0; i < triangles.size(); i += 3) {
+    Vector p0 = Vector(triangles[i+0].x,triangles[i+0].y,triangles[i+0].z);
+    Vector p1 = Vector(triangles[i+1].x,triangles[i+1].y,triangles[i+1].z);
+    Vector p2 = Vector(triangles[i+2].x,triangles[i+2].y,triangles[i+2].z);
+    Vector n = normalize(cross(p1-p0,p2-p0));
+    triangles[i+0].faceNx = triangles[i+1].faceNx = triangles[i+2].faceNx = n.x;
+    triangles[i+0].faceNy = triangles[i+1].faceNy = triangles[i+2].faceNy = n.y;
+    triangles[i+0].faceNz = triangles[i+1].faceNz = triangles[i+2].faceNz = n.z;
+    unsigned int h0 = p0.hash();
+    unsigned int h1 = p1.hash();
+    unsigned int h2 = p2.hash();
+    hashes[i+0] = Pair<unsigned int,unsigned int>(h1^h0,i);
+    hashes[i+1] = Pair<unsigned int,unsigned int>(h2^h1,i);
+    hashes[i+2] = Pair<unsigned int,unsigned int>(h0^h2,i);
+  }
+  qsort(&hashes[0], hashes.size(), sizeof(Pair<unsigned int,unsigned int>), hashpair_compare);
+  for (int i2 = 0; i2 < hashes.size(); i2++) {
+    const Pair<unsigned int,unsigned int> &a = hashes[i2];
+    unsigned int hasha = a.first;
+    unsigned int triangleA = a.second;
+    for (int j = i2+1; j < hashes.size(); j++) {
+      const Pair<unsigned int,unsigned int> &b = hashes[j];
+      unsigned int hashb = b.first;
+      unsigned int triangleB = b.second;
+      if (hashb != hasha) break;
+      for (int k1 = 0; k1 < 3; k1++) {
+        BakedVertex &_p0a = triangles[triangleA+k1];
+        BakedVertex &_p0b = triangles[triangleA+((k1+1)%3)];
+        Vector p0a = Vector(_p0a.x, _p0a.y, _p0a.z);
+        Vector p0b = Vector(_p0b.x, _p0b.y, _p0b.z);
+        for (int k2 = 0; k2 < 3; k2++) {
+          BakedVertex &_p1a = triangles[triangleB+k2];
+          BakedVertex &_p1b = triangles[triangleB+((k2+1)%3)];
+          Vector p1a = Vector(_p1a.x, _p1a.y, _p1a.z);
+          Vector p1b = Vector(_p1b.x, _p1b.y, _p1b.z);
+          if (p0a == p1a && p0b == p1b) {
+            _p0a.edgeNx = _p1a.faceNx;
+            _p0a.edgeNy = _p1a.faceNy;
+            _p0a.edgeNz = _p1a.faceNz;
+            _p1a.edgeNx = _p0a.faceNx;
+            _p1a.edgeNy = _p0a.faceNy;
+            _p1a.edgeNz = _p0a.faceNz;
+            break;
+          }
+          if (p0a == p1b && p0b == p1a) {
+            _p0a.edgeNx = _p1b.faceNx;
+            _p0a.edgeNy = _p1b.faceNy;
+            _p0a.edgeNz = _p1b.faceNz;
+            _p1a.edgeNx = _p0b.faceNx;
+            _p1a.edgeNy = _p0b.faceNy;
+            _p1a.edgeNz = _p0b.faceNz;
+            break;
+          }
+        }
+      }
+    }
+  }
 }

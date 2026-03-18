@@ -83,6 +83,78 @@ void initGizmos() {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
 
+struct ShadowVolume {
+  Array<BakedVertex> *triangles;
+  Matrix modelMatrix;
+  Matrix cameraMatrix;
+};
+Array<ShadowVolume> shadowVolumesToRender;
+void clearShadowVolumes() {shadowVolumesToRender.clear();}
+void addShadowVolume(Array<BakedVertex> *triangles, const Matrix &modelMatrix, const Matrix &cameraMatrix) {
+  ShadowVolume a;
+  a.triangles = triangles;
+  a.modelMatrix = modelMatrix;
+  a.cameraMatrix = cameraMatrix;
+  shadowVolumesToRender.push_back(a);
+}
+void renderShadowVolumes() {
+  if (!shadowsOn) return;
+  for (int i = 0; i < shadowVolumesToRender.size(); i++) paintShadowVolume(shadowVolumesToRender[i].triangles,shadowVolumesToRender[i].modelMatrix,shadowVolumesToRender[i].cameraMatrix);
+}
+void paintShadowVolume(Array<BakedVertex> *triangles, const Matrix &modelMatrix, const Matrix &cameraMatrix) {
+  glPushMatrix();
+  glLoadMatrixd(modelMatrix.m);
+  glStencilFunc(GL_ALWAYS,0x00,0xffffffff);
+  glStencilMask(0x3f);
+  glEnable(GL_STENCIL_TEST);
+  glDepthMask(GL_FALSE);
+  glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE);
+  Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m);
+  Vector v0 = inverse(modelView)*cameraMatrix*Vector(0,0,0);
+  Vector vl = inverse(modelView)*cameraMatrix*normalize(-lightDir);
+  if (v0.w != 0) v0 /= v0.w; v0.w = 1;
+  if (vl.w != 0) vl /= vl.w; vl.w = 1;
+  Vector shadowDir = normalize(vl-v0);
+  Vector capAdd = shadowDir * 100;
+  Vector baseAdd = normalize(capAdd)*0.01;
+  for (int side = 0; side < 2; side++) {
+    glFrontFace(side == 0 ? GL_CCW : GL_CW);
+    glStencilOp(GL_KEEP,side == 0 ? GL_DECR : GL_INCR,GL_KEEP);
+    glBegin(GL_TRIANGLES);
+    for (int i = 0; i < triangles->size()/3; i++) {
+      BakedVertex *v = &(*triangles)[i*3];  Vector faceNormal = Vector(v[0].faceNx,v[0].faceNy,v[0].faceNz);  
+      bool isInShadow = dot(faceNormal,shadowDir) > 0;
+      Vector add= isInShadow ? capAdd : baseAdd;
+      // cap (front/back)
+      for (int j = 0; j < 3; j++) {
+        glVertex3f(v[j].x+add.x,v[j].y+add.y,v[j].z+add.z);
+      }
+      // sides
+      if (!isInShadow) {
+        for (int k = 0; k < 3; k++) {
+          Vector edgeNormal = Vector(v[k].edgeNx,v[k].edgeNy,v[k].edgeNz);
+          bool isInShadow2 = dot(edgeNormal,shadowDir) > 0;
+          if (isInShadow2 != isInShadow) {
+            int j;
+            j = (k+1)%3; glVertex3f(v[j].x+capAdd.x,v[j].y+capAdd.y,v[j].z+capAdd.z);
+            j = (k+1)%3; glVertex3f(v[j].x+baseAdd.x,v[j].y+baseAdd.y,v[j].z+baseAdd.z);
+            j = k;         glVertex3f(v[j].x+baseAdd.x,v[j].y+baseAdd.y,v[j].z+baseAdd.z);
+            j = k;         glVertex3f(v[j].x+baseAdd.x,v[j].y+baseAdd.y,v[j].z+baseAdd.z);
+            j = k;         glVertex3f(v[j].x+capAdd.x,v[j].y+capAdd.y,v[j].z+capAdd.z);
+            j = (k+1)%3; glVertex3f(v[j].x+capAdd.x,v[j].y+capAdd.y,v[j].z+capAdd.z);
+          }
+        }
+      }
+    }
+    glEnd();
+  }
+  glFrontFace(GL_CCW);
+  glDepthMask(GL_TRUE);
+  glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
+  if (stencilMarkMode) stencilMarkModeOn(); else stencilMarkModeOff();
+  glPopMatrix();
+}
+
 void draw3DGrid() {
   if (!showGrids) return;
   Grid *grid = &grids[0];
@@ -428,13 +500,16 @@ void paintMesh(class GameObject *o, bool showModificators) {
     drawProblems++;
     return;
   }
+
+  Matrix cameraMatrix; glGetDoublev(GL_MODELVIEW_MATRIX, cameraMatrix.m);
+  Matrix m2 = cameraMatrix * o->getRenderTransform(); addShadowVolume(triangles, m2, cameraMatrix);
+
   if (!isInViewport(o)) return;
   maybeDisplayName(o);
 
   FileBinding *b = getBindingById(o->fileBindingId);
   if (b == NULL || justDrawBoundingBoxes) {paintTrigger(o,showModificators); return;}
 
-  Matrix cameraMatrix; glGetDoublev(GL_MODELVIEW_MATRIX, cameraMatrix.m);
 
   glPushMatrix();
 

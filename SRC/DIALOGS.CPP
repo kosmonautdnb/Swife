@@ -614,6 +614,9 @@ void dialogTroubleShooting(bool openIt) {
     "The image editor sadly has some precission/placing problems.\n"
     "\n"
     "Heightmaps sometimes have some visible \"seams\" when rendered.\n"
+    "\n"
+    "If you enable shadows.. Shadows are only cast by meshes.\n"
+    "If mesh hull is not perfectly closed you see many errors in the shadows.\n"
   );
   ImGui::EndChild();
   ImGui::Separator();

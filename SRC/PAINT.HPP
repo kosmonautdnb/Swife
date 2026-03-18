@@ -27,6 +27,7 @@
 #include "STL/VECTOR.HPP"
 #include "STL/ARRAY.HPP"
 #include "STL/PAIR.HPP"
+#include "SERIALZE.HPP"
 
 extern bool justDrawBoundingBoxes;
 extern bool drawObjectNames;
@@ -67,5 +68,10 @@ typedef Pair<float,float> VALLEYINDEX;
 extern Array<Vector> valleyAttractors;
 extern class GameObject *valleyObject;
 Vector valleyVertex(const VALLEYINDEX &v);
+
+void clearShadowVolumes();
+void renderShadowVolumes();
+void paintShadowVolume(Array<BakedVertex> *triangles, const Matrix &modelMatrix, const Matrix &cameraMatrix);
+void addShadowVolume(Array<BakedVertex> *triangles, const Matrix &modelMatrix, const Matrix &cameraMatrix);
 
 #endif //__PAINT_HPP__

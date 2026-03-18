@@ -53,6 +53,8 @@ public:
   float tx,ty;
   unsigned int color;
   unsigned int textureId;
+  float faceNx,faceNy,faceNz; // for shadow
+  float edgeNx,edgeNy,edgeNz; // for shadow
 };
 
 class FileBinding {
@@ -202,5 +204,7 @@ void unpackZipFileToArray(Array<unsigned char> *arr, const char *zipFileName, co
 Array<File> getZipDirectory(const char *path, const char *zipFileName);
 void patchFileName(String *fileName, const String &zipName, const String &zipFileName);
 void patchBinding(class FileBinding *b, const String &zipName, const String &zipFileName);
+
+void buildShadowInformation(Array<BakedVertex> &triangles);
 
 #endif //__SERIALZE_HPP__

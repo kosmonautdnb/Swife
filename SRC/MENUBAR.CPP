@@ -137,6 +137,7 @@ void drawMenuBar() {
       selected = lightOn; if (ImGui::MenuItem("Lighting","",&selected)) {lightOn = !lightOn; renderingUpdated = true;}
       selected = texturedOn; if (ImGui::MenuItem("Textures","",&selected)) {texturedOn = !texturedOn; renderingUpdated = true;}
       selected = twoSidedOn; if (ImGui::MenuItem("Two sided","",&selected)) {twoSidedOn = !twoSidedOn; renderingUpdated = true;}
+      selected = shadowsOn; if (ImGui::MenuItem("Shadows","",&selected)) {shadowsOn = !shadowsOn; renderingUpdated = true;}
       ImGui::Separator();
       selected = showLinks; if (ImGui::MenuItem("Show links (properties)","",&selected)) {showLinks = !showLinks; renderingUpdated = true;}
       selected = showGrids; if (ImGui::MenuItem("Show grids","",&selected)) {showGrids = !showGrids; renderingUpdated = true;}
