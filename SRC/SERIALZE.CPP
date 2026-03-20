@@ -1904,16 +1904,22 @@ void patchBinding(class FileBinding *b, const String &zipName, const String &zip
   fclose(in);
 }
 
+struct Pair2 {
+  Pair2(unsigned int first=0, unsigned int second=0) {this->first = first; this->second = second;}
+  unsigned int first;
+  unsigned int second;
+};
+
 int hashpair_compare(const void *a, const void *b)
 {
-  Pair<unsigned int,unsigned int> *p = (Pair<unsigned int,unsigned int> *)a;
-  Pair<unsigned int,unsigned int> *q = (Pair<unsigned int,unsigned int> *)b;
+  Pair2 *p = (Pair2 *)a;
+  Pair2 *q = (Pair2 *)b;
   return (int)p->first - (int)q->first;
 }
 
 void buildShadowInformation(Array<BakedVertex> &triangles) {
-  Array<Pair<unsigned int, unsigned int> > hashes; hashes.resize(triangles.size());
-  //Array<Pair<unsigned int, unsigned int> > hashes2; hashes2.resize(triangles.size());
+  Array<Pair2> hashes; hashes.resize(triangles.size());
+  //Array<Pair2> hashes2; hashes2.resize(triangles.size());
   for (int i = 0; i < triangles.size(); i += 3) {
     Vector p0 = Vector(triangles[i+0].x,triangles[i+0].y,triangles[i+0].z);
     Vector p1 = Vector(triangles[i+1].x,triangles[i+1].y,triangles[i+1].z);
@@ -1926,22 +1932,22 @@ void buildShadowInformation(Array<BakedVertex> &triangles) {
     unsigned int h1 = p1.hash();
     unsigned int h2 = p2.hash();
     // for edge normals (maybe not needed later, vertex normals seem to be enough)
-    hashes[i+0] = Pair<unsigned int,unsigned int>(h1^h0,i);
-    hashes[i+1] = Pair<unsigned int,unsigned int>(h2^h1,i);
-    hashes[i+2] = Pair<unsigned int,unsigned int>(h0^h2,i);
+    hashes[i+0] = Pair2(h1^h0,(unsigned int)i);
+    hashes[i+1] = Pair2(h2^h1,(unsigned int)i);
+    hashes[i+2] = Pair2(h0^h2,(unsigned int)i);
     // for vertex normals
-    //hashes2[i+0] = Pair<unsigned int,unsigned int>(h0,i+0);
-    //hashes2[i+1] = Pair<unsigned int,unsigned int>(h1,i+1);
-    //hashes2[i+2] = Pair<unsigned int,unsigned int>(h2,i+2);
+    //hashes2[i+0] = Pai2(h0,(unsigned int)i+0);
+    //hashes2[i+1] = Pair2(h1,(unsigned int)i+1);
+    //hashes2[i+2] = Pair2(h2,(unsigned int)i+2);
   }
   // connect edge normals (maybe not needed later, vertex normals seem to be enough)
-  qsort(&hashes[0], hashes.size(), sizeof(Pair<unsigned int,unsigned int>), hashpair_compare);
+  qsort(&hashes[0], hashes.size(), sizeof(Pair2), hashpair_compare);
   for (int i2 = 0; i2 < hashes.size(); i2++) {
-    const Pair<unsigned int,unsigned int> &a = hashes[i2];
+    const Pair2 &a = hashes[i2];
     unsigned int hasha = a.first;
     unsigned int triangleA = a.second;
     for (int j = i2+1; j < hashes.size(); j++) {
-      const Pair<unsigned int,unsigned int> &b = hashes[j];
+      const Pair2 &b = hashes[j];
       unsigned int hashb = b.first;
       unsigned int triangleB = b.second;
       if (hashb != hasha) break;
@@ -1979,14 +1985,14 @@ void buildShadowInformation(Array<BakedVertex> &triangles) {
   }
   // build vertex normals
 /*
-  qsort(&hashes2[0], hashes2.size(), sizeof(Pair<unsigned int,unsigned int>), hashpair_compare);
+  qsort(&hashes2[0], hashes2.size(), sizeof(Pair2), hashpair_compare);
   for (int i3 = 0; i3 < hashes2.size(); i3++) {
-    const Pair<unsigned int,unsigned int> &a = hashes2[i3];
+    const Pair2 &a = hashes2[i3];
     unsigned int hasha = a.first;
     unsigned int pointA = a.second;
     Vector normalHere;
     for (int j = i3; j < hashes2.size(); j++) {
-      const Pair<unsigned int,unsigned int> &b = hashes2[j];
+      const Pair2 &b = hashes2[j];
       unsigned int hashb = b.first;
       unsigned int pointB = b.second;
       if (hashb != hasha) break;
@@ -1995,7 +2001,7 @@ void buildShadowInformation(Array<BakedVertex> &triangles) {
     }
     normalHere = normalize(normalHere);
     for (int j2 = i3; j2 < hashes2.size(); j2++) {
-      const Pair<unsigned int,unsigned int> &b = hashes2[j2];
+      const Pair2 &b = hashes2[j2];
       unsigned int hashb = b.first;
       unsigned int pointB = b.second;
       if (hashb != hasha) break;

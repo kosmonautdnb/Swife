@@ -1541,6 +1541,7 @@ Vector valleyVertex(const VALLEYINDEX &v) {
 }
 
 VALLEYINDEX valleyIndex(const VALLEYINDEX &i10, const VALLEYINDEX &i00, const VALLEYINDEX &i01, const VALLEYINDEX &i11, int cx, int cy) {
+  UNUSED(i11);
   float newX = (float)((i10.first-i00.first)*cx*0.5f+i00.first);
   float newY = (float)((i01.second-i00.second)*cy*0.5f+i00.second);
   return VALLEYINDEX(newX, newY);
@@ -1714,7 +1715,7 @@ void paintValley(class GameObject *o, bool showModificators) {
       polys.push_back(i00);
       polys.push_back(i01);
       polys.push_back(i11);
-      if (polys.size()>MAXMEMPERALLOC/sizeof(VALLEYINDEX)) break;
+      if (polys.size()>MAXMEMPERALLOC/(4+4+4)) break; // not 100% ok
     }
   }
 

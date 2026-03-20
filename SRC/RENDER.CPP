@@ -985,7 +985,7 @@ void lightSetup(bool on) {
   glEnable(GL_LIGHT0);
   glEnable(GL_COLOR_MATERIAL);
 
-  float dir[4] = {lightDir.x,lightDir.y,lightDir.z,0};
+  float dir[4] = {(float)lightDir.x,(float)lightDir.y,(float)lightDir.z,0};
   float one[4] = {1,1,1,0};
   float zero[4] = {0,0,0,0};
   float darker[4] = {0.5,0.5,0.5,0};
