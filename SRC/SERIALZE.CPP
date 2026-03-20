@@ -1912,8 +1912,8 @@ int hashpair_compare(const void *a, const void *b)
 }
 
 void buildShadowInformation(Array<BakedVertex> &triangles) {
-  Array<Pair<unsigned int, unsigned int> > hashes;
-  hashes.resize(triangles.size());
+  Array<Pair<unsigned int, unsigned int> > hashes; hashes.resize(triangles.size());
+  //Array<Pair<unsigned int, unsigned int> > hashes2; hashes2.resize(triangles.size());
   for (int i = 0; i < triangles.size(); i += 3) {
     Vector p0 = Vector(triangles[i+0].x,triangles[i+0].y,triangles[i+0].z);
     Vector p1 = Vector(triangles[i+1].x,triangles[i+1].y,triangles[i+1].z);
@@ -1925,10 +1925,16 @@ void buildShadowInformation(Array<BakedVertex> &triangles) {
     unsigned int h0 = p0.hash();
     unsigned int h1 = p1.hash();
     unsigned int h2 = p2.hash();
+    // for edge normals (maybe not needed later, vertex normals seem to be enough)
     hashes[i+0] = Pair<unsigned int,unsigned int>(h1^h0,i);
     hashes[i+1] = Pair<unsigned int,unsigned int>(h2^h1,i);
     hashes[i+2] = Pair<unsigned int,unsigned int>(h0^h2,i);
+    // for vertex normals
+    //hashes2[i+0] = Pair<unsigned int,unsigned int>(h0,i+0);
+    //hashes2[i+1] = Pair<unsigned int,unsigned int>(h1,i+1);
+    //hashes2[i+2] = Pair<unsigned int,unsigned int>(h2,i+2);
   }
+  // connect edge normals (maybe not needed later, vertex normals seem to be enough)
   qsort(&hashes[0], hashes.size(), sizeof(Pair<unsigned int,unsigned int>), hashpair_compare);
   for (int i2 = 0; i2 < hashes.size(); i2++) {
     const Pair<unsigned int,unsigned int> &a = hashes[i2];
@@ -1971,4 +1977,35 @@ void buildShadowInformation(Array<BakedVertex> &triangles) {
       }
     }
   }
+  // build vertex normals
+/*
+  qsort(&hashes2[0], hashes2.size(), sizeof(Pair<unsigned int,unsigned int>), hashpair_compare);
+  for (int i3 = 0; i3 < hashes2.size(); i3++) {
+    const Pair<unsigned int,unsigned int> &a = hashes2[i3];
+    unsigned int hasha = a.first;
+    unsigned int pointA = a.second;
+    Vector normalHere;
+    for (int j = i3; j < hashes2.size(); j++) {
+      const Pair<unsigned int,unsigned int> &b = hashes2[j];
+      unsigned int hashb = b.first;
+      unsigned int pointB = b.second;
+      if (hashb != hasha) break;
+      if (triangles[pointA].x!=triangles[pointB].x||triangles[pointA].y!=triangles[pointB].y||triangles[pointA].z!=triangles[pointB].z) continue;
+      normalHere += Vector(triangles[pointB].faceNx,triangles[pointB].faceNy,triangles[pointB].faceNz);
+    }
+    normalHere = normalize(normalHere);
+    for (int j2 = i3; j2 < hashes2.size(); j2++) {
+      const Pair<unsigned int,unsigned int> &b = hashes2[j2];
+      unsigned int hashb = b.first;
+      unsigned int pointB = b.second;
+      if (hashb != hasha) break;
+      if (triangles[pointA].x!=triangles[pointB].x||triangles[pointA].y!=triangles[pointB].y||triangles[pointA].z!=triangles[pointB].z) continue;
+      triangles[pointB].vertexNx = normalHere.x; 
+      triangles[pointB].vertexNy = normalHere.y; 
+      triangles[pointB].vertexNz = normalHere.z; 
+      hashes2.erase(j2,1); j2--;
+    }
+    i3--;
+  }
+*/
 }

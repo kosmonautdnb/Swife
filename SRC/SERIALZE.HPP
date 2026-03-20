@@ -52,7 +52,7 @@ public:
   float nx,ny,nz;
   float tx,ty;
   unsigned int color;
-  unsigned int textureId;
+  unsigned int textureId; // base 40 byte
   float faceNx,faceNy,faceNz; // for shadow
   float edgeNx,edgeNy,edgeNz; // for shadow
 };

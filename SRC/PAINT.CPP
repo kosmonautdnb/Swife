@@ -37,6 +37,7 @@
 #include "PROPS.HPP"
 #include "STL/SPRTEOBJ.HPP"
 #include "STL/PAIR.HPP"
+#include "UTIL/LOG.HPP"
 #include <math.h>
 
 #define SKYBOX_LEFT 0
@@ -121,6 +122,7 @@ void paintShadowVolume(Array<BakedVertex> *triangles, const Matrix &modelMatrix,
   for (int side = 0; side < 2; side++) {
     glFrontFace(side == 0 ? GL_CCW : GL_CW);
     glStencilOp(GL_KEEP,side == 0 ? GL_DECR : GL_INCR,GL_KEEP);
+    // old routine iterating over the edges (selfshadowing is per edge)
     glBegin(GL_TRIANGLES);
     for (int i = 0; i < triangles->size()/3; i++) {
       BakedVertex *v = &(*triangles)[i*3];  Vector faceNormal = Vector(v[0].faceNx,v[0].faceNy,v[0].faceNz);  
