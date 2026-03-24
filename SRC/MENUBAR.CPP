@@ -110,6 +110,7 @@ void drawMenuBar() {
     if (ImGui::BeginMenu("Edit")) {
       on = true;
       if (ImGui::MenuItem("Compact and relocate",NULL,false,one)) {dialogCompactAndMove(true);}
+      if (ImGui::MenuItem("Bulk rename",NULL,false,one)) {dialogBulkRename(true);}
       ImGui::Separator();
       bool selected = false;
       selected = moveToolWorldSpace; if (ImGui::MenuItem("Movetool is in worldspace","",&selected)) {moveToolWorldSpace = !moveToolWorldSpace; renderingUpdated = true;}

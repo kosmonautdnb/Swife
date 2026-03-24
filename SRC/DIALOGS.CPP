@@ -128,6 +128,7 @@ void drawDialogs() {
   dialogTroubleShooting(false);
   dialogEditScript(false,NULL);
   dialogNew(false);
+  dialogBulkRename(false);
 }
 
 void dialogDeleteGameObjects(bool openIt) {
@@ -909,6 +910,62 @@ void dialogNew(bool openIt) {
   }
   ImGui::SameLine();
   if (ImGui::Button("Close##DIALOGNEWCLOSE")) {
+    ImGui::CloseCurrentPopup();
+  }
+  DIALOGEND()
+}
+
+void dialogBulkRename(bool openIt) {
+  static char newName[NAMEMAX];
+  static char newName2[NAMEMAX*2];
+  static bool useCounter = true;
+  static int counterStart = 0;
+  static int counterStep = 1;
+  if (openIt) {
+    memset(newName,0,NAMEMAX);
+    useCounter = true;
+    counterStart = 0;
+    counterStep = 1;
+  }
+  DIALOGSTART("Bulk rename")
+  ImGui::Text("Rename to:"); ImGui::SameLine(); ImGui::InputText("##DIALOGBULKRENAMETEXT", newName, NAMEMAX);
+  ImGui::Text("Use counter"); ImGui::SameLine(); ImGui::Checkbox("##DIALOGBULKRENAMEUSECOUNTER", &useCounter);
+  if (useCounter) {
+    ImGui::PushItemWidth(64);
+    ImGui::SameLine(); ImGui::Text("Counter start"); ImGui::SameLine(); ImGui::InputInt("##DIALOGBULKRENAMECOUNTERSTART", &counterStart, 0, 0);
+    ImGui::SameLine(); ImGui::Text("Step"); ImGui::SameLine(); ImGui::InputInt("##DIALOGBULKRENAMECOUNTERSTEP", &counterStep, 0, 0);
+    ImGui::PopItemWidth();
+  }
+  int count = 0;
+  for(int i = 0; i < gameObjects.size(); i++) {
+    if (gameObjects[i]->selected) {
+      count++;
+    }
+  }
+  ImGui::Text("Rename %d objects",count);
+  ImGui::BeginChild("DIALOGBULKRENAMECHILD",ImVec2(0,main_window_yres/3));
+  int counter = counterStart;
+  for(int i2 = 0; i2 < gameObjects.size(); i2++) {
+    if (gameObjects[i2]->selected) {
+      ImGui::Text("%d\"%s\"", i2, gameObjects[i2]->name);
+      ImGui::SameLine(); ImGui::Text("to:");
+      if (useCounter) sprintf(newName2,"%d%s",counter,newName); else sprintf(newName2,"%s",newName); newName2[NAMEMAX-1]=0x00; counter += counterStep;
+      ImGui::SameLine(); ImGui::Text("%d\"%s\"", i2, newName2);
+    }
+  }
+  ImGui::EndChild();
+  if (ImGui::Button("Rename##DIALOGBULKRENAMERENAME")) {
+    int counter = counterStart;
+    for(int i2 = 0; i2 < gameObjects.size(); i2++) {
+      if (gameObjects[i2]->selected) {
+        if (useCounter) sprintf(newName2,"%d%s",counter,newName); else sprintf(newName2,"%s",newName); newName2[NAMEMAX-1]=0x00; counter += counterStep;
+        sprintf(gameObjects[i2]->name,"%s",newName2);
+      }
+    }
+    ImGui::CloseCurrentPopup();
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Close##DIALOGBULKRENAMECLOSE")) {
     ImGui::CloseCurrentPopup();
   }
   DIALOGEND()

@@ -84,6 +84,7 @@ void dialogViewBindings(bool openIt);
 void dialogGridSettings(bool openIt);
 void dialogOverwrite(bool openIt);
 void dialogCompactAndMove(bool openIt);
+void dialogBulkRename(bool openIt);
 
 void getTransformForGameObjectFromCursor(GameObject *o);
 
