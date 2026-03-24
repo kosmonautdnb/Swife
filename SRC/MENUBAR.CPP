@@ -34,6 +34,7 @@
 #include "HITTEST.HPP"
 #include "SVG.HPP"
 #include "PAINT.HPP"
+#include "PROPS.HPP"
 
 int menuBar_height = 17;
 
@@ -118,6 +119,13 @@ void drawMenuBar() {
       selected = placeCursor; if (ImGui::MenuItem("Place cursor","",&selected, mode == MODE_SELECT)) {placeCursor = !placeCursor; renderingUpdated = true;}
       if (ImGui::MenuItem("Cursor to object","",false, count==1)) {cursorToObject(first); renderingUpdated = true;}
       if (ImGui::MenuItem("Put to cursor","",false, count==1)) {putToCursor(first); renderingUpdated = true;}
+      ImGui::Separator();
+      if (ImGui::MenuItem("Copy transform","",false, count==1)) {copyTransform();}
+      selected = pasteAnchor; if (ImGui::MenuItem("Should paste anchor point","",&selected)) {pasteAnchor = !pasteAnchor;}
+      selected = pastePosition; if (ImGui::MenuItem("Should paste position","",&selected)) {pastePosition = !pastePosition;}
+      selected = pasteScaling; if (ImGui::MenuItem("Should paste scaling","",&selected)) {pasteScaling = !pasteScaling;}
+      selected = pasteRotation; if (ImGui::MenuItem("Should paste rotation","",&selected)) {pasteRotation = !pasteRotation;}
+      if (ImGui::MenuItem("Paste transform","",false, one)) {pasteTransform(); renderingUpdated = true;}
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("View")) {

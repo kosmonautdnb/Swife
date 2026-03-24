@@ -36,6 +36,13 @@ extern Vector paintColor;
 extern Vector previousPaintColors[MAX_PREVIOUS_COLORS];
 void addPreviousColor(const Vector &col);
 
+void copyTransform();
+void pasteTransform();
+extern bool pasteAnchor;
+extern bool pastePosition;
+extern bool pasteScaling;
+extern bool pasteRotation;
+
 bool vectorInput(const String &name,class Vector *v, const String &dcl, const char *toolTip);
 bool quaternionInput(const String &name,class Quaternion *q, const String &dcl, const char *toolTip);
 

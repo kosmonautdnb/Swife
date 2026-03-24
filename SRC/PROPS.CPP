@@ -43,6 +43,34 @@ char properties_filter[NAMEMAX] = {0};
 
 unsigned int uniqueIdOfSingleDisplayedObject = 0;
 
+GameObject copyPaste;
+
+void copyTransform() {
+  for (int i = 0; i < gameObjects.size(); i++) {
+    if (gameObjects[i]->selected) {
+      copyPaste = *gameObjects[i];
+      break;
+    }
+  }
+}
+
+void pasteTransform() {
+  for (int i = 0; i < gameObjects.size(); i++) {
+    if (gameObjects[i]->selected) {
+      if (pasteAnchor) gameObjects[i]->anchor = copyPaste.anchor;
+      if (pastePosition) gameObjects[i]->translation = copyPaste.translation;
+      if (pasteScaling) gameObjects[i]->scaling = copyPaste.scaling;
+      if (pasteRotation) gameObjects[i]->rotation = copyPaste.rotation;
+    }
+  }
+  renderingUpdated = true;
+}
+
+bool pasteAnchor = false;
+bool pastePosition = true;
+bool pasteScaling = true;
+bool pasteRotation = true;
+
 void drawBadges() {
   ImVec2 wp = ImGui::GetWindowPos();
   ImVec2 ws = ImGui::GetWindowSize();
