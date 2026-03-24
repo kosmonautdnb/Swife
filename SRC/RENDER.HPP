@@ -90,6 +90,7 @@ extern bool twoSidedOn;
 extern bool shadowsOn;
 extern bool showLinks;
 extern bool showGrids;
+extern bool selectionOutlineOn;
 extern int renderMouseClicksOff;
 
 void lightSetup(bool on);

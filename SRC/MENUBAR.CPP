@@ -145,6 +145,7 @@ void drawMenuBar() {
       selected = drawObjectNames; if (ImGui::MenuItem("Show names","",&selected,showOverlays)) {drawObjectNames = !drawObjectNames; renderingUpdated = true;}
       ImGui::Separator();
       selected = showToolTips; if (ImGui::MenuItem("Show tooltips","",&selected)) {showToolTips = !showToolTips;}
+      selected = selectionOutlineOn; if (ImGui::MenuItem("Outline around selection","",&selected)) {selectionOutlineOn = !selectionOutlineOn;}
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Object")) {

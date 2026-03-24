@@ -601,6 +601,35 @@ void drawLinks() {
   }
 }
 
+void drawSelectionOutline(bool tiny) {
+  int width;
+  int height;
+  unsigned int *rgba;
+  unsigned char *stencil;
+  if (!tiny) {
+    width = glGetTextureWidth(renderBigFrameBufferColor);
+    height = glGetTextureHeight(renderBigFrameBufferColor);
+    rgba = glGetTexturePointer(renderBigFrameBufferColor);
+    stencil = (unsigned char*)glGetTexturePointer(renderBigFrameBufferStencil);
+  } else {
+    width = glGetTextureWidth(renderTinyFrameBufferColor);
+    height = glGetTextureHeight(renderTinyFrameBufferColor);
+    rgba = glGetTexturePointer(renderTinyFrameBufferColor);
+    stencil = (unsigned char*)glGetTexturePointer(renderTinyFrameBufferStencil);
+  }
+  for (int y = 1; y < height-1; y++) {
+    for (int x = 1; x < width-1; x++) {
+      unsigned char s00 = stencil[x+y*width];
+      if (s00 & 0x80) {
+        if (!(stencil[x-1+y*width]&0x80)) {rgba[(x-1)+y*width]=0xffffffff;}
+        if (!(stencil[x+1+y*width]&0x80)) {rgba[(x+1)+y*width]=0xffffffff;}
+        if (!(stencil[x+(y-1)*width]&0x80)) {rgba[x+(y-1)*width]=0xffffffff;}
+        if (!(stencil[x+(y+1)*width]&0x80)) {rgba[x+(y+1)*width]=0xffffffff;}
+      }
+    }
+  }
+}
+
 void drawOverlays() {
   for (int i = 0; i < gameObjects.size(); i++) {
     GameObject *o = gameObjects[i];
@@ -611,6 +640,8 @@ void drawOverlays() {
     paintOverlay(o);
   }
 }
+
+bool selectionOutlineOn = false;
 
 void drawSelecting(bool tiny) {
   glStencilFunc(GL_EQUAL,0x80,0x80);
@@ -644,6 +675,7 @@ void drawSelecting(bool tiny) {
   glMatrixMode(GL_MODELVIEW);
   glDisable(GL_STENCIL_TEST);
   glDisable(GL_BLEND);
+  if (selectionOutlineOn) drawSelectionOutline(tiny);
 }
 
 void drawShadows(bool tiny) {
