@@ -131,7 +131,7 @@ void paintOverlays() {
           static char buffer[64];
           int xp = o->x + 4;
           int yp = o->y + 7;
-          sprintf(buffer,"%d\"%s\"",i2,object->name); drawTextDirect(xp,yp,buffer,0xffffffff); yp += 13;
+          sprintf(buffer,"%d\"%s\":%s",i2,object->name,gameObjectTypeNames[object->type]); drawTextDirect(xp,yp,buffer,0xffffffff); yp += 13;
           sprintf(buffer,"P. %.04f %.04f %.04f",object->translation.x,object->translation.y,object->translation.z); drawTextDirect(xp,yp,buffer,0xffffffff); yp += 13;
           sprintf(buffer,"S. %.04f %.04f %.04f",object->scaling.x,object->scaling.y,object->scaling.z); drawTextDirect(xp,yp,buffer,0xffffffff); yp += 13;
           Vector v = object->rotation.getYawPitchRoll();
