@@ -34,6 +34,7 @@ public:
   float x,y;
   String text;
   unsigned int color;
+  unsigned int uniqueId;
 };
 
 extern bool toolOn;
@@ -52,5 +53,6 @@ void drawViewport();
 
 void clearOverlays();
 void addTextOverlay(double renderX,double renderY, unsigned int col, const char *text);
+void addDescOverlay(double renderX,double renderY, unsigned int uniqueId);
 
 #endif // __VIEWPORT_HPP__

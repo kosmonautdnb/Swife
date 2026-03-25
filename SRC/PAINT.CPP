@@ -51,6 +51,7 @@ unsigned int gridTexture;
 
 bool justDrawBoundingBoxes = false;
 bool drawObjectNames = false;
+bool drawSelectionDesc = false;
 
 void alphaOn() {
   glEnable(GL_BLEND);
@@ -188,7 +189,7 @@ void draw3DGrid() {
 void initPaint() {
 }
 
-void addTextToObject(GameObject * o, const char *text) {
+void addTextToObject(GameObject *o, const char *text, bool fullDesc) {
   Matrix projection; glGetDoublev(GL_PROJECTION_MATRIX, projection.m);
   Matrix modelView; glGetDoublev(GL_MODELVIEW_MATRIX, modelView.m);
   const Vector &minb = o->boundingBoxMin;
@@ -199,17 +200,21 @@ void addTextToObject(GameObject * o, const char *text) {
   if (pos.z<-pos.w||pos.z>pos.w) return;
   if (pos.w != 0) {pos /= pos.w; pos.w = 1;}
   unsigned int col = 0xffffffff;
-  addTextOverlay(pos.x,pos.y,col,text);
+  if (fullDesc) 
+    addDescOverlay(pos.x,pos.y,o->uniqueId);
+  else
+    addTextOverlay(pos.x,pos.y,col,text);
 }
 
-void maybeDisplayName(GameObject *o) {
-  if (drawObjectNames) {
-    for (int i = 0; i < gameObjects.size(); i++) {
-      if (o->uniqueId == gameObjects[i]->uniqueId) {
-        String name = String::fromInt(i) + "\"" + o->name + "\"";
-        addTextToObject(o,name.c_str());
-        break;
-      }
+void maybeDisplayName(GameObject *o, bool showModificators) {
+  for (int i = 0; i < gameObjects.size(); i++) {
+    if (o->uniqueId == gameObjects[i]->uniqueId) {
+      String name = String::fromInt(i) + "\"" + o->name + "\"";
+      if (o->selected && drawSelectionDesc && showModificators) 
+        addTextToObject(o,name.c_str(),true);
+      else
+        if (drawObjectNames) addTextToObject(o,name.c_str(),false);
+      break;
     }
   }
 }
@@ -243,7 +248,7 @@ void drawSkyboxQuad(unsigned int color, unsigned int texture, float size, float 
 void paintSkyBox(class GameObject *o) {
 
   exportObject(o);
-  maybeDisplayName(o);
+  maybeDisplayName(o,true);
 
   FileBinding *binding = getBindingById(o->fileBindingId); if (binding == NULL) return;
   if (binding->textureIds.size() != 6) return;
@@ -313,7 +318,7 @@ void paintTrigger(class GameObject *o, bool showModificators) {
   exportObject(o);
 
   if (!isInViewport(o)) return;
-  maybeDisplayName(o);
+  maybeDisplayName(o,showModificators);
 
   Matrix cameraMatrix; glGetDoublev(GL_MODELVIEW_MATRIX, cameraMatrix.m);
 
@@ -413,7 +418,7 @@ void paintCamera(class GameObject *o) {
   exportObject(o);
 
   if (!isInViewport(o)) return;
-  maybeDisplayName(o);
+  maybeDisplayName(o,true);
 
   glPushMatrix();
 
@@ -509,7 +514,7 @@ void paintMesh(class GameObject *o, bool showModificators) {
   Matrix m2 = cameraMatrix * o->getRenderTransform(); addShadowVolume(triangles, m2, cameraMatrix);
 
   if (!isInViewport(o)) return;
-  maybeDisplayName(o);
+  maybeDisplayName(o,showModificators);
 
   FileBinding *b = getBindingById(o->fileBindingId);
   if (b == NULL || justDrawBoundingBoxes) {paintTrigger(o,showModificators); return;}
@@ -598,7 +603,7 @@ void paintBillBoard(class GameObject *o, bool showModificators) {
   }
 
   if (!isInViewport(o)) return;
-  maybeDisplayName(o);
+  maybeDisplayName(o,showModificators);
 
   bool lightingWasOn = glIsEnabled(GL_LIGHTING);
   glDisable(GL_LIGHTING);
@@ -722,7 +727,7 @@ void paintPoint(class GameObject *o, bool showModificators) {
   exportObject(o);
 
   if (!isInViewport(o)) return;
-  maybeDisplayName(o);
+  maybeDisplayName(o,showModificators);
 
   Matrix cameraMatrix; glGetDoublev(GL_MODELVIEW_MATRIX, cameraMatrix.m);
   Matrix projectionMatrix; glGetDoublev(GL_PROJECTION_MATRIX, projectionMatrix.m);
@@ -861,7 +866,7 @@ void paintTextureGrid(class GameObject *o, bool showModificators) {
   exportObject(o);
 
   if (!isInViewport(o)) return;
-  maybeDisplayName(o);
+  maybeDisplayName(o,showModificators);
 
   if (justDrawBoundingBoxes) {paintTrigger(o,showModificators); return;}
 
@@ -1184,7 +1189,7 @@ void paintPath(class GameObject *o, bool showModificators) {
 
   alphaOn();
 
-  for (int i2 = 0; i2 < points.size(); i2++) maybeDisplayName(gameObjects[points[i2]]);
+  for (int i2 = 0; i2 < points.size(); i2++) maybeDisplayName(gameObjects[points[i2]],showModificators);
 
   glBegin(GL_LINES);
   unsigned int col = o->color;
@@ -1314,7 +1319,7 @@ void paintHeightmap(class GameObject *o, bool showModificators) {
   exportObject(o);
 
   if (!isInViewport(o)) return;
-  maybeDisplayName(o);
+  maybeDisplayName(o,showModificators);
 
   FileBinding *b = getBindingById(o->fileBindingId);
   if (b == NULL || b->textureIds.empty()) {paintTrigger(o,showModificators); return;}
@@ -1599,7 +1604,7 @@ void paintValley(class GameObject *o, bool showModificators) {
   o->boundingBoxMax.y = maxy;
 
   if (!isInViewport(o)) return;
-  maybeDisplayName(o);
+  maybeDisplayName(o,showModificators);
 
   if (justDrawBoundingBoxes) {paintTrigger(o,showModificators); return;}
 

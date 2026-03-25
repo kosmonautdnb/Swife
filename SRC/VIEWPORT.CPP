@@ -93,20 +93,54 @@ void addTextOverlay(double renderX,double renderY, unsigned int col, const char 
   p.y = (-renderY * 0.5 + 0.5)*windowSize.y + windowPos.y;
   p.text = text;
   p.color = col;
+  p.uniqueId = 0;
   overlays.push_back(p);
 }
+
+void addDescOverlay(double renderX,double renderY, unsigned int uniqueId) {
+  ImVec2 windowPos,windowSize;getRenderWindowPosAndSize(&windowPos, &windowSize);
+  Overlay p;
+  p.x = (renderX * 0.5 + 0.5)*windowSize.x + windowPos.x;
+  p.y = (-renderY * 0.5 + 0.5)*windowSize.y + windowPos.y;
+  p.uniqueId = uniqueId;
+  overlays.push_back(p);
+}
+
+
+void drawTextDirect(int x, int y, const char *text, unsigned int color) {
+  ImVec2 k = ImVec2(x,y);
+  k.x -= 2;
+  k.y -= 5;
+  ImGui::GetWindowDrawList()->AddText(ImGui::GetWindowFont(),ImGui::GetWindowFontSize(),k,0xff000000,text);
+  k.x -= 1;
+  k.y -= 1;
+  ImGui::GetWindowDrawList()->AddText(ImGui::GetWindowFont(),ImGui::GetWindowFontSize(),k,color,text);
+} 
 
 void paintOverlays() {
   if (!showOverlays) return;
   for (int i = 0; i < overlays.size(); i++) {
     Overlay *o = &overlays[i];
-    ImVec2 k = ImVec2(o->x,o->y);
-    k.x -= 2;
-    k.y -= 5;
-    ImGui::GetWindowDrawList()->AddText(ImGui::GetWindowFont(),ImGui::GetWindowFontSize(),k,0xff000000,o->text.c_str());
-    k.x -= 1;
-    k.y -= 1;
-    ImGui::GetWindowDrawList()->AddText(ImGui::GetWindowFont(),ImGui::GetWindowFontSize(),k,o->color,o->text.c_str());
+    if (o->uniqueId == 0) {
+      drawTextDirect(o->x,o->y,o->text.c_str(),o->color);
+    } else {
+      for (int i2 = 0; i2 < gameObjects.size(); i2++) {
+        GameObject *object = gameObjects[i2];
+        if (object->uniqueId == o->uniqueId) {
+          ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(o->x,o->y),ImVec2(o->x+40*7,o->y+13*5),0x80000000);
+          static char buffer[64];
+          int xp = o->x + 4;
+          int yp = o->y + 7;
+          sprintf(buffer,"%d\"%s\"",i2,object->name); drawTextDirect(xp,yp,buffer,0xffffffff); yp += 13;
+          sprintf(buffer,"P. %.04f %.04f %.04f",object->translation.x,object->translation.y,object->translation.z); drawTextDirect(xp,yp,buffer,0xffffffff); yp += 13;
+          sprintf(buffer,"S. %.04f %.04f %.04f",object->scaling.x,object->scaling.y,object->scaling.z); drawTextDirect(xp,yp,buffer,0xffffffff); yp += 13;
+          Vector v = object->rotation.getYawPitchRoll();
+          sprintf(buffer,"R. %.04f %.04f %.04f",v.x*180/PI,v.y*180/PI,v.z*180/PI); drawTextDirect(xp,yp,buffer,0xffffffff); yp += 13;
+          sprintf(buffer,"Binding: %d",object->fileBindingId); drawTextDirect(xp,yp,buffer,0xffffffff); yp += 13;
+          break;
+        }
+      }
+    }
   }
 }
 

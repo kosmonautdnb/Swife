@@ -152,6 +152,7 @@ void drawMenuBar() {
       selected = showGrids; if (ImGui::MenuItem("Show grids","",&selected)) {showGrids = !showGrids; renderingUpdated = true;}
       selected = showOverlays; if (ImGui::MenuItem("Show overlays","",&selected)) {showOverlays = !showOverlays; renderingUpdated = true;}
       selected = drawObjectNames; if (ImGui::MenuItem("Show names","",&selected,showOverlays)) {drawObjectNames = !drawObjectNames; renderingUpdated = true;}
+      selected = drawSelectionDesc; if (ImGui::MenuItem("Selected object description","",&selected,showOverlays)) {drawSelectionDesc = !drawSelectionDesc; renderingUpdated = true;}
       ImGui::Separator();
       selected = showToolTips; if (ImGui::MenuItem("Show tooltips","",&selected)) {showToolTips = !showToolTips;}
       selected = selectionOutlineOn; if (ImGui::MenuItem("Outline around selection","",&selected)) {selectionOutlineOn = !selectionOutlineOn;}

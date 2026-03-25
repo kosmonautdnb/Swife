@@ -31,6 +31,7 @@
 
 extern bool justDrawBoundingBoxes;
 extern bool drawObjectNames;
+extern bool drawSelectionDesc;
 extern unsigned int gridTexture;
 
 void initGizmos();
