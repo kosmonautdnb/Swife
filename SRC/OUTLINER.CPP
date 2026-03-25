@@ -266,6 +266,7 @@ void drawOutliner() {
         sectionVisible = true;
         sectionSelecting = false;
         sectionSelectingType = false;
+        sprintf(groupName,"%s","");
       }
     }
     bool selectBefore = gameObjects[i]->selected;
