@@ -296,9 +296,10 @@ void drawOutliner() {
 
   ImGui::EndChild();
   String k;
-  if (selecteds>0) k += String("S:")+String::fromInt(selecteds) + " ";
-  if (visibles>0) k += String("A:")+String::fromInt(visibles) + " ";
-  ImGui::Text("%s",k.c_str());
+  String t = "All:" + String::fromInt(gameObjects.size()) + " ";
+  if (selecteds>0) {k += String("S:")+String::fromInt(selecteds) + " "; t += "Selected:" +String::fromInt(selecteds) + " ";}
+  if (visibles>0) {k += String("A:")+String::fromInt(visibles) + " "; t += "Visible:" +String::fromInt(visibles) + " ";}
+  ImGui::Text("%s",k.c_str()); if (!t.empty()) drawToolTip(t.c_str());
   ImGui::SameLine(); if (outlinerButton("Compact",selecteds>1)) outlinerCompact();
   maybeDisplayPlacementTooltip();
   ImGui::End();

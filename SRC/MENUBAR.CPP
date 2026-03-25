@@ -154,7 +154,6 @@ void drawMenuBar() {
       selected = drawObjectNames; if (ImGui::MenuItem("Show names","",&selected,showOverlays)) {drawObjectNames = !drawObjectNames; renderingUpdated = true;}
       selected = drawSelectionDesc; if (ImGui::MenuItem("Selected object description","",&selected,showOverlays)) {drawSelectionDesc = !drawSelectionDesc; renderingUpdated = true;}
       ImGui::Separator();
-      selected = showToolTips; if (ImGui::MenuItem("Show tooltips","",&selected)) {showToolTips = !showToolTips;}
       selected = selectionOutlineOn; if (ImGui::MenuItem("Outline around selection","",&selected)) {selectionOutlineOn = !selectionOutlineOn;}
       ImGui::EndMenu();
     }
@@ -199,6 +198,9 @@ void drawMenuBar() {
       if (ImGui::MenuItem("Controls")) {dialogControls(true);}
       ImGui::Separator();
       if (ImGui::MenuItem("Troubleshooting")) {dialogTroubleShooting(true);}
+      ImGui::Separator();
+      bool selected = false;
+      selected = showToolTips; if (ImGui::MenuItem("Show tooltips","",&selected)) {showToolTips = !showToolTips;}
       ImGui::EndMenu();
     }
 
