@@ -129,6 +129,7 @@ void drawDialogs() {
   dialogEditScript(false,NULL);
   dialogNew(false);
   dialogBulkRename(false);
+  dialogMoveByCenter(false);
 }
 
 void dialogDeleteGameObjects(bool openIt) {
@@ -966,6 +967,50 @@ void dialogBulkRename(bool openIt) {
   }
   ImGui::SameLine();
   if (ImGui::Button("Close##DIALOGBULKRENAMECLOSE")) {
+    ImGui::CloseCurrentPopup();
+  }
+  DIALOGEND()
+}
+
+void dialogMoveByCenter(bool openIt) {
+  static Vector oldCenter;
+  static Vector newCenter;
+  static Vector add;
+  static int objectCount = 0;
+  if (openIt) {
+    oldCenter.set(0,0,0);
+    objectCount = 0;
+    int w = 0;
+    for (int i = 0; i < gameObjects.size(); i++) {
+      GameObject *o = gameObjects[i];
+      if (o->selected) {
+        oldCenter += o->translation;
+        objectCount++;
+        w++;
+      }
+    }
+    if (w != 0) oldCenter /= w;
+    newCenter = oldCenter;
+    add.set(0,0,0);
+  }
+  DIALOGSTART("Move center")
+  ImGui::Text("Move %d objects",objectCount);
+  ImGui::Text("Old center %f %f %f", oldCenter.x, oldCenter.y, oldCenter.z);
+  if (vectorInput("New center",&newCenter, "##DIALOGMOVEBYCENTERNEWCENTER", "New center")) {;}
+  if (vectorInput("Add",&add, "##DIALOGMOVEBYCENTERADD", "Add to new center")) {;}
+  if (ImGui::Button("Update##DIALOGMOVEBYCENTERUPDATE")) {
+    Vector add2 = add + newCenter - oldCenter;
+    for (int i = 0; i < gameObjects.size(); i++) {
+      GameObject *o = gameObjects[i];
+      if (o->selected) {
+        o->translation += add2;
+      }
+    }
+    renderingUpdated = true;
+    ImGui::CloseCurrentPopup();
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Close##DIALOGMOVEBYCENTERCLOSE")) {
     ImGui::CloseCurrentPopup();
   }
   DIALOGEND()

@@ -178,6 +178,7 @@ void drawMenuBar() {
       ImGui::Separator();
       if (ImGui::MenuItem("Duplicate",NULL,false,one)) {duplicate();}
       if (ImGui::MenuItem("Delete",NULL,false,one)) {dialogDeleteGameObjects(true);}
+      if (ImGui::MenuItem("Move center",NULL,false,one)) {dialogMoveByCenter(true);}
       ImGui::Separator();
       if (ImGui::MenuItem("Select by property")) {dialogSelectByProperty(true);}
       if (ImGui::MenuItem("Select by layer")) {dialogSelectByLayer(true);}

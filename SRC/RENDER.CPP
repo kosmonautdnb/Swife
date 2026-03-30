@@ -531,7 +531,7 @@ void drawGameObject(GameObject *o) {
     }
     for (int i = 0; i < objs.size(); i++) {
       Matrix parentBefore = objs[i]->parentTransform;
-      objs[i]->parentTransform = objParentMatrices[i];
+      objs[i]->parentTransform = objParentMatrices[i] * inverse(objs[i]->getObjectTransform());
       paintSimpleGameObject(objs[i], false);
       objs[i]->parentTransform = parentBefore;
     }
