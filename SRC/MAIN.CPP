@@ -128,19 +128,23 @@ void paintScreenSaver() {
     mouseX = textPos.x;
     mouseY = textPos.y;
     if (textPos.x > main_window_xres-textSize.x) {
-      textDir.x = -(double)rand()/RAND_MAX-1;
+      textDir.x = -(double)rand()/RAND_MAX-1.1;
+      textDir.y = (double)rand()/RAND_MAX*2-1;
       textDir = normalize(textDir);
     }
     if (textPos.x < 0) {
-      textDir.x = (double)rand()/RAND_MAX+1;
+      textDir.x = (double)rand()/RAND_MAX+1.1;
+      textDir.y = (double)rand()/RAND_MAX*2-1;
       textDir = normalize(textDir);
     }
     if (textPos.y > main_window_yres-textSize.y) {
-      textDir.y = -(double)rand()/RAND_MAX-1;
+      textDir.x = (double)rand()/RAND_MAX*2-1;
+      textDir.y = -(double)rand()/RAND_MAX-1.1;
       textDir = normalize(textDir);
     }
     if (textPos.y < 0) {
-      textDir.y = (double)rand()/RAND_MAX+1;
+      textDir.x = (double)rand()/RAND_MAX*2-1;
+      textDir.y = (double)rand()/RAND_MAX+1.1;
       textDir = normalize(textDir);
     }
     ImGui::End();
