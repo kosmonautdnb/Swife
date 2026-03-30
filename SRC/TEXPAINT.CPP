@@ -227,8 +227,6 @@ void drawTexPaint() {
   int count = 0; GameObject *first = NULL; for (int ic = 0; ic < gameObjects.size(); ic++) {if (gameObjects[ic]->selected) {first = gameObjects[ic]; count++;}}
   bool isOn = (count == 1 && first->type == GAMEOBJECT_IMAGE);
 
-  GLboolean shift,ctrl,alt;
-  glSpecialKeys(&shift,&ctrl,&alt);
   static int lastXPos = -1; static int lastYPos = -1;
   static int lastXPos2 = -1; static int lastYPos2 = -1;
 

@@ -81,9 +81,6 @@ void Camera::wasdControls() {
   if (ImGui::IsKeyPressed('o')) rotateCameraBy(-90,0,0,1);
   if (ImGui::IsKeyPressed('p')) rotateCameraBy(90,0,0,1);
 
-  GLboolean alt,shift,ctrl;
-  glSpecialKeys(&shift, &ctrl, &alt);
-
   if (rightMousePressed && (!alt)) {
     if (shift) {
       Vector positionBefore = position;
@@ -722,9 +719,6 @@ void disableRenderMouseClicks() {
 
 void handleHitTest() {
 
-  GLboolean shift,ctrl,alt;
-  glSpecialKeys(&shift,&ctrl,&alt);
-
   if (!alt && mode == MODE_SELECT) selectionCounter++;
   Hit *h = getNearestHit(&selectionCounter);
   Hit *h2 = getNearestToolHit();
@@ -861,9 +855,6 @@ void screenSpacePlane(GameObject *o, Vector *d2d, Vector *d3d, double x, double 
 
 void handleTool() {
   if (activatedToolObjectBase == NULL) return;
-
-  GLboolean shift, ctrl, alt;
-  glSpecialKeys(&shift, &ctrl, &alt);
 
   Vector d2d,d3d,scale,rot;
 
@@ -1045,14 +1036,10 @@ void drawScene() {
   bool hitTestOn = (mode == MODE_SELECT) && leftClicked;
   if (mode == MODE_SCALE) {
     static GLboolean lastShift = GL_FALSE;
-    GLboolean shift,ctrl,alt;
-    glSpecialKeys(&shift,&ctrl,&alt);
     if (shift != lastShift) renderingUpdated = true;
     lastShift = shift;
   }
 
-  GLboolean alt,shift,ctrl;
-  glSpecialKeys(&shift, &ctrl, &alt);
   bool forceFastAndHitTest = false;
   if (alt && (mode == MODE_SELECT) && (leftDown || rightDown)) forceFastAndHitTest = true;
 

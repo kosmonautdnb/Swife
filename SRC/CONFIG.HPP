@@ -53,11 +53,14 @@
 #define MAXMEMPERALLOC (1024*1024*200)
 #endif
 
+#define SCREENSAVERTIMEINSECONDS (60*5)
+
 extern bool fullScreen;
 extern double fps;
 extern double timeDelta;
 extern double mouseDX,mouseDY;
 extern unsigned int mouseB;
+extern bool shift,ctrl,alt;
 
 extern struct ImVec4 color_text_off;
 extern struct ImVec4 color_text_on;

@@ -37,6 +37,7 @@
 #include "PROPS.HPP"
 
 int menuBar_height = 17;
+bool screenSaverOn = true;
 
 static String hex(int v) {
   const char *h="0123456789ABCDEF";
@@ -201,6 +202,7 @@ void drawMenuBar() {
       if (ImGui::MenuItem("Troubleshooting")) {dialogTroubleShooting(true);}
       ImGui::Separator();
       bool selected = false;
+      selected = screenSaverOn; if (ImGui::MenuItem("Screen saver","",&selected)) {screenSaverOn = !screenSaverOn;}
       selected = showToolTips; if (ImGui::MenuItem("Show tooltips","",&selected)) {showToolTips = !showToolTips;}
       ImGui::EndMenu();
     }

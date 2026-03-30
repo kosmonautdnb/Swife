@@ -30,6 +30,7 @@ double fps = 30.0;
 double timeDelta = 0;
 double mouseDX = 0, mouseDY = 0;
 unsigned int mouseB = 0;
+bool shift = false, ctrl = false, alt = false;
 
 ImVec4 color_text_off = ImVec4(0.5,0.5,0.5,1);
 ImVec4 color_text_on = ImVec4(0.0,0.0,0.0,1);

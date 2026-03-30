@@ -87,6 +87,8 @@ void freeData() {
   freeGameObjects();
 }
 
+double screenSaverStartTime = 0;
+
 void perFrame() {
   double time = glSeconds(); timeDelta = time - lastTime; lastTime = time;
   static double fpsTimer = 0; static int fpsCounter = 0; fpsTimer += timeDelta; fpsCounter++; if (fpsTimer>2.0) {fps = fpsCounter/2.0;fpsTimer=0;fpsCounter=0;}
@@ -94,7 +96,9 @@ void perFrame() {
   mouseB = 0;
   mouseB |= mouseButtons & GL_MOUSE_BUTTON_LEFT ? 1 : 0;
   mouseB |= mouseButtons & GL_MOUSE_BUTTON_RIGHT ? 2 : 0;
+  GLboolean shift2,ctrl2,alt2; glSpecialKeys(&shift2,&ctrl2,&alt2); shift = shift2 ? true : false;  ctrl = ctrl2 ? true : false; alt = alt2 ? true : false;
   clearAllUnusedBindings();
+  if (currentKey != 0 || shift || ctrl || alt || mouseDX != 0 || mouseDY != 0 || mouseB != 0) screenSaverStartTime = glSeconds();
 }
 
 void takeScreenShot(const char *fileName) {
@@ -110,14 +114,46 @@ void takeScreenShot(const char *fileName) {
   img.free();
 }
 
+void paintScreenSaver() {
+  if (screenSaverOn && ((glSeconds()-screenSaverStartTime) >= SCREENSAVERTIMEINSECONDS)) {
+    static Vector textPos(0,0,0);
+    static Vector textDir = normalize(Vector(1,1,0));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0,0,0,1));
+    ImGui::SetNextWindowPos(ImVec2(0,0));
+    ImGui::Begin("SCREENSAVER", NULL, ImVec2(main_window_xres,main_window_yres),0.95,FROZENWINDOW);
+    String date = "Date " + timeDescString();float fontSize = 2.0;
+    ImVec2 textSize = ImGui::CalcTextSize(date.c_str()); textSize.x *= fontSize; textSize.y *= fontSize;
+    ImGui::GetWindowDrawList()->AddText(ImGui::GetWindowFont(),ImGui::GetWindowFontSize()*fontSize,ImVec2(textPos.x,textPos.y),0xffffffff,date.c_str());
+    textPos += textDir * timeDelta * main_window_xres / 10;
+    mouseX = textPos.x;
+    mouseY = textPos.y;
+    if (textPos.x > main_window_xres-textSize.x) {
+      textDir.x = -(double)rand()/RAND_MAX-1;
+      textDir = normalize(textDir);
+    }
+    if (textPos.x < 0) {
+      textDir.x = (double)rand()/RAND_MAX+1;
+      textDir = normalize(textDir);
+    }
+    if (textPos.y > main_window_yres-textSize.y) {
+      textDir.y = -(double)rand()/RAND_MAX-1;
+      textDir = normalize(textDir);
+    }
+    if (textPos.y < 0) {
+      textDir.y = (double)rand()/RAND_MAX+1;
+      textDir = normalize(textDir);
+    }
+    ImGui::End();
+    ImGui::PopStyleColor();
+  }
+}
+
 void renderLoop() {
   while(!quit) {
     ImGuiNewFrame();
-    GLboolean shift,ctrl,alt;
-    glSpecialKeys(&shift,&ctrl,&alt);
+    perFrame();
     if (currentKey == GL_VK_ESCAPE && shift) dialogQuit(true);
     if (currentKey == GL_VK_F1) {takeScreenShot("SCRNSHOT.PNG");}
-    perFrame();
     updateCamera();
     drawToolBar();
     drawTexPaint();
@@ -128,6 +164,7 @@ void renderLoop() {
     if (!fullScreen) drawMenuBar();
     if (!fullScreen) drawOutliner(); // outliner has to be processed last (before rendering), because it does all the stuff
     drawScene();
+    paintScreenSaver();
     ImGui::Render();
     glRefresh();
   }
@@ -143,6 +180,7 @@ void defaultInit() {
   initDialogs();
   initPaint();
   createDataPointForNew();
+  screenSaverStartTime = glSeconds();
 }
 
 int main(int argc, const char *argv[]) {

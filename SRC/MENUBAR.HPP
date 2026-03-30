@@ -28,6 +28,7 @@
 
 extern int menuBar_height;
 extern bool showToolTips;
+extern bool screenSaverOn;
 
 String timeDescString();
 

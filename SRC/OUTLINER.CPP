@@ -110,8 +110,6 @@ void objectSelect(unsigned int i) {
 
   bool empty = strlen(gameObjects[i]->name) == 0;
   if (ImGui::Button(IDINDEXED(String(empty ? NONAME : gameObjects[i]->name)+String("##OBJECTSELECT"),i))) {
-    GLboolean shift,ctrl,alt;
-    glSpecialKeys(&shift,&ctrl,&alt);
     if (!shift) {
       for (int i = 0; i < gameObjects.size(); i++) {
         gameObjects[i]->selected = false;
@@ -211,8 +209,6 @@ bool gameObjectDeleteButton(bool enabled) {
 
 void maybeDisplayPlacementTooltip() {
   if (mode != MODE_SELECT) return;
-  GLboolean shift,ctrl,alt;
-  glSpecialKeys(&shift,&ctrl,&alt);
   if (!alt) return;
   ImGui::BeginTooltip();
   ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0.0,0.0,0.0,1));

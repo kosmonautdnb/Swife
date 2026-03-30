@@ -397,8 +397,6 @@ void addHitTestScaleGizmo(class GameObject *o, const Vector &minB, const Vector 
   unsigned int colorx = 0xff0000ff;
   unsigned int colory = 0xff00ff00;
   unsigned int colorz = 0xffff0000;
-  GLboolean shift,alt,ctrl;
-  glSpecialKeys(&shift,&alt,&ctrl);
   if (shift) colorx = colory = colorz = 0xffffff00;
   hitTestLine(o,HITTESTTOOL_SCALE_PLUS_X,xp,xp+xp2*k,colorx);
   hitTestLine(o,HITTESTTOOL_SCALE_PLUS_Y,yp,yp+yp2*k,colory);
