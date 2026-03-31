@@ -619,6 +619,8 @@ void dialogTroubleShooting(bool openIt) {
     "\n"
     "If you enable shadows.. Shadows are only cast by meshes.\n"
     "If mesh hull is not perfectly closed you see many errors in the shadows.\n"
+    "\n"
+    "Baking of properties could break Links.\n"
   );
   ImGui::EndChild();
   ImGui::Separator();

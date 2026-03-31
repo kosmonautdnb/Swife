@@ -80,6 +80,7 @@ extern const char *logFileName;
 
 extern int defaultRenderTargetWidth;
 extern int defaultRenderTargetHeight;
+extern bool refreshMasked;
 
 const char *idIndexed(const String &str, int number); // this function is not really safe, it cannot be nested
 const char *idIndexed(const char *prefix, int number); // this function is not really safe, it cannot be nested

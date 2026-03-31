@@ -51,6 +51,7 @@ String appFolder;
 
 int defaultRenderTargetWidth = 380;
 int defaultRenderTargetHeight = 380;
+bool refreshMasked = true;
 
 const char *idIndexed(const String &prefix, int number) {
   return idIndexed((const char*)prefix.c_str(), number);

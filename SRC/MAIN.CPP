@@ -170,7 +170,7 @@ void renderLoop() {
     drawScene();
     paintScreenSaver();
     ImGui::Render();
-    glRefresh();
+    if (refreshMasked) glRefreshMasked(); else glRefresh();
   }
 }
 
