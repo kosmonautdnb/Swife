@@ -194,9 +194,15 @@ Matrix toBillBoardTransform(const GameObject *o, const Matrix &m) {
   Matrix invCam = inverse(modelView);
   double rot = o->billBoardRotation*PI/180.0;
   if (o->billBoardRotateZ) {
+    double scaleX = length(m.getColumn(0)); // this is not 100% optimal
+    double scaleY = length(m.getColumn(1)); // this is not 100% optimal
+    if (scaleX == 0) scaleX = 1;
+    if (scaleY == 0) scaleY = 1;
+    scaleX *= 10.0;
+    scaleY *= 10.0;
     Vector p0 = projection*modelView*m*Vector(0,0,0);
-    Vector p1 = projection*modelView*m*Vector(0,1,0);
-    Vector p2 = projection*modelView*m*Vector(1,0,0);
+    Vector p1 = projection*modelView*m*Vector(0,1/scaleY,0);
+    Vector p2 = projection*modelView*m*Vector(1/scaleX,0,0);
     if (p0.w != 0) p0 /= p0.w;
     if (p1.w != 0) p1 /= p1.w;
     if (p2.w != 0) p2 /= p2.w;
@@ -205,7 +211,7 @@ Matrix toBillBoardTransform(const GameObject *o, const Matrix &m) {
     if (length(p1)>length(p2))
        rot -= atan2(-p1.y,p1.x)+PI*0.5;
     else
-       rot -= atan2(-p2.y,p2.x)+PI*0.5;
+       rot -= atan2(-p2.y,p2.x)+PI*0.5+PI*1.5;
   }
   Matrix angleZ = rotationMatrixAngleAxis(rot, 0, 0, 1);
   double aspect = o->billBoardAspect; if (aspect == 0) aspect = 1;
