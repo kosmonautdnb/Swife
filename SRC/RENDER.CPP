@@ -508,6 +508,8 @@ void drawGameObject(GameObject *o) {
       Matrix parentMatrix = linkMatrices.back(); linkMatrices.pop_back();
       Set<GameObject*> *c = circular.back(); circular.pop_back();
       l->hasDrawProblem = false;
+      // handle properties like repeat etc.. (this is highly "instable" but just for LINKS properties like repeat etc..)
+      static Array<Matrix> transforms; Matrix mt,invmt; processPropertiesForGameObject(o,transforms,mt,invmt,false);
       for (int i = 0; i < l->uniqueLinkIds.size(); i++) {
         int j = getObjectsIndexByUniqueId(l->uniqueLinkIds[i]);
         if (j >= 0) {
@@ -525,15 +527,12 @@ void drawGameObject(GameObject *o) {
           }
           Matrix parentBefore = o2->parentTransform;
           o2->parentTransform = m * inverse(o2->getObjectTransform());
-          Matrix parent = o2->parentTransform;     
 
-          // handle properties like repeat etc.. (this is highly "instable" but just for LINKS properties like repeat etc..)
-          Matrix restore = o->parentTransform; static Array<Matrix> transforms; Matrix mt,invmt; processPropertiesForGameObject(o,transforms,mt,invmt,false);
+          Matrix parent = o2->parentTransform;     
           for (int i = 0 ; i < transforms.size(); i++) {
             o2->parentTransform = mt * transforms[i] * invmt * parent;
-            paintSimpleGameObject(o2, i == 0 ? true : false);
+            paintSimpleGameObject(o2, false);
           }
-          o->parentTransform = restore;
         
           //paintSimpleGameObject(o2, false); // old stuff
           o2->parentTransform = parentBefore;
