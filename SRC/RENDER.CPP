@@ -503,13 +503,16 @@ void drawGameObject(GameObject *o) {
     links.push_back(o);
     linkMatrices.push_back(o->getObjectTransform());
     Set<GameObject*> *c = new Set<GameObject*>; c->insert(o); circular.push_back(c);
+    bool first = true;
     while(!links.empty()) {
       GameObject *l = links.back(); links.pop_back();
       Matrix parentMatrix = linkMatrices.back(); linkMatrices.pop_back();
       Set<GameObject*> *c = circular.back(); circular.pop_back();
       l->hasDrawProblem = false;
       // handle properties like repeat etc.. (this is highly "instable" but just for LINKS properties like repeat etc..)
-      static Array<Matrix> transforms; Matrix mt,invmt; processPropertiesForGameObject(o,transforms,mt,invmt,false);
+      bool doBaking = first && o->bakeAllProperties; if (doBaking) o->bakeAllProperties = false;
+      static Array<Matrix> transforms; Matrix mt,invmt; processPropertiesForGameObject(o,transforms,mt,invmt,doBaking);
+      first = false;
       for (int i = 0; i < l->uniqueLinkIds.size(); i++) {
         int j = getObjectsIndexByUniqueId(l->uniqueLinkIds[i]);
         if (j >= 0) {
@@ -536,6 +539,24 @@ void drawGameObject(GameObject *o) {
         
           //paintSimpleGameObject(o2, false); // old stuff
           o2->parentTransform = parentBefore;
+        }
+      }
+      if (doBaking) {
+        int index = -1; for (int k = 0; k < gameObjects.size(); k++) if (gameObjects[k] == o) index = k;
+        if (index >= 0) { // baking
+          for (int i = 0 ; i < transforms.size(); i++) {
+            Matrix parentTransform = mt * transforms[i] * invmt;
+            GameObject *o2 = o->clone(); cloneName(o2->name, o->name);
+            Vector a = o->anchor; if (a.w != 0) {a /= a.w; a.w = 1;} Matrix ma; ma.translate(a);
+            Matrix m2 = parentTransform * mt * ma;
+            Quaternion rotation = normalize(rotationMatrixToQuaternion(m2.rotationMatrix3x3()));
+            o2->translation = m2.getColumn(3); o2->translation.w = 1;
+            o2->rotation = rotation;
+            o2->scaling = Vector(m2.getColumn(0).length(),m2.getColumn(1).length(),m2.getColumn(2).length());
+            o2->parentTransform = Matrix();
+            gameObjects.insert(o2,index+1+i);
+          }
+          gameObjects.erase(index,1);
         }
       }
       delete c;
