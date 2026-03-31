@@ -304,18 +304,12 @@ void paintRawGameObject(GameObject *o, bool showModificators) {
   }
 }
 
-void paintSimpleGameObject(GameObject *o, bool showModificators) {
-
-  Matrix restore = o->parentTransform;
-
-  static Array<Matrix> transforms;
+void processPropertiesForGameObject(GameObject *o,Array<Matrix> &transforms, Matrix &mt, Matrix &invmt, bool doBaking) {
   transforms.clear();
   transforms.push_back(Matrix());
 
-  Matrix mt = o->getObjectTransform(); Matrix invmt = inverse(mt);
+  mt = o->getObjectTransform(); invmt = inverse(mt);
   Matrix rt = mt.rotationMatrix3x3(); Matrix invrt = inverse(rt);
-
-  bool doBaking = o->bakeAllProperties; o->bakeAllProperties = false;
 
   for (int j = 0; j < o->properties.size(); j++) {
     switch(o->properties[j].type) {
@@ -447,6 +441,13 @@ void paintSimpleGameObject(GameObject *o, bool showModificators) {
       } break;
     }
   }
+}
+
+void paintSimpleGameObject(GameObject *o, bool showModificators) {
+
+  bool doBaking = o->bakeAllProperties; o->bakeAllProperties = false;
+
+  Matrix restore = o->parentTransform; static Array<Matrix> transforms; Matrix mt,invmt; processPropertiesForGameObject(o,transforms,mt,invmt,doBaking);
 
   int index = -1; for (int k = 0; k < gameObjects.size(); k++) if (gameObjects[k] == o) index = k;
 
@@ -470,6 +471,10 @@ void paintSimpleGameObject(GameObject *o, bool showModificators) {
   }
 
   o->parentTransform = restore;
+
+  if (doBaking && index>=0) {
+    gameObjects.erase(index,1);
+  }
 }
 
 bool stencilMarkMode = false;
@@ -492,10 +497,8 @@ void drawGameObject(GameObject *o) {
   switch(o->type) {
   case GAMEOBJECT_LINK: {
     // no recursion allowed in WatcomC
-    Array<GameObject*> objs;
     Array<GameObject*> links;
     Array<Set<GameObject*> * > circular;
-    Array<Matrix> objParentMatrices;
     Array<Matrix> linkMatrices;
     links.push_back(o);
     linkMatrices.push_back(o->getObjectTransform());
@@ -508,11 +511,11 @@ void drawGameObject(GameObject *o) {
       for (int i = 0; i < l->uniqueLinkIds.size(); i++) {
         int j = getObjectsIndexByUniqueId(l->uniqueLinkIds[i]);
         if (j >= 0) {
-          GameObject *o = gameObjects[j];
-          Matrix m = parentMatrix * o->getObjectTransform();
-          if (o->type == GAMEOBJECT_LINK) {
-            if (!c->has(o)) {
-              links.push_back(o);
+          GameObject *o2 = gameObjects[j];
+          Matrix m = parentMatrix * o2->getObjectTransform();
+          if (o2->type == GAMEOBJECT_LINK) {
+            if (!c->has(o2)) {
+              links.push_back(o2);
               linkMatrices.push_back(m);
               Set<GameObject*> *c2 = new Set<GameObject*>; *c2 = *c; c2->insert(o); circular.push_back(c2);
             } else {
@@ -520,17 +523,23 @@ void drawGameObject(GameObject *o) {
               drawProblems++;
             }
           }
-          objs.push_back(o);
-          objParentMatrices.push_back(m);
+          Matrix parentBefore = o2->parentTransform;
+          o2->parentTransform = m * inverse(o2->getObjectTransform());
+          Matrix parent = o2->parentTransform;     
+
+          // handle properties like repeat etc.. (this is highly "instable" but just for LINKS properties like repeat etc..)
+          Matrix restore = o->parentTransform; static Array<Matrix> transforms; Matrix mt,invmt; processPropertiesForGameObject(o,transforms,mt,invmt,false);
+          for (int i = 0 ; i < transforms.size(); i++) {
+            o2->parentTransform = mt * transforms[i] * invmt * parent;
+            paintSimpleGameObject(o2, i == 0 ? true : false);
+          }
+          o->parentTransform = restore;
+        
+          //paintSimpleGameObject(o2, false); // old stuff
+          o2->parentTransform = parentBefore;
         }
       }
       delete c;
-    }
-    for (int i = 0; i < objs.size(); i++) {
-      Matrix parentBefore = objs[i]->parentTransform;
-      objs[i]->parentTransform = objParentMatrices[i] * inverse(objs[i]->getObjectTransform());
-      paintSimpleGameObject(objs[i], false);
-      objs[i]->parentTransform = parentBefore;
     }
   } break;
   default:

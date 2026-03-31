@@ -261,10 +261,12 @@ bool editProperty(GameObject *o, GameObjectProperty *p, int i) {
       }
       if (p->goRepeat<0) p->goRepeat=0;
 
-      ImGui::SameLine();
-      if (propsButton(IDINDEXED("Bake all##PROPERTYEDITBAKEALL",i),strlen("Bake all") + 2 + strlen("Use path") + 4)) {
-        o->bakeAllProperties = true;
-        renderingUpdated = true;
+      if (o->type != GAMEOBJECT_LINK) {
+        ImGui::SameLine();
+        if (propsButton(IDINDEXED("Bake all##PROPERTYEDITBAKEALL",i),strlen("Bake all") + 2 + strlen("Use path") + 4)) {
+          o->bakeAllProperties = true;
+          renderingUpdated = true;
+        }
       }
 
       if (!p->goCheck1) {   
