@@ -621,6 +621,8 @@ void dialogTroubleShooting(bool openIt) {
     "If mesh hull is not perfectly closed you see many errors in the shadows.\n"
     "\n"
     "Baking of properties could break Links.\n"
+    "\n"
+    "Billboards with \"rotate around Z\" behave strange when in a Link and get unlinked later.\n"
   );
   ImGui::EndChild();
   ImGui::Separator();
