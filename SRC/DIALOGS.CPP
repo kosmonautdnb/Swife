@@ -157,8 +157,7 @@ void dialogDeleteGameObjects(bool openIt) {
   if (ImGui::Button("Delete##DIALOGDELETEOBJECTSYES")) {
     for(int i = 0; i < gameObjects.size(); i++) 
       if (gameObjects[i]->selected) {
-        deleteGameObject(i);
-        i--;
+        shouldDeleteGameObject(i);
       }
     ImGui::CloseCurrentPopup();
   }

@@ -98,6 +98,7 @@ void perFrame() {
   mouseB |= mouseButtons & GL_MOUSE_BUTTON_RIGHT ? 2 : 0;
   GLboolean shift2,ctrl2,alt2; glSpecialKeys(&shift2,&ctrl2,&alt2); shift = shift2 ? true : false;  ctrl = ctrl2 ? true : false; alt = alt2 ? true : false;
   clearAllUnusedBindings();
+  deleteGameObjects();
   if (currentKey != 0 || shift || ctrl || alt || mouseDX != 0 || mouseDY != 0 || mouseB != 0) screenSaverStartTime = glSeconds();
 }
 

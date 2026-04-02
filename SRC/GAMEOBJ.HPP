@@ -237,6 +237,7 @@ public:
     showOverlay = false;
     bakeAllProperties = false;
     enableUnlink = false;
+    deleteIt = false;
   }
 
   unsigned int layers;
@@ -285,6 +286,7 @@ public:
   bool isCamera[CAMERA_COUNT];
   bool bakeAllProperties;
   bool enableUnlink;
+  bool deleteIt;
   Array<GameObjectProperty> properties;
   Array<unsigned int> uniqueLinkIds;
   Camera camera;
@@ -371,7 +373,8 @@ extern Array<GameObject*> gameObjects;
 
 void initGameObjects();
 GameObject *addGameObject(const char *name);
-void deleteGameObject(int index);
+void deleteGameObjects();
+void shouldDeleteGameObject(int index);
 void freeGameObjects();
 
 void cloneName(char *destName, const char *originalName);

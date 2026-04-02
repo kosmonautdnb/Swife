@@ -323,10 +323,19 @@ GameObject *addGameObject(const char *name) {
   return o;
 }
 
-void deleteGameObject(int index) {
-  delete gameObjects[index];
-  gameObjects.erase(index,1);
-  renderingUpdated = true;
+void deleteGameObjects() {
+  for (int i = 0; i < gameObjects.size(); i++) {
+    if (gameObjects[i]->deleteIt) {
+      delete gameObjects[i];
+      gameObjects.erase(i,1);
+      i--;
+      renderingUpdated = true;
+    }
+  }
+}
+
+void shouldDeleteGameObject(int index) {
+  gameObjects[index]->deleteIt = true;
 }
 
 void freeGameObjects() {
