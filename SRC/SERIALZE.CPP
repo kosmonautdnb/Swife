@@ -49,7 +49,7 @@
 #include "UTIL/LOG.HPP"
 #include <math.h>
 
-int version = 106;
+int version = 107;
 
 const char *fileTypeNames[FILETYPE_COUNT] = {"none","skybox","mesh","billboard","texturegrid","textureatlas","heightmap","overlay"};
 

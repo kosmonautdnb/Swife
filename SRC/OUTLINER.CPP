@@ -38,6 +38,7 @@ char outliner_filter[NAMEMAX] = {0};
 
 unsigned int outlinerLayers = 1;
 char selectedGroupName[NAMEMAX];
+bool showObjectDates = false;
 
 unsigned int layerSelection(unsigned int a, const char *dcl) {
   char buffer[16];
@@ -62,6 +63,15 @@ bool sectionVisible;
 int sectionCounter = -1;
 bool sectionSelecting;
 bool sectionSelectingType;
+
+const char *getOutlinerName(GameObject *o) {
+  static char name2[NAMEMAX];
+  if (showObjectDates) {
+    sprintf(name2,"%s.%s.%s %s:%s",hex2_(o->date & 255).c_str(),hex2_((o->date>>8) & 255).c_str(),hex2_((o->date>>16) & 255).c_str(),hex2_((o->time>>16) & 255).c_str(),hex2_((o->time>>8) & 255).c_str());
+    return name2;
+  }
+  return o->name;
+}
 
 void objectSelect(unsigned int i) {
   const unsigned int t = gameObjects[i]->type;
@@ -108,8 +118,8 @@ void objectSelect(unsigned int i) {
     ImGui::SameLine();
   }
 
-  bool empty = strlen(gameObjects[i]->name) == 0;
-  if (ImGui::Button(IDINDEXED(String(empty ? NONAME : gameObjects[i]->name)+String("##OBJECTSELECT"),i))) {
+  bool empty = strlen(getOutlinerName(gameObjects[i])) == 0;
+  if (ImGui::Button(IDINDEXED(String(empty ? NONAME : getOutlinerName(gameObjects[i]))+String("##OBJECTSELECT"),i))) {
     if (!shift) {
       for (int i = 0; i < gameObjects.size(); i++) {
         gameObjects[i]->selected = false;
@@ -119,7 +129,7 @@ void objectSelect(unsigned int i) {
     renderingUpdated = true; // needed
     if (shift && t == GAMEOBJECT_SECTION) {sectionSelecting = true; sectionSelectingType = gameObjects[i]->selected;}
     currentSelectedAltuniqueId = gameObjects[i]->uniqueId;
-  }
+  } else if (showObjectDates) drawToolTip("%s",gameObjects[i]->name);
 
   if (gameObjects[i]->type == GAMEOBJECT_LINK && gameObjects[i]->showLinks) {
     if (gameObjects[i]->uniqueLinkIds.empty()) {
@@ -130,7 +140,7 @@ void objectSelect(unsigned int i) {
         int j = getObjectsIndexByUniqueId(object->uniqueLinkIds[i]);
         if (j >= 0) {
           GameObject *o = gameObjects[j];
-          ImGui::Text("%d\"%s\"",j ,o->name);
+          ImGui::Text("%d\"%s\"",j ,getOutlinerName(o));
         } else {
           ImGui::Text("<deleted>");
         }
@@ -272,8 +282,8 @@ void drawOutliner() {
     if (sectionSelecting) gameObjects[i]->selected = sectionSelectingType;
     int l = gameObjects[i]->layers;
     if ((l==0)||(outlinerLayers==0)||(l & outlinerLayers)) {
-      bool empty = strlen(gameObjects[i]->name) == 0;
-      const char *n = empty ? NONAME : gameObjects[i]->name;
+      bool empty = strlen(getOutlinerName(gameObjects[i])) == 0;
+      const char *n = empty ? NONAME : getOutlinerName(gameObjects[i]);
       if (gameObjects[i]->type == GAMEOBJECT_SECTION || filter.empty() || (toLower(n).findFirst(filter)>=0)) {
         if (sectionOn || gameObjects[i]->type == GAMEOBJECT_SECTION) visibles++;
         if (markAllWithSelecty && sectionOn) gameObjects[i]->selected = selecty;
@@ -282,7 +292,7 @@ void drawOutliner() {
       }
     }
     if (gameObjects[i]->type == GAMEOBJECT_SECTION) 
-      sprintf(groupName,"%s",gameObjects[i]->name);
+      sprintf(groupName,"%s",getOutlinerName(gameObjects[i]));
     else if (gameObjects[i]->selected && (strlen(selectedGroupName)==0)) sprintf(selectedGroupName,"%s",groupName);
     if (selectBefore != gameObjects[i]->selected) renderingUpdated = true;
   }

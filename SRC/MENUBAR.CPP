@@ -35,11 +35,12 @@
 #include "SVG.HPP"
 #include "PAINT.HPP"
 #include "PROPS.HPP"
+#include "OUTLINER.HPP"
 
 int menuBar_height = 17;
 bool screenSaverOn = true;
 
-static String hex(int v) {
+String hex2_(int v) {
   const char *h="0123456789ABCDEF";
   String r;
   r.resize(2);
@@ -57,7 +58,7 @@ String timeDescString() {
   int rtc_month   = rtcRead(8);
   int rtc_year    = rtcRead(9);
   const char *day[8] ={"Mon","Tue","Wed","Thu","Fri","Sat","Sun","Mon"};
-  return hex(rtc_day)+"."+hex(rtc_month)+"."+hex(rtc_year)+" "+String(day[(rtc_weekday-2)&7])+" "+hex(rtc_hours)+":"+hex(rtc_minutes);
+  return hex2_(rtc_day)+"."+hex2_(rtc_month)+"."+hex2_(rtc_year)+" "+String(day[(rtc_weekday-2)&7])+" "+hex2_(rtc_hours)+":"+hex2_(rtc_minutes);
 }
 
 bool showToolTips = true;
@@ -153,7 +154,7 @@ void drawMenuBar() {
       selected = showGrids; if (ImGui::MenuItem("Show grids","",&selected)) {showGrids = !showGrids; renderingUpdated = true;}
       selected = showOverlays; if (ImGui::MenuItem("Show overlays","",&selected)) {showOverlays = !showOverlays; renderingUpdated = true;}
       selected = drawObjectNames; if (ImGui::MenuItem("Show names","",&selected,showOverlays)) {drawObjectNames = !drawObjectNames; renderingUpdated = true;}
-      selected = drawSelectionDesc; if (ImGui::MenuItem("Selected object description","",&selected,showOverlays)) {drawSelectionDesc = !drawSelectionDesc; renderingUpdated = true;}
+      selected = drawSelectionDesc; if (ImGui::MenuItem("Show object description","",&selected,showOverlays)) {drawSelectionDesc = !drawSelectionDesc; renderingUpdated = true;}
       ImGui::Separator();
       selected = selectionOutlineOn; if (ImGui::MenuItem("Outline around selection","",&selected)) {selectionOutlineOn = !selectionOutlineOn;}
       ImGui::EndMenu();
@@ -206,6 +207,7 @@ void drawMenuBar() {
       bool selected = false;
       selected = screenSaverOn; if (ImGui::MenuItem("Screen saver","",&selected)) {screenSaverOn = !screenSaverOn;}
       selected = showToolTips; if (ImGui::MenuItem("Show tooltips","",&selected)) {showToolTips = !showToolTips;}
+      selected = showObjectDates; if (ImGui::MenuItem("List creation dates","",&selected)) {showObjectDates = !showObjectDates;}
       ImGui::EndMenu();
     }
 

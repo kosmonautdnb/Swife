@@ -37,6 +37,19 @@ const char *gameObjectTypeNames[GAMEOBJECT_COUNT] = {"undefined", "mesh", "camer
 const char *propertyTypeNames[GAMEOBJECTPROPERTY_COUNT] = {"undefined", "bool", "int", "float", "float4", "text", "color","links","script","repeat","valley"};
 const char *interpolationNames[INTERPOLATION_COUNT] = {"step","linear","catmulrom"};
 
+unsigned int getDate() {
+  int rtc_day     = rtcRead(7);
+  int rtc_month   = rtcRead(8);
+  int rtc_year    = rtcRead(9);
+  return rtc_day+(rtc_month<<8)+(rtc_year<<16);
+}
+
+unsigned int getTime() {
+  int rtc_seconds = rtcRead(0);
+  int rtc_minutes = rtcRead(2);
+  int rtc_hours   = rtcRead(4);
+  return rtc_seconds+(rtc_minutes<<8)+(rtc_hours<<16);
+}
 
 void GameObjectProperty::setName(const char *name) {
   sprintf(this->name,"%s",name);

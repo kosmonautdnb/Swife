@@ -187,6 +187,9 @@ enum INTERPOLATIONTYPE {
 };
 extern const char *interpolationNames[INTERPOLATION_COUNT];
 
+unsigned int getDate();
+unsigned int getTime();
+
 class GameObject { // not virtual (clone wouldn't work)
 public:
   GameObject() {
@@ -194,6 +197,8 @@ public:
     type = GAMEOBJECT_UNDEFINED;
     sprintf(name,NONAME);
     sprintf(caption,"<>");
+    date = getDate();
+    time = getTime();
     selected = false;
     anchor.set(0,0,0);
     translation.set(0,0,0);
@@ -249,6 +254,8 @@ public:
   unsigned int color;
   char name[NAMEMAX];
   char caption[NAMEMAX];
+  unsigned int date;
+  unsigned int time;
   bool selected;
   bool sectionOn;
   int sectionLength;
@@ -326,6 +333,8 @@ public:
   S_UINT("color",(__o__)->color);\
   S_NAME("name",(__o__)->name);\
   S_NAME("caption",(__o__)->caption);\
+  S_UINT("date",(__o__)->date);\
+  S_UINT("time",(__o__)->time);\
   S_BOOL("selected",(__o__)->selected);\
   S_BOOL("sectionOn",(__o__)->sectionOn);\
   S_INT("sectionLength",(__o__)->sectionLength);\

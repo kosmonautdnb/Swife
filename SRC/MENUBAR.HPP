@@ -29,7 +29,7 @@
 extern int menuBar_height;
 extern bool showToolTips;
 extern bool screenSaverOn;
-
+extern String hex2_(int v);
 String timeDescString();
 
 void drawToolTip(const char *fmt, ...);

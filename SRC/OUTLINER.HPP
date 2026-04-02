@@ -29,8 +29,10 @@
 extern int outliner_width;
 extern unsigned int outlinerLayers;
 extern char selectedGroupName[NAMEMAX];
+extern bool showObjectDates;
 
 unsigned int layerSelection(unsigned int a, const char *dcl);
+
 
 void drawOutliner();
 
