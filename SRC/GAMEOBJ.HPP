@@ -236,6 +236,7 @@ public:
     sliderPos = 0;
     showOverlay = false;
     bakeAllProperties = false;
+    enableUnlink = false;
   }
 
   unsigned int layers;
@@ -283,6 +284,7 @@ public:
   bool showStructure;
   bool isCamera[CAMERA_COUNT];
   bool bakeAllProperties;
+  bool enableUnlink;
   Array<GameObjectProperty> properties;
   Array<unsigned int> uniqueLinkIds;
   Camera camera;

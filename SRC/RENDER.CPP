@@ -230,6 +230,13 @@ void initRendering() {
   renderingUpdated = true;
 }
 
+void unlinkLinks() {
+  for (int i = 0; i < gameObjects.size(); i++) {
+    GameObject *o = gameObjects[i];
+    if (o->selected && o->type == GAMEOBJECT_LINK) o->enableUnlink = true;
+  }
+}
+
 void enableFrameBuffer(bool tiny) {
   int tx = tiny ? renderTinyDividerX : 1;
   int ty = tiny ? renderTinyDividerY : 1;
@@ -496,6 +503,31 @@ void drawGameObject(GameObject *o) {
   if (o->selected) stencilMarkModeOn();
   switch(o->type) {
   case GAMEOBJECT_LINK: {
+    if (o->enableUnlink) {
+      o->enableUnlink = false;
+      int index = -1; for (int k = 0; k < gameObjects.size(); k++) if (gameObjects[k] == o) index = k;
+      if (index >= 0) {
+        for (int i = 0; i < o->uniqueLinkIds.size(); i++) {
+          int j = getObjectsIndexByUniqueId(o->uniqueLinkIds[i]);
+          if (j >= 0) {
+            GameObject *link = o;
+            GameObject *here = gameObjects[j]; Matrix parentTransform = link->parentTransform * link->getObjectTransform() * here->parentTransform;
+            GameObject *cloned = here->clone(); cloneName(cloned->name, here->name);
+            Vector a = here->anchor; if (a.w != 0) {a /= a.w; a.w = 1;} Matrix ma; ma.translate(a);
+            Matrix m2 = parentTransform * here->getObjectTransform() * ma;
+            Quaternion rotation = normalize(rotationMatrixToQuaternion(m2.rotationMatrix3x3()));
+            cloned->translation = m2.getColumn(3); cloned->translation.w = 1;
+            cloned->rotation = rotation;
+            cloned->scaling = Vector(m2.getColumn(0).length(),m2.getColumn(1).length(),m2.getColumn(2).length());
+            cloned->parentTransform = Matrix();
+            gameObjects.insert(cloned,index+1+i);
+          }
+        }
+        gameObjects.erase(index,1);
+        renderingUpdated = true;
+      }
+      break;
+    }
     // no recursion allowed in WatcomC
     Array<GameObject*> links;
     Array<Set<GameObject*> * > circular;
@@ -547,7 +579,7 @@ void drawGameObject(GameObject *o) {
           for (int i = 0 ; i < transforms.size(); i++) {
             Matrix parentTransform = mt * transforms[i] * invmt;
             GameObject *o2 = o->clone(); cloneName(o2->name, o->name);
-            Vector a = o->anchor; if (a.w != 0) {a /= a.w; a.w = 1;} Matrix ma; ma.translate(a);
+            Vector a = o2->anchor; if (a.w != 0) {a /= a.w; a.w = 1;} Matrix ma; ma.translate(a);
             Matrix m2 = parentTransform * mt * ma;
             Quaternion rotation = normalize(rotationMatrixToQuaternion(m2.rotationMatrix3x3()));
             o2->translation = m2.getColumn(3); o2->translation.w = 1;

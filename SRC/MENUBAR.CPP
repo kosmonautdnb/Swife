@@ -191,6 +191,8 @@ void drawMenuBar() {
       if (ImGui::MenuItem("View bindings")) {dialogViewBindings(true);}
       if (ImGui::MenuItem("Grid settings")) {dialogGridSettings(true);}
       ImGui::Separator();
+      if (ImGui::MenuItem("Unlink links","",false, one)) {unlinkLinks();}
+      ImGui::Separator();
       if (ImGui::MenuItem("Reload all")) {reloadAll();}
       ImGui::EndMenu();
     }

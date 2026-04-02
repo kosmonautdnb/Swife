@@ -93,6 +93,8 @@ extern bool showGrids;
 extern bool selectionOutlineOn;
 extern int renderMouseClicksOff;
 
+void unlinkLinks();
+
 void lightSetup(bool on);
 
 void disableRenderMouseClicks();
