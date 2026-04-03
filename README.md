@@ -19,4 +19,10 @@ If you simply want to place objects or billboards/sprites in a 3D scene, the fre
 
 A simple "description" video on YouTube: https://youtu.be/mZzvaHuNcAc?si=wcby2ptquoGMkwTJ
 
+## WatcomGL
+You can find the newest version of WatcomGL, an OpenGL for WatcomC++11.0/DJGPP/OpenWatcom here:  
+https://github.com/kosmonautdnb/WatcomGL  
+And the newest versions of the libraries used here, here:  
+https://github.com/kosmonautdnb/WatcomLibs  
+
 ### (c)2026 by Stefan Mader
