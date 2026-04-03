@@ -32,6 +32,7 @@ extern bool screenSaverOn;
 extern String hex2_(int v);
 String timeDescString();
 
+void drawToolTipForced(const char *fmt, ...);
 void drawToolTip(const char *fmt, ...);
 
 void drawMenuBar();

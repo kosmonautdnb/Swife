@@ -233,5 +233,19 @@ int main(int argc, const char *argv[]) {
 
   logd("finished.");
 
+  printf("Swife version %d.%02d!\n",version / 100, version % 100);
+  printf("-----------------------\n");
+  printf("A tiny tool by Puls4r productions.\n");
+  printf("This experimental DOS application\n");
+  printf("is just designed for simple 3D object\n");
+  printf("placement. It's by far not a professional tool.\n");
+  printf("If you just need to place some simple\n");
+  printf("objects in 3D space for a game or alike,\n");
+  printf("maybe it already suffices.\n");
+  printf("It's freeware and can be found here:\n");
+  printf("www.github.com/kosmonautdnb/swife\n");
+  printf("-----------------------\n");
+  printf("Have a good day and maybe till next time.\n");
+
   return 0;
 }

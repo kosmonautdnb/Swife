@@ -77,6 +77,19 @@ void drawToolTip(const char *fmt, ...) {
   }
 }
 
+void drawToolTipForced(const char *fmt, ...) {
+  if (ImGui::IsItemHovered()) {
+    ImGui::BeginTooltip();
+    ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0.0,0.0,0.0,1));
+    va_list args;
+    va_start(args, fmt);
+    ImGui::TextV(fmt, args);
+    va_end(args);
+    ImGui::PopStyleColor();
+    ImGui::EndTooltip();
+  }
+}
+
 void drawMenuBar() {
   bool on = false;
   GameObject *first = NULL;

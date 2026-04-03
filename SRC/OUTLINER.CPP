@@ -129,7 +129,7 @@ void objectSelect(unsigned int i) {
     renderingUpdated = true; // needed
     if (shift && t == GAMEOBJECT_SECTION) {sectionSelecting = true; sectionSelectingType = gameObjects[i]->selected;}
     currentSelectedAltuniqueId = gameObjects[i]->uniqueId;
-  } else if (showObjectDates) drawToolTip("%s",gameObjects[i]->name);
+  } else if (showObjectDates) drawToolTipForced("%s",gameObjects[i]->name);
 
   if (gameObjects[i]->type == GAMEOBJECT_LINK && gameObjects[i]->showLinks) {
     if (gameObjects[i]->uniqueLinkIds.empty()) {
