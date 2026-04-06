@@ -111,7 +111,7 @@ void writeJson(Array<char> *arr, FILE *file, String *string) {
 }
 
 #define STARTSERIALIZATION(__save__) String serZip = lastZipFile; String serZipFile = lastZippedFile; int arrayIndex = 0; bool error = false; JSON_Value *jval; Array<JSON_Value*> jvals; Array<char> jsonArray; jsonArray.resize(JSONPORTIONLENGTH); jsonArray[0] = '{'; char *jsonPos = &jsonArray[1]; bool jsonIsSaving = __save__; if (!jsonIsSaving) {readJson(&jsonArray,file,fileString);jval=json_parse_string_with_comments(&jsonArray[0]); jvals.push_back(jval); jsonPos = (char*)&jvals; if (jval==NULL) error = true;}
-#define FINISHSERIALIZATION() {if (jsonIsSaving) {if (jsonPos[-1] == ',' ) jsonPos--; sprintf(jsonPos,"}");writeJson(&jsonArray,file,fileString);}}
+#define FINISHSERIALIZATION() {if (jsonIsSaving) {if (jsonPos[-1] == ',' ) jsonPos--; sprintf(jsonPos,"}");jsonPos++;jsonArray.resize((unsigned int)(jsonPos-&jsonArray[0]));writeJson(&jsonArray,file,fileString);}}
 
 #define S_NULL(__name__)  {jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_NULL, __name__, NULL, jsonIsSaving,arrayIndex);}
 #define S_BOOL(__name__, __v__)  {bool *typeSafe = &(__v__); UNUSED(typeSafe); jsonSerialize(&jsonArray, (void**)&jsonPos, JSONTYPE_BOOL, __name__, &(__v__), jsonIsSaving,arrayIndex);}
@@ -287,8 +287,8 @@ void serializeAll(FILE *file, bool save, String *fileString) {
     arrayIndex = i1;
     S_GRID(NULL,&grids[i1]);
   }
-
   S_ARRAY_CLOSE();
+
   S_ARRAY_OPEN("gameObjects");
   S_ARRAY_POINTER_RESIZE(gameObjects,GameObject,arraySize);
   for (int i2 = 0; i2 < gameObjects.size(); i2++) {
