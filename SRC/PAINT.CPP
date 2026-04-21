@@ -1081,7 +1081,7 @@ void paintCursor() {
 double catmulromT(double t, double alpha, const Vector &p0, const Vector &p1)  {
   if (alpha < 0.0001) alpha = 0.0001;
   Vector d = p1 - p0;
-  return pow(dot(d,d),alpha*0.5) + t;
+  return powd(dot(d,d),alpha*0.5) + t;
 }
 
 double divi(double a,double b) {
