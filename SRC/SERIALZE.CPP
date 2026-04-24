@@ -1720,7 +1720,7 @@ void getFileArray(Array<unsigned char> *arr,const String &maybeExtendedFileName)
   lastZipFile = "";
   lastZippedFile = "";
   String fullFileName = shortFileName(dosFileName(maybeExtendedFileName));
-  FILE *in = fopen(fullFileName.c_str(),"rb");
+  FILE *in = fopen(dosFileName(fullFileName).c_str(),"rb");
   if (in == NULL) return;
   fseek(in,0,SEEK_END);
   unsigned int fileLen = ftell(in);
@@ -1766,7 +1766,7 @@ void decompressFileEnd(const String &fileName) {
 
 void unpackZipFileToFile(const char *tempFileName, const char *zipFileName, const char *zippedFileName) {
   logd("unpackZipFileToFile start <%s>,<%s>,<%s>",tempFileName,zipFileName,zippedFileName);
-  FILE *in = fopen(shortFileName(dosFileName(zipFileName)).c_str(),"rb"); if (in == NULL) return;
+  FILE *in = fopen(dosFileName(shortFileName(dosFileName(zipFileName))).c_str(),"rb"); if (in == NULL) return;
   mz_zip_archive zip;  mz_zip_archive_file_stat file_stat;  mz_zip_zero_struct(&zip);
 
   if (mz_zip_reader_init_cfile(&zip, in, 0, MZ_ZIP_FLAG_ASCII_FILENAME)) {
@@ -1791,7 +1791,7 @@ void unpackZipFileToFile(const char *tempFileName, const char *zipFileName, cons
 
 void unpackZipFileToArray(Array<unsigned char> *arr, const char *zipFileName, const char *zippedFileName) {
   logd("unpackZipFileToArray start <%s>,<%s>",zipFileName,zippedFileName);
-  FILE *in = fopen(shortFileName(dosFileName(zipFileName)).c_str(),"rb"); if (in == NULL) return;
+  FILE *in = fopen(dosFileName(shortFileName(dosFileName(zipFileName))).c_str(),"rb"); if (in == NULL) return;
   mz_zip_archive zip;  mz_zip_archive_file_stat file_stat;  mz_zip_zero_struct(&zip);
 
   if (mz_zip_reader_init_cfile(&zip, in, 0, MZ_ZIP_FLAG_ASCII_FILENAME)) {
@@ -1818,7 +1818,7 @@ Array<File> getZipDirectory(const char *path, const char *zipFileName) {
   Array<File> ret;
 
   String fullName = String(path) + zipFileName;
-  FILE *in = fopen(shortFileName(dosFileName(fullName)).c_str(),"rb"); if (in == NULL) return ret;
+  FILE *in = fopen(dosFileName(shortFileName(dosFileName(fullName))).c_str(),"rb"); if (in == NULL) return ret;
   mz_zip_archive zip;  mz_zip_archive_file_stat file_stat;  mz_zip_zero_struct(&zip);
 
   if (mz_zip_reader_init_cfile(&zip, in, 0, MZ_ZIP_FLAG_ASCII_FILENAME)) {
@@ -1882,7 +1882,7 @@ void patchFileName(String *oldFileName, mz_zip_archive *zip, const String &zipNa
 void patchFileName(String *fileName, const String &zipName, const String &zipFileName) {
   UNUSED(zipFileName);
   if (zipName.empty()) return;
-  String zwo = shortFileName(dosFileName(zipName)); FILE *in = fopen(zwo.c_str(),"rb"); if (in == NULL) return;
+  String zwo = shortFileName(dosFileName(zipName)); FILE *in = fopen(dosFileName(zwo).c_str(),"rb"); if (in == NULL) return;
   mz_zip_archive zip; mz_zip_zero_struct(&zip);
   if (mz_zip_reader_init_cfile(&zip, in, 0, MZ_ZIP_FLAG_ASCII_FILENAME)) {
     patchFileName(fileName,&zip, zipName);
@@ -1894,7 +1894,7 @@ void patchFileName(String *fileName, const String &zipName, const String &zipFil
 void patchBinding(class FileBinding *b, const String &zipName, const String &zipFileName) {
   UNUSED(zipFileName);
   if (zipName.empty()) return;
-  FILE *in = fopen(shortFileName(dosFileName(zipName)).c_str(),"rb"); if (in == NULL) return;
+  FILE *in = fopen(dosFileName(shortFileName(dosFileName(zipName))).c_str(),"rb"); if (in == NULL) return;
   mz_zip_archive zip; mz_zip_zero_struct(&zip);
   if (mz_zip_reader_init_cfile(&zip, in, 0, MZ_ZIP_FLAG_ASCII_FILENAME)) {
     patchFileName(&b->fileName,&zip, zipName);
