@@ -23,6 +23,12 @@ public:
     data = new T[(unsigned int)allocatedSize]; // no 64 bit new
   }
 
+//#ifdef __DJGPP__
+//#if __cplusplus >= 201103
+//  Array(const Array &b) = default; // maybe better to have the copy constructor implicitely defined default
+//#endif
+//#endif
+
   const Array &operator=(const Array &b) {
     T *copy = new T[(unsigned int)b.allocatedSize]; // no 64 bit new
     for (size_t i = 0; i < b.usedSize; i++)
@@ -45,7 +51,7 @@ public:
     T *data2 = new T[(unsigned int)numElements]; // no 64 bit new
     for (size_t i = 0; i < numElements; i++)
       data2[i] = i < usedSize ? data[i] : T();
-    delete[] data;
+    if (data != NULL) delete[] data;
     data = data2;
     allocatedSize = numElements;
   }
@@ -122,6 +128,16 @@ public:
   void pop_back() {
     if (usedSize > 0)
       usedSize--;
+  }
+
+  void afterCopy() {
+    // no copy constructor, yet
+    T *copiedData = data;
+    size_t copiedSize = usedSize;
+    data = NULL;
+    usedSize = 0;
+    reAlloc(copiedSize);
+    for (int i = 0; i < copiedSize; i++) data[i] = copiedData[i];
   }
 };
 

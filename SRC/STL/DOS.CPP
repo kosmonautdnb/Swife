@@ -33,11 +33,12 @@ String getCWD() {
   String currentWorkingDirectory; currentWorkingDirectory.resize(2048);
   getcwd(&(currentWorkingDirectory[0]),currentWorkingDirectory.length());
   currentWorkingDirectory.resize(strlen(currentWorkingDirectory.c_str()));
-  return unixFileName(currentWorkingDirectory+"/");
+  return unixFileName(currentWorkingDirectory+(currentWorkingDirectory.length()>3?"/":""));
 #endif // defined(__WATCOM__) || defined(__DJGPP__)
 
 #ifdef ON_WINDOWS
- return unixFileName(String((std::filesystem::current_path().string().c_str())))+"/";
+  String currentWorkingDirectory = String(std::filesystem::current_path().string().c_str());
+  return unixFileName(currentWorkingDirectory+(currentWorkingDirectory.length()>3?"/":""));
 #endif // ON_WINDOWS
 }
 
@@ -95,7 +96,7 @@ String currentTimeString() {
   int rtc_seconds = rtcRead(0);
   int rtc_minutes = rtcRead(2);
   int rtc_hours   = rtcRead(4);
-  int rtc_weekday = rtcRead(6);
+  //int rtc_weekday = rtcRead(6);
   int rtc_day     = rtcRead(7);
   int rtc_month   = rtcRead(8);
   int rtc_year    = rtcRead(9);
